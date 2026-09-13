@@ -89,13 +89,37 @@ def discover_sites(config: dict, secrets: dict) -> dict:
 
 
 def fetch_favicon(url: str, dest: Path, timeout: int = 10) -> bool:
-    """Скачивает favicon сайта в api/{slug}/favicon.ico — домен нигде не публикуется."""
+    """Скачивает favicon по конечному пути (следуя редиректам) в api/{slug}/favicon.ico.
+
+    Порядок: /favicon.ico исходного URL (с редиректами), затем DuckDuckGo.
+    Домен сайта нигде не публикуется — иконка хранится локально в репо.
+    """
+    class NoRedirect(urllib.request.HTTPRedirectHandler):
+        def redirect_request(self, req, fp, code, msg, headers, newurl):
+            return None
+
+    final_url = url
     try:
-        host = urllib.parse.urlparse(url).netloc
-        candidates = (f"https://icons.duckduckgo.com/ip3/{host}.ico",
-                      f"{url.rstrip('/')}/favicon.ico")
+        # Разрешаем редиректы вручную, чтобы узнать конечный URL
+        opener = urllib.request.build_opener(NoRedirect)
+        req = urllib.request.Request(url, headers={"User-Agent": "RunicoreMonitor/1.0"})
+        try:
+            with opener.open(req, timeout=timeout) as resp:
+                if 300 <= resp.status < 400:
+                    final_url = resp.headers.get("Location") or url
+        except urllib.error.HTTPError as e:
+            if 300 <= e.code < 400:
+                final_url = e.headers.get("Location") or url
+
+        host = urllib.parse.urlparse(final_url).netloc or urllib.parse.urlparse(url).netloc
+        base = "{0.scheme}://{0.netloc}".format(urllib.parse.urlparse(final_url))
+        candidates = (
+            f"{base}/favicon.ico",
+            f"https://icons.duckduckgo.com/ip3/{urllib.parse.urlparse(final_url).netloc}.ico",
+        )
         for icon_url in candidates:
             try:
+                # urlopen сам следует редиректам
                 req = urllib.request.Request(icon_url, headers={"User-Agent": "RunicoreMonitor/1.0"})
                 with urllib.request.urlopen(req, timeout=timeout, context=ctx) as resp:
                     data = resp.read()
