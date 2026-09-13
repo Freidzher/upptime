@@ -3,13 +3,12 @@
 
 Запуск: python main.py
   1. Заливает секреты из .env в GitHub (sync_secrets.py)
-  2. Запускает Runicore Monitor (проверка сайтов + коммит истории)
+  2. Запускает Monitor (проверка сайтов + коммит истории)
   3. Запускает Static Site CI (деплой Pages)
   4. Ждёт результаты и печатает статусы
 
-Workflow'ы также срабатывают сами: monitor — по cron */5, site — по push
-(assets/history/api/index/site). main.py нужен для ручного запуска
-"всё одним нажатием" и первичной настройки.
+owner/repo берутся из config.json — там же меняется автор и репозиторий.
+Workflow'ы также срабатывают сами: Monitor — по cron */5, Site — по push.
 """
 import json
 import subprocess
@@ -21,12 +20,32 @@ from pathlib import Path
 
 ROOT = Path(__file__).parent
 ENV_FILE = ROOT / ".env"
-REPO = "Freidzher/upptime"
-API = f"https://api.github.com/repos/{REPO}/actions"
+CONFIG_FILE = ROOT / "config.json"
+API = "https://api.github.com/repos/{owner}/{repo}/actions"
+
+
+def load_json(path: Path, default):
+    if path.exists():
+        try:
+            return json.loads(path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            return default
+    return default
+
+
+def cfg() -> dict:
+    return load_json(CONFIG_FILE, {})
+
+
+def repo_actions() -> str:
+    c = cfg()
+    owner = c.get("owner", "Freidzher")
+    repo = c.get("repo", "upptime")
+    return API.format(owner=owner, repo=repo)
 
 
 def token() -> str:
-    for line in ENV_FILE.read_text(encoding="utf-8").splitlines():
+    for line in (ROOT / ".env").read_text(encoding="utf-8").splitlines():
         key, _, value = line.partition("=")
         if key.strip() == "FINE_GRAINED_TOKEN" and value.strip():
             return value.strip()
@@ -47,16 +66,18 @@ def call(url: str, t: str, method: str = "GET", payload=None):
 
 
 def dispatch(t: str, wf: str) -> bool:
-    status, data = call(f"{API}/workflows/{wf}/dispatches", t, "POST", {"ref": "master"})
+    base = repo_actions()
+    status, data = call(f"{base}/workflows/{wf}/dispatches", t, "POST", {"ref": "master"})
     print(f"  dispatch {wf}:", "OK" if status == 204 else f"FAILED {status} {data}")
     return status == 204
 
 
 def wait_run(t: str, wf: str, timeout_s: int = 420) -> str:
     """Ждёт завершения последнего прогона workflow."""
+    base = repo_actions()
     time.sleep(10)
     for _ in range(timeout_s // 15):
-        status, data = call(f"{API}/workflows/{wf}/runs?per_page=1", t)
+        status, data = call(f"{base}/workflows/{wf}/runs?per_page=1", t)
         if status == 200 and data["workflow_runs"]:
             r = data["workflow_runs"][0]
             if r["status"] == "completed":
@@ -77,7 +98,7 @@ def main() -> None:
         raise SystemExit("sync_secrets.py упал — секреты не залиты.")
 
     # 2. Монитор
-    print("[2/3] Монитор (Runicore Monitor)")
+    print("[2/3] Монитор (Monitor)")
     if dispatch(t, "monitor.yml"):
         wait_run(t, "monitor.yml")
 
@@ -86,7 +107,7 @@ def main() -> None:
     if dispatch(t, "site.yml"):
         wait_run(t, "site.yml")
 
-    print("Готово. Сайт: https://freidzher.github.io/upptime/")
+    print("Готово. Сайт: https://" + cfg().get("owner", "Freidzher") + ".github.io/" + cfg().get("repo", "upptime") + "/")
 
 
 if __name__ == "__main__":

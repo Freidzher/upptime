@@ -1,9 +1,11 @@
-name: Runicore Monitor
+name: Monitor
 # Проверка сайтов каждые 5 минут по расписанию + ручной запуск
 
 on:
   schedule:
     - cron: "*/5 * * * *" # каждые 5 минут (GitHub может сдвигать до ~10 мин при высокой загрузке)
+  repository_dispatch:
+    types: [monitor]
   workflow_dispatch:
 
 permissions:
@@ -11,16 +13,19 @@ permissions:
   issues: write
 
 concurrency:
-  group: runicore-monitor
+  group: ${{ github.repository }}-monitor
   cancel-in-progress: false
 
 jobs:
   check:
-    name: Check sites
+    name: Check status
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+          token: ${{ secrets.FINE_GRAINED_TOKEN || github.token }}
 
       - name: Run monitor
         run: python monitor.py
@@ -31,7 +36,7 @@ jobs:
 
       - name: Commit history
         run: |
-          git config user.name "Freidzher"
+          git config user.name "Runicore Bot"
           git config user.email "Freidzher@users.noreply.github.com"
           git add history/ api/
           if git diff --cached --quiet; then

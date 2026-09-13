@@ -11,11 +11,27 @@ import json
 import urllib.request
 from pathlib import Path
 
+import json as _json
+
 ROOT = Path(__file__).parent
+
+
+def load_config() -> dict:
+    try:
+        return _json.loads((ROOT / "config.json").read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+
+def repo() -> str:
+    c = load_config()
+    return f"{c.get('owner', 'Freidzher')}/{c.get('repo', 'upptime')}"
+
+
+_REPO = repo()
 ENV_FILE = ROOT / ".env"
-REPO = "Freidzher/upptime"
-API = f"https://api.github.com/repos/{REPO}/actions/secrets"
-PUBLIC_KEY_URL = f"https://api.github.com/repos/{REPO}/actions/secrets/public-key"
+API = f"https://api.github.com/repos/{_REPO}/actions/secrets"
+PUBLIC_KEY_URL = f"https://api.github.com/repos/{_REPO}/actions/secrets/public-key"
 
 
 def api_request(url: str, token: str, method: str = "GET", payload=None):

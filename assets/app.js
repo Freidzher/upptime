@@ -3,7 +3,6 @@
 (async function () {
   const banner = document.getElementById('banner');
   const rowsEl = document.getElementById('rows');
-  const updated = document.getElementById('updated');
   const incEl = document.getElementById('incidents');
   const incTitle = document.getElementById('incTitle');
 
@@ -12,6 +11,9 @@
     if (!r.ok) throw new Error(url);
     return r.json();
   }
+
+  let owner = 'Freidzher', repo = 'upptime';
+  fetchJson('config.json').then((c) => { owner = c.owner || owner; repo = c.repo || repo; }).catch(() => {});
 
   async function loadAll() {
     try {
@@ -43,6 +45,7 @@
       row.className = 'row';
       row.href = 'site.html?site=' + encodeURIComponent(s.slug);
       row.innerHTML =
+        '<img class="favicon" src="api/' + s.slug + '/favicon.ico" alt="" onerror="this.style.display=\'none\'">' +
         '<span class="dot ' + (up ? 'up' : 'down') + '"></span>' +
         '<span class="name"></span>' +
         '<span class="uptime">' + s.uptimeDay + ' · ' + s.timeDay + ' мс</span>' +
@@ -78,7 +81,7 @@
     d.className = 'incident';
     const when = new Date(info.opened).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' });
     d.innerHTML = '<b></b> — ' + (active ? 'недоступен с ' : 'устранён за ' + info.minutes + ' мин (открыт ') + when + (active ? '' : ')') +
-      ' — <a href="https://github.com/Freidzher/upptime/issues/' + info.issue_number + '">репорт #' + info.issue_number + '</a>';
+      ' — <a href="https://github.com/' + owner + '/' + repo + '/issues/' + info.issue_number + '">репорт #' + info.issue_number + '</a>';
     d.querySelector('b').textContent = info.name || 'Сервис';
     incEl.appendChild(d);
   }

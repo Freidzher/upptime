@@ -5,10 +5,12 @@
   history/{slug}.yml      — последняя проверка сайта (YAML)
   history/summary.json    — агрегированная сводка (аптайм/время за day/week/month/year)
   api/{slug}/points.json  — сырые точки {ts, ok, code, ms} (для графиков)
+  api/{slug}/favicon.ico  — иконка сайта (скачивается при проверке; домен нигде не публикуется)
   api/{slug}/uptime*.json, api/{slug}/response-time*.json — бейджи shields-style
   api/incidents.json      — открытые инциденты
   api/incidents-log.json  — журнал закрытых инцидентов
 
+Конфиг: config.json (owner, repo, names, interval_minutes, history_days, timeout).
 Секреты приходят через SECRETS_CONTEXT (Actions) или .env (локально).
 Служебные (FINE_GRAINED_TOKEN, GH_TOKEN) исключаются. URL нигде не публикуются.
 Автор: Freidzher
@@ -18,6 +20,7 @@ import os
 import time
 import urllib.request
 import urllib.error
+import urllib.parse
 import ssl
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
@@ -30,7 +33,12 @@ ENV_FILE = ROOT / ".env"
 
 SERVICE_KEYS = {"FINE_GRAINED_TOKEN", "GH_TOKEN", "GITHUB_TOKEN"}
 ctx = ssl.create_default_context()
-REPO = os.environ.get("GITHUB_REPOSITORY", "Freidzher/upptime")
+
+
+def repo_slug(config: dict) -> str:
+    owner = config.get("owner") or os.environ.get("GITHUB_REPOSITORY_OWNER", "Freidzher")
+    repo = config.get("repo", "upptime")
+    return f"{owner}/{repo}"
 
 
 def load_env() -> None:
@@ -78,6 +86,27 @@ def discover_sites(config: dict, secrets: dict) -> dict:
             "timeout": config.get("timeout", 10),
         }
     return sites
+
+
+def fetch_favicon(url: str, dest: Path, timeout: int = 10) -> bool:
+    """Скачивает favicon сайта в api/{slug}/favicon.ico — домен нигде не публикуется."""
+    try:
+        host = urllib.parse.urlparse(url).netloc
+        candidates = (f"https://icons.duckduckgo.com/ip3/{host}.ico",
+                      f"{url.rstrip('/')}/favicon.ico")
+        for icon_url in candidates:
+            try:
+                req = urllib.request.Request(icon_url, headers={"User-Agent": "RunicoreMonitor/1.0"})
+                with urllib.request.urlopen(req, timeout=timeout, context=ctx) as resp:
+                    data = resp.read()
+                if data and len(data) > 100:
+                    dest.write_bytes(data)
+                    return True
+            except Exception:
+                continue
+    except Exception:
+        pass
+    return False
 
 
 def check_site(name: str, url: str, timeout: int = 10) -> dict:
@@ -131,8 +160,8 @@ def load_log() -> list:
     return load_json(API_DIR / "incidents-log.json", [])
 
 
-def open_incident(key: str, name: str, result: dict, incidents: dict) -> None:
-    issue = gh_api(f"/repos/{REPO}/issues", "POST", {
+def open_incident(key: str, name: str, result: dict, incidents: dict, repo: str) -> None:
+    issue = gh_api(f"/repos/{repo}/issues", "POST", {
         "title": f"{name} is down",
         "body": (
             f"**{name}** недоступен.\n\n"
@@ -148,7 +177,7 @@ def open_incident(key: str, name: str, result: dict, incidents: dict) -> None:
         print(f"Incident issue #{issue['number']} opened for {name}")
 
 
-def close_incident(key: str, incidents: dict, last_ok_ts: str) -> None:
+def close_incident(key: str, incidents: dict, last_ok_ts: str, repo: str) -> None:
     info = incidents.pop(key, None)
     if not info:
         return
@@ -156,10 +185,10 @@ def close_incident(key: str, incidents: dict, last_ok_ts: str) -> None:
     opened = datetime.fromisoformat(info["opened"]).replace(tzinfo=timezone.utc)
     closed = datetime.fromisoformat(last_ok_ts).replace(tzinfo=timezone.utc)
     minutes = max(1, round((closed - opened).total_seconds() / 60))
-    gh_api(f"/repos/{REPO}/issues/{num}", "POST", {
+    gh_api(f"/repos/{repo}/issues/{num}", "POST", {
         "body": f"✅ {info.get('name', key)} восстановлено в {last_ok_ts}. Устранено за ~{minutes} мин."
     })
-    gh_api(f"/repos/{REPO}/issues/{num}", "PATCH", {"state": "closed"})
+    gh_api(f"/repos/{repo}/issues/{num}", "PATCH", {"state": "closed"})
     log = load_log()
     log.append({
         "name": info.get("name", key),
@@ -232,7 +261,7 @@ def daily_minutes_down(points_list: list, interval_min: int) -> dict:
     return out
 
 
-def write_site_files(slug: str, name: str, points: list, last: dict, interval_min: int) -> None:
+def write_site_files(slug: str, points: list, last: dict) -> None:
     api = API_DIR / slug
     api.mkdir(parents=True, exist_ok=True)
 
@@ -300,6 +329,7 @@ def main() -> None:
 
     interval_min = int(config.get("interval_minutes", 5))
     incidents = load_json(API_DIR / "incidents.json", {})
+    repo = repo_slug(config)
 
     HISTORY_DIR.mkdir(exist_ok=True)
 
@@ -308,6 +338,10 @@ def main() -> None:
         result = check_site(name, site["url"], site["timeout"])
 
         api = API_DIR / slug
+        api.mkdir(parents=True, exist_ok=True)
+        if not (api / "favicon.ico").exists():
+            fetch_favicon(site["url"], api / "favicon.ico", site["timeout"])
+
         points = load_json(api / "points.json", [])
         points.append(result)
         max_points = int(config.get("history_days", 90)) * 24 * 12
@@ -315,12 +349,12 @@ def main() -> None:
             points = points[-max_points:]
         write_json(api / "points.json", points)
 
-        write_site_files(slug, name, points, result, interval_min)
+        write_site_files(slug, points, result)
 
         if not result["ok"] and key not in incidents:
-            open_incident(key, name, result, incidents)
+            open_incident(key, name, result, incidents, repo)
         elif result["ok"] and key in incidents:
-            close_incident(key, incidents, result["ts"])
+            close_incident(key, incidents, result["ts"], repo)
 
     # Итоговый summary по всем сайтам
     history_points = {s["slug"]: load_json(API_DIR / s["slug"] / "points.json", []) for s in sites.values()}
