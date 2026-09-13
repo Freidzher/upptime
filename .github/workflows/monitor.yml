@@ -37,7 +37,7 @@ jobs:
           if git diff --cached --quiet; then
             echo "No changes"
           else
-            git commit -m "Monitor: update history [skip ci]"
+            git commit -m "Monitor: update history"
             # Устойчивый push: подтягиваем чужие коммиты (параллельные прогоны) и ретраим
             for i in 1 2 3; do
               git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push && break
