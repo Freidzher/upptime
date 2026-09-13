@@ -32,9 +32,6 @@ jobs:
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
-        with:
-          # Автоматически включает Pages, если ещё не включён
-          enablement: true
 
       - name: Upload site
         uses: actions/upload-pages-artifact@v3
