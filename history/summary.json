@@ -1,0 +1,34 @@
+[
+ {
+  "name": "Сайт-визитка",
+  "slug": "server1",
+  "status": "up",
+  "uptime": "100.00%",
+  "uptimeDay": "100.00%",
+  "uptimeWeek": "100.00%",
+  "uptimeMonth": "100.00%",
+  "uptimeYear": "100.00%",
+  "time": 242,
+  "timeDay": 242,
+  "timeWeek": 242,
+  "timeMonth": 242,
+  "timeYear": 242,
+  "dailyMinutesDown": {}
+ },
+ {
+  "name": "Google",
+  "slug": "server2",
+  "status": "up",
+  "uptime": "100.00%",
+  "uptimeDay": "100.00%",
+  "uptimeWeek": "100.00%",
+  "uptimeMonth": "100.00%",
+  "uptimeYear": "100.00%",
+  "time": 391,
+  "timeDay": 391,
+  "timeWeek": 391,
+  "timeMonth": 391,
+  "timeYear": 391,
+  "dailyMinutesDown": {}
+ }
+]

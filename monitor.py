@@ -1,10 +1,16 @@
 #!/usr/bin/env python3
 """Runicore Monitor — собственная система мониторинга доступности.
 
-Секреты приходят целиком через SECRETS_CONTEXT (динамически из workflow)
-или из локального .env. Служебные (FINE_GRAINED_TOKEN, GH_TOKEN) исключаются.
-Имена сайтов — из config.json (names), иначе генерируются из ключа.
-История хранится по ключу секрета (стабильно при смене имени).
+Хранение как у Upptime:
+  history/{slug}.yml      — последняя проверка сайта (YAML)
+  history/summary.json    — агрегированная сводка (аптайм/время за day/week/month/year)
+  api/{slug}/points.json  — сырые точки {ts, ok, code, ms} (для графиков)
+  api/{slug}/uptime*.json, api/{slug}/response-time*.json — бейджи shields-style
+  api/incidents.json      — открытые инциденты
+  api/incidents-log.json  — журнал закрытых инцидентов
+
+Секреты приходят через SECRETS_CONTEXT (Actions) или .env (локально).
+Служебные (FINE_GRAINED_TOKEN, GH_TOKEN) исключаются. URL нигде не публикуются.
 Автор: Freidzher
 """
 import json
@@ -13,15 +19,13 @@ import time
 import urllib.request
 import urllib.error
 import ssl
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 ROOT = Path(__file__).parent
 CONFIG_FILE = ROOT / "config.json"
-DATA = ROOT / "data"
-HISTORY_FILE = DATA / "status.json"
-INCIDENTS_FILE = DATA / "incidents.json"      # текущие открытые
-INCIDENTS_LOG = DATA / "incidents_log.json"   # журнал всех (для сайта)
+HISTORY_DIR = ROOT / "history"
+API_DIR = ROOT / "api"
 ENV_FILE = ROOT / ".env"
 
 SERVICE_KEYS = {"FINE_GRAINED_TOKEN", "GH_TOKEN", "GITHUB_TOKEN"}
@@ -41,7 +45,6 @@ def load_env() -> None:
 
 
 def load_secrets() -> dict:
-    """Все секреты: из SECRETS_CONTEXT (Actions) или .env (локально)."""
     raw = os.environ.get("SECRETS_CONTEXT")
     if raw:
         try:
@@ -56,6 +59,10 @@ def pretty_name(key: str) -> str:
     return key.replace("_", " ").strip().title()
 
 
+def slugify(key: str) -> str:
+    return key.strip().lower().replace("_", "-")
+
+
 def discover_sites(config: dict, secrets: dict) -> dict:
     custom = config.get("names", {})
     sites = {}
@@ -65,6 +72,7 @@ def discover_sites(config: dict, secrets: dict) -> dict:
         if not value or not value.startswith(("http://", "https://")):
             continue
         sites[key] = {
+            "slug": slugify(key),
             "name": custom.get(key, pretty_name(key)),
             "url": value,
             "timeout": config.get("timeout", 10),
@@ -107,14 +115,20 @@ def gh_api(path: str, method: str = "GET", payload=None):
 
 def load_json(path: Path, default):
     if path.exists():
-        return json.loads(path.read_text(encoding="utf-8"))
+        try:
+            return json.loads(path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            return default
     return default
 
 
+def write_json(path: Path, data) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
+
+
 def load_log() -> list:
-    if INCIDENTS_LOG.exists():
-        return json.loads(INCIDENTS_LOG.read_text(encoding="utf-8"))
-    return []
+    return load_json(API_DIR / "incidents-log.json", [])
 
 
 def open_incident(key: str, name: str, result: dict, incidents: dict) -> None:
@@ -146,31 +160,134 @@ def close_incident(key: str, incidents: dict, last_ok_ts: str) -> None:
         "body": f"✅ {info.get('name', key)} восстановлено в {last_ok_ts}. Устранено за ~{minutes} мин."
     })
     gh_api(f"/repos/{REPO}/issues/{num}", "PATCH", {"state": "closed"})
-    # Журнал для сайта
     log = load_log()
     log.append({
         "name": info.get("name", key),
+        "slug": slugify(key),
         "issue_number": num,
         "opened": info["opened"],
         "resolved": last_ok_ts,
         "minutes": minutes,
     })
-    INCIDENTS_LOG.write_text(json.dumps(log[-100:], ensure_ascii=False, indent=1), encoding="utf-8")
+    write_json(API_DIR / "incidents-log.json", log[-100:])
     print(f"Incident issue #{num} closed for {key}")
 
 
-def migrate(history: dict, config: dict) -> dict:
-    """Старый формат {name: [points]} -> новый {key: {name, points}}."""
-    custom = config.get("names", {})
-    if any(isinstance(v, list) for v in history.values()):
-        new_hist = {}
-        for old_key, val in history.items():
-            if isinstance(val, list):
-                new_hist[old_key] = {"name": custom.get(old_key, pretty_name(old_key)), "points": val}
-            else:
-                new_hist[old_key] = val
-        return new_hist
-    return history
+# ---------- Хранение в стиле Upptime ----------
+
+def badge(label: str, message: str, color: str) -> dict:
+    return {"schemaVersion": 1, "label": label, "message": message, "color": color}
+
+
+def pct_color(p: float) -> str:
+    if p >= 99.5:
+        return "brightgreen"
+    if p >= 95:
+        return "green"
+    if p >= 90:
+        return "yellowgreen"
+    if p >= 80:
+        return "orange"
+    return "red"
+
+
+def rt_color(ms: float) -> str:
+    if ms < 300:
+        return "brightgreen"
+    if ms < 800:
+        return "green"
+    if ms < 1000:
+        return "yellow"
+    return "red"
+
+
+def window(points: list, hours: float) -> list:
+    cutoff = (datetime.now(timezone.utc) - timedelta(hours=hours)).timestamp()
+    return [p for p in points if _ts(p) > cutoff]
+
+
+def _ts(p: dict) -> float:
+    return datetime.fromisoformat(p["ts"]).timestamp()
+
+
+def uptime_pct(points: list, hours: float) -> float:
+    w = window(points, hours)
+    if not w:
+        return 100.0
+    return 100.0 * sum(1 for p in w if p["ok"]) / len(w)
+
+
+def avg_ms(points: list, hours: float) -> float:
+    w = [p for p in window(points, hours) if p["ok"]]
+    return round(sum(p["ms"] for p in w) / len(w)) if w else 0
+
+
+def daily_minutes_down(points_list: list, interval_min: int) -> dict:
+    """Примерное время простоя по дням: failed-проверки * интервал."""
+    out = {}
+    for p in points_list:
+        if not p["ok"]:
+            day = p["ts"][:10]
+            out[day] = out.get(day, 0) + interval_min
+    return out
+
+
+def write_site_files(slug: str, name: str, points: list, last: dict, interval_min: int) -> None:
+    api = API_DIR / slug
+    api.mkdir(parents=True, exist_ok=True)
+
+    # Сырые точки для графиков (хранится 90 дней)
+    max_points = 90 * 24 * 12
+    write_json(api / "points.json", points[-max_points:])
+
+    # Последняя проверка (history/{slug}.yml, как у Upptime, но без URL)
+    start_time = points[0]["ts"] if points else last["ts"]
+    (HISTORY_DIR / f"{slug}.yml").write_text(
+        f"status: {'up' if last['ok'] else 'down'}\n"
+        f"code: {last['code']}\n"
+        f"responseTime: {last['ms']}\n"
+        f"lastUpdated: {last['ts']}\n"
+        f"startTime: {start_time}\n"
+        f"generator: Runicore <https://github.com/Freidzher/upptime>\n",
+        encoding="utf-8",
+    )
+
+    # Бейджи
+    windows = {"": 24 * 365, "-day": 24, "-week": 24 * 7, "-month": 24 * 30, "-year": 24 * 365}
+    labels = {"": "", "-day": " 24h", "-week": " 7d", "-month": " 30d", "-year": " 1y"}
+    for suffix, hours in windows.items():
+        p = uptime_pct(points, hours) if points else 100.0
+        write_json(api / f"uptime{suffix}.json",
+                   badge(f"uptime{labels[suffix]}", f"{p:.2f}%", pct_color(p)))
+        m = avg_ms(points, hours)
+        if m:
+            write_json(api / f"response-time{suffix}.json",
+                       badge(f"response time{labels[suffix]}", f"{m} ms", rt_color(m)))
+
+
+def build_summary(sites: dict, history_points: dict, interval_min: int) -> list:
+    summary = []
+    for key, site in sites.items():
+        slug = site["slug"]
+        points = history_points.get(slug, [])
+        last = points[-1] if points else {"ok": True, "ms": 0, "code": 0, "ts": ""}
+        summary.append({
+            "name": site["name"],
+            "slug": slug,
+            "status": "up" if (points and last["ok"]) else "down",
+            "uptime": f"{uptime_pct(points, 24 * 90):.2f}%",
+            "uptimeDay": f"{uptime_pct(points, 24):.2f}%",
+            "uptimeWeek": f"{uptime_pct(points, 24 * 7):.2f}%",
+            "uptimeMonth": f"{uptime_pct(points, 24 * 30):.2f}%",
+            "uptimeYear": f"{uptime_pct(points, 24 * 365):.2f}%",
+            "time": avg_ms(points, 24 * 90),
+            "timeDay": avg_ms(points, 24),
+            "timeWeek": avg_ms(points, 24 * 7),
+            "timeMonth": avg_ms(points, 24 * 30),
+            "timeYear": avg_ms(points, 24 * 365),
+            "dailyMinutesDown": daily_minutes_down(points, interval_min),
+        })
+    return summary
 
 
 def main() -> None:
@@ -181,31 +298,38 @@ def main() -> None:
     if not sites:
         raise SystemExit("Не найдено ни одного сайта (секретов с URL).")
 
-    history = load_json(HISTORY_FILE, {})
-    incidents = load_json(INCIDENTS_FILE, {})
-    history = migrate(history, config)
+    interval_min = int(config.get("interval_minutes", 5))
+    incidents = load_json(API_DIR / "incidents.json", {})
+
+    HISTORY_DIR.mkdir(exist_ok=True)
 
     for key, site in sites.items():
-        name = site["name"]
+        slug, name = site["slug"], site["name"]
         result = check_site(name, site["url"], site["timeout"])
-        entry = history.setdefault(key, {"name": name, "points": []})
-        entry["name"] = name  # всегда актуальное имя
-        entry["points"].append(result)
+
+        api = API_DIR / slug
+        points = load_json(api / "points.json", [])
+        points.append(result)
         max_points = int(config.get("history_days", 90)) * 24 * 12
-        if len(entry["points"]) > max_points:
-            entry["points"] = entry["points"][-max_points:]
+        if len(points) > max_points:
+            points = points[-max_points:]
+        write_json(api / "points.json", points)
+
+        write_site_files(slug, name, points, result, interval_min)
 
         if not result["ok"] and key not in incidents:
             open_incident(key, name, result, incidents)
         elif result["ok"] and key in incidents:
             close_incident(key, incidents, result["ts"])
 
-    DATA.mkdir(exist_ok=True)
-    HISTORY_FILE.write_text(json.dumps(history, ensure_ascii=False, indent=1), encoding="utf-8")
-    INCIDENTS_FILE.write_text(json.dumps(incidents, ensure_ascii=False, indent=1), encoding="utf-8")
-    if not INCIDENTS_LOG.exists():
-        INCIDENTS_LOG.write_text("[]", encoding="utf-8")
-    print("Saved:", HISTORY_FILE, INCIDENTS_FILE)
+    # Итоговый summary по всем сайтам
+    history_points = {s["slug"]: load_json(API_DIR / s["slug"] / "points.json", []) for s in sites.values()}
+    write_json(HISTORY_DIR / "summary.json", build_summary(sites, history_points, interval_min))
+
+    write_json(API_DIR / "incidents.json", incidents)
+    if not load_log():
+        write_json(API_DIR / "incidents-log.json", [])
+    print("Saved:", HISTORY_DIR / "summary.json")
 
 
 if __name__ == "__main__":

@@ -6,7 +6,8 @@ on:
       - "assets/**"
       - "index.html"
       - "site.html"
-      - "data/**"
+      - "history/**"
+      - "api/**"
       - "config.json"
   workflow_dispatch:
 
