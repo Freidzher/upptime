@@ -1,0 +1,45 @@
+name: Runicore Monitor
+
+on:
+  schedule:
+    - cron: "*/5 * * * *" # каждые 5 минут (GitHub может сдвигать до ~10 мин при высокой загрузке)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: runicore-monitor
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Check sites
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run monitor
+        run: python monitor.py
+        env:
+          # Все секреты разом (динамически) — monitor.py сам отфильтрует служебные
+          SECRETS_CONTEXT: ${{ toJson(secrets) }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+
+      - name: Commit history
+        run: |
+          git config user.name "Freidzher"
+          git config user.email "Freidzher@users.noreply.github.com"
+          git add data/
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
+            git commit -m "Monitor: update history [skip ci]"
+            # Устойчивый push: подтягиваем чужие коммиты (параллельные прогоны) и ретраим
+            for i in 1 2 3; do
+              git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push && break
+              sleep $((i * 5))
+            done
+          fi

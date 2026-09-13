@@ -1,0 +1,9 @@
+{
+  "names": {
+    "SERVER1": "Сайт-визитка",
+    "SERVER2": "Google"
+  },
+  "interval_minutes": 5,
+  "history_days": 90,
+  "timeout": 30
+}
