@@ -1,21 +1,5 @@
 [
  {
-  "name": "Сайт-визитка",
-  "slug": "server1",
-  "status": "up",
-  "uptime": "100.00%",
-  "uptimeDay": "100.00%",
-  "uptimeWeek": "100.00%",
-  "uptimeMonth": "100.00%",
-  "uptimeYear": "100.00%",
-  "time": 557,
-  "timeDay": 557,
-  "timeWeek": 557,
-  "timeMonth": 557,
-  "timeYear": 557,
-  "dailyMinutesDown": {}
- },
- {
   "name": "Google",
   "slug": "server2",
   "status": "up",
@@ -24,11 +8,27 @@
   "uptimeWeek": "100.00%",
   "uptimeMonth": "100.00%",
   "uptimeYear": "100.00%",
-  "time": 322,
-  "timeDay": 322,
-  "timeWeek": 322,
-  "timeMonth": 322,
-  "timeYear": 322,
+  "time": 288,
+  "timeDay": 288,
+  "timeWeek": 288,
+  "timeMonth": 288,
+  "timeYear": 288,
+  "dailyMinutesDown": {}
+ },
+ {
+  "name": "Сайт-визитка",
+  "slug": "server1",
+  "status": "up",
+  "uptime": "100.00%",
+  "uptimeDay": "100.00%",
+  "uptimeWeek": "100.00%",
+  "uptimeMonth": "100.00%",
+  "uptimeYear": "100.00%",
+  "time": 725,
+  "timeDay": 725,
+  "timeWeek": 725,
+  "timeMonth": 725,
+  "timeYear": 725,
   "dailyMinutesDown": {}
  }
 ]
