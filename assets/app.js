@@ -1,5 +1,5 @@
 // Runicore Status — главная страница. Автор: Freidzher
-// Компактный список сайтов; детали — на отдельной странице site.html?site=KEY
+// Данные: history/summary.json (агрегат как у Upptime) + api/incidents*.json
 (async function () {
   const banner = document.getElementById('banner');
   const rowsEl = document.getElementById('rows');
@@ -7,7 +7,6 @@
   const incEl = document.getElementById('incidents');
   const incTitle = document.getElementById('incTitle');
 
-  let cfg = {};
   async function fetchJson(url) {
     const r = await fetch(url + '?t=' + Date.now(), { cache: 'no-store' });
     if (!r.ok) throw new Error(url);
@@ -16,69 +15,47 @@
 
   async function loadAll() {
     try {
-      const [c, s, cur, log] = await Promise.all([
-        fetchJson('config.json').catch(() => ({})),
-        fetchJson('data/status.json'),
-        fetchJson('data/incidents.json').catch(() => ({})),
-        fetchJson('data/incidents_log.json').catch(() => []),
+      const [summary, cur, log] = await Promise.all([
+        fetchJson('history/summary.json'),
+        fetchJson('api/incidents.json').catch(() => ({})),
+        fetchJson('api/incidents-log.json').catch(() => []),
       ]);
-      cfg = c;
-      render(s, cur, log);
+      render(summary, cur, log);
     } catch (e) {
       banner.className = 'banner fail';
       banner.textContent = '⚠ Не удалось загрузить данные мониторинга';
     }
   }
 
-  function render(data, incidents, log) {
-    const namesCfg = cfg.names || {};
-    const names = Object.keys(data).filter((k) => {
-      const pts = Array.isArray(data[k]) ? data[k] : (data[k].points || []);
-      return pts && pts.length;
-    });
-    if (!names.length) { banner.textContent = 'Нет данных — монитор ещё не запускался'; return; }
+  function render(summary, incidents, log) {
+    if (!summary.length) { banner.textContent = 'Нет данных — монитор ещё не запускался'; return; }
 
-    const points = (n) => (Array.isArray(data[n]) ? data[n] : (data[n].points || []));
-    const siteName = (n) => namesCfg[n] || (Array.isArray(data[n]) ? n : (data[n].name || n));
-    const last = (n) => { const a = points(n); return a[a.length - 1]; };
-    const allUp = names.every((n) => last(n) && last(n).ok);
+    const allUp = summary.every((s) => s.status === 'up');
     banner.className = 'banner ' + (allUp ? 'ok' : 'fail');
     banner.innerHTML = allUp
       ? '<span class="icon">🟢</span> Все системы работают'
       : '<span class="icon">🔴</span> Обнаружены проблемы с сервисами';
-    updated.textContent = 'Обновлено: ' + new Date(last(names[0]).ts).toLocaleTimeString('ru-RU', { timeZone: 'Europe/Moscow', hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
-    const cutoff = Date.now() - 24 * 3600 * 1000;
-    const uptime24 = (n) => {
-      const r = points(n).filter((e) => new Date(e.ts).getTime() > cutoff);
-      return r.length ? ((r.filter((e) => e.ok).length / r.length) * 100).toFixed(1) + '%' : '—';
-    };
 
     rowsEl.innerHTML = '';
-    for (const key of names) {
-      const cur = last(key);
-      const name = siteName(key);
-
+    for (const s of summary) {
+      const up = s.status === 'up';
       const row = document.createElement('a');
       row.className = 'row';
-      row.href = 'site.html?site=' + encodeURIComponent(key);
+      row.href = 'site.html?site=' + encodeURIComponent(s.slug);
       row.innerHTML =
-        '<span class="dot ' + (cur.ok ? 'up' : 'down') + '"></span>' +
+        '<span class="dot ' + (up ? 'up' : 'down') + '"></span>' +
         '<span class="name"></span>' +
-        '<span class="uptime">' + uptime24(key) + '</span>' +
+        '<span class="uptime">' + s.uptimeDay + ' · ' + s.timeDay + ' мс</span>' +
         '<span class="chevron">→</span>';
-      row.querySelector('.name').textContent = name;
+      row.querySelector('.name').textContent = s.name;
       rowsEl.appendChild(row);
     }
 
-    // Активные инциденты
     const openInc = Object.entries(incidents || {});
-    // Прошлые (закрытые)
     const past = (log || []).slice().reverse();
 
     incEl.innerHTML = '';
-    let hasAny = openInc.length || past.length;
-    incTitle.style.display = hasAny ? '' : 'none';
+    incTitle.style.display = (openInc.length || past.length) ? '' : 'none';
 
     if (openInc.length) {
       const t = document.createElement('div');
@@ -106,7 +83,6 @@
     incEl.appendChild(d);
   }
 
-  // Первая отрисовка + автообновление каждую минуту
   await loadAll();
   setInterval(loadAll, 60000);
 })();

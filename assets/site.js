@@ -1,13 +1,12 @@
 // Runicore Status — страница статистики сайта. Автор: Freidzher
-// Данные: data/status.json, ключ из URL (?site=KEY)
+// Данные: history/summary.json (агрегаты) + api/{slug}/points.json (график)
 (async function () {
   const banner = document.getElementById('banner');
-  const updated = document.getElementById('updated');
   const nameEl = document.getElementById('siteName');
   const statsEl = document.getElementById('stats');
 
   const params = new URLSearchParams(location.search);
-  const key = params.get('site') || '';
+  const slug = params.get('site') || '';
 
   async function fetchJson(url) {
     const r = await fetch(url + '?t=' + Date.now(), { cache: 'no-store' });
@@ -41,56 +40,42 @@
 
   async function load() {
     try {
-      const [cfg, data] = await Promise.all([
-        fetchJson('config.json').catch(() => ({})),
-        fetchJson('data/status.json'),
+      const [summary, points] = await Promise.all([
+        fetchJson('history/summary.json'),
+        fetchJson('api/' + slug + '/points.json').catch(() => []),
       ]);
-      const entry = data[key];
-      const pts = entry ? (Array.isArray(entry) ? entry : entry.points || []) : [];
-      const namesCfg = cfg.names || {};
-      const name = namesCfg[key] || (entry && !Array.isArray(entry) && entry.name) || key || 'Неизвестный сайт';
-      document.title = name + ' — Runicore';
-      nameEl.textContent = name;
-
-      if (!pts.length) {
+      const s = summary.find((x) => x.slug === slug);
+      if (!s) {
         banner.className = 'banner fail';
-        banner.textContent = 'Нет данных по этому сайту';
+        banner.textContent = 'Сайт не найден';
         return;
       }
+      document.title = s.name + ' — Runicore';
+      nameEl.textContent = s.name;
 
-      const last = pts[pts.length - 1];
-      banner.className = 'banner ' + (last.ok ? 'ok' : 'fail');
-      banner.innerHTML = last.ok ? '<span class="icon">🟢</span> Работает' : '<span class="icon">🔴</span> Недоступен';
-      updated.textContent = 'Обновлено: ' + new Date(last.ts).toLocaleTimeString('ru-RU', { timeZone: 'Europe/Moscow', hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
-      const now = Date.now();
-      const uptime = (hours) => {
-        const cutoff = now - hours * 3600 * 1000;
-        const r = pts.filter((e) => new Date(e.ts).getTime() > cutoff);
-        return r.length ? ((r.filter((e) => e.ok).length / r.length) * 100).toFixed(1) + '%' : '—';
-      };
-      const recent = pts.filter((e) => new Date(e.ts).getTime() > now - 24 * 3600 * 1000);
-      const avgMs = recent.length ? Math.round(recent.reduce((s, e) => s + e.ms, 0) / recent.length) : 0;
+      const up = s.status === 'up';
+      banner.className = 'banner ' + (up ? 'ok' : 'fail');
+      banner.innerHTML = up ? '<span class="icon">🟢</span> Работает' : '<span class="icon">🔴</span> Недоступен';
 
       const stats = [
-        { v: last.ok ? '🟢 UP' : '🔴 DOWN', l: 'Текущий статус' },
-        { v: last.ms + ' мс', l: 'Отклик сейчас' },
-        { v: avgMs + ' мс', l: 'Средний за 24ч' },
-        { v: uptime(24), l: 'Аптайм 24 часа' },
-        { v: uptime(24 * 7), l: 'Аптайм 7 дней' },
-        { v: recent.length, l: 'Проверок за 24ч' },
+        { v: up ? '🟢 UP' : '🔴 DOWN', l: 'Текущий статус' },
+        { v: s.timeDay + ' мс', l: 'Отклик за 24ч' },
+        { v: s.timeWeek + ' мс', l: 'Отклик за 7д' },
+        { v: s.uptimeDay, l: 'Аптайм 24 часа' },
+        { v: s.uptimeWeek, l: 'Аптайм 7 дней' },
+        { v: s.uptimeMonth, l: 'Аптайм 30 дней' },
       ];
       statsEl.innerHTML = '';
-      for (const s of stats) {
+      for (const st of stats) {
         const d = document.createElement('div');
         d.className = 'stat';
         d.innerHTML = '<div class="v"></div><div class="l"></div>';
-        d.querySelector('.v').textContent = s.v;
-        d.querySelector('.l').textContent = s.l;
+        d.querySelector('.v').textContent = st.v;
+        d.querySelector('.l').textContent = st.l;
         statsEl.appendChild(d);
       }
 
-      drawChart(document.getElementById('chart'), pts);
+      drawChart(document.getElementById('chart'), points || []);
     } catch (e) {
       banner.className = 'banner fail';
       banner.textContent = '⚠ Не удалось загрузить данные';
