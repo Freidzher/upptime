@@ -32,6 +32,8 @@ jobs:
         env:
           # Все секреты разом (динамически) — monitor.py сам отфильтрует служебные
           SECRETS_CONTEXT: ${{ toJson(secrets) }}
+          # Токен для API GitHub (создание/закрытие Issue-инцидентов)
+          GH_TOKEN: ${{ secrets.FINE_GRAINED_TOKEN || github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
 
       - name: Commit history and trigger site deploy

@@ -45,7 +45,8 @@
       row.className = 'row';
       row.href = 'site.html?site=' + encodeURIComponent(s.slug);
       row.innerHTML =
-        '<img class="favicon" src="api/' + s.slug + '/favicon.ico" alt="" onerror="this.style.display=\'none\'">' +
+        '<img class="favicon" src="api/' + s.slug + '/favicon.ico" alt="" ' +
+        'onerror="this.onerror=function(){this.style.display=\'none\'};this.src=\'api/' + s.slug + '/icon.svg\'">' +
         '<span class="dot ' + (up ? 'up' : 'down') + '"></span>' +
         '<span class="name"></span>' +
         '<span class="uptime">' + s.uptimeDay + ' · ' + s.timeDay + ' мс</span>' +

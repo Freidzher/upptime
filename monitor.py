@@ -17,6 +17,7 @@
 """
 import json
 import os
+import re
 import sys
 import time
 import urllib.request
@@ -95,7 +96,78 @@ def discover_sites(config: dict, secrets: dict) -> dict:
     return sites
 
 
+ICON_LINK_RE = re.compile(
+    r"<link[^>]+rel=[\"'][^\"']*(icon|apple-touch-icon)[^\"']*[\"'][^>]*>", re.I)
+ICON_HREF_RE = re.compile(r"href=[\"']([^\"']+)[\"']", re.I)
+
+
+def _get(url: str, timeout: int, allow_insecure: bool = True):
+    """GET с полными редиректами; при SSL-mismatch — повтор без верификации."""
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "RunicoreMonitor/1.0"})
+        return urllib.request.urlopen(req, timeout=timeout, context=ctx)
+    except urllib.error.URLError as e:
+        if allow_insecure and isinstance(getattr(e, "reason", None), ssl.SSLCertVerificationError):
+            req = urllib.request.Request(url, headers={"User-Agent": "RunicoreMonitor/1.0"})
+            return urllib.request.urlopen(req, timeout=timeout,
+                                          context=ssl._create_unverified_context())
+        raise
+
+
+def _save(dest: Path, resp) -> bool:
+    data = resp.read()
+    if data and len(data) > 100:
+        dest.write_bytes(data)
+        return True
+    return False
+
+
+def _icon_candidates(url: str, timeout: int) -> list:
+    """Строит кандидатов: <link rel=icon> из HTML, /favicon.ico, DuckDuckGo, Google S2."""
+    out = []
+    try:
+        with _get(url, timeout) as resp:
+            final_url = resp.geturl()
+            html = resp.read(200_000).decode("utf-8", "replace")
+        # Ищем <link ... rel="... icon ...">
+        for m in ICON_LINK_RE.finditer(html):
+            href = m.group(1)
+            if href:
+                out.append(urllib.parse.urljoin(final_url, href))
+    except Exception:
+        final_url = url
+    try:
+        p = urllib.parse.urlparse(final_url)
+        base = f"{p.scheme}://{p.netloc}"
+        out.append(f"{base}/favicon.ico")
+        out.append(f"https://icons.duckduckgo.com/ip3/{p.netloc}.ico")
+        out.append(f"https://www.google.com/s2/favicons?domain={p.netloc}&sz=64")
+    except Exception:
+        pass
+    return out
+
+
 def fetch_favicon(url: str, dest: Path, timeout: int = 10) -> bool:
+    """Обновляет api/{slug}/favicon.ico при каждой проверке.
+
+    Источники по порядку: <link rel=icon> из HTML конечной страницы,
+    /favicon.ico конечного origin, DuckDuckGo, Google S2.
+    Домен сайта нигде не публикуется — иконка хранится локально в репо.
+    """
+    for icon_url in _icon_candidates(url, timeout):
+        try:
+            with _get(icon_url, timeout) as resp:
+                data = resp.read()
+            if data and len(data) > 100:
+                dest.write_bytes(data)
+                return True
+        except Exception:
+            continue
+    return False
+
+
+def _fetch_favicon_old(url: str, dest: Path, timeout: int = 10) -> bool:
+    """(устаревшая, оставлена на всякий случай)"""
     """Скачивает favicon по конечному пути (следуя редиректам) в api/{slug}/favicon.ico.
 
     Порядок: /favicon.ico исходного URL (с редиректами), затем DuckDuckGo.
@@ -373,6 +445,21 @@ def build_summary(sites: dict, history_points: dict, interval_min: int) -> list:
     return summary
 
 
+def leading_emoji(name: str) -> str:
+    """Возвращает ведущий эмодзи имени (включая флаги 🇸🇪) или ''."""
+    m = re.match(r"^[\U0001F1E6-\U0001F1FF]{2}|\U0001F300-\U0001FAFF|\u2600-\u27BF", name)
+    return m.group(0) if m else ""
+
+
+def write_emoji_svg(slug: str, emoji: str) -> None:
+    """SVG-иконка с эмодзи (для названий с ведущим эмодзи, когда favicon не скачан)."""
+    svg = (
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
+        f'<text x="16" y="24" font-size="24" text-anchor="middle">{emoji}</text></svg>'
+    )
+    (API_DIR / slug / "icon.svg").write_text(svg, encoding="utf-8")
+
+
 def main() -> None:
     load_env()
     config = load_json(CONFIG_FILE, {})
@@ -394,7 +481,11 @@ def main() -> None:
         api = API_DIR / slug
         api.mkdir(parents=True, exist_ok=True)
         # Favicon обновляется при каждой проверке
-        fetch_favicon(site["url"], api / "favicon.ico", site["timeout"])
+        if not fetch_favicon(site["url"], api / "favicon.ico", site["timeout"]):
+            # Если favicon взять не удалось, но в имени есть эмодзи — используем его
+            emoji = leading_emoji(name)
+            if emoji:
+                write_emoji_svg(slug, emoji)
 
         points = load_json(api / "points.json", [])
         points.append(result)
