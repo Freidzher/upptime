@@ -380,43 +380,13 @@ def leading_emoji(name: str) -> str:
     return m.group(0) if m else ""
 
 
-def write_emoji_svg(slug: str, emoji: str, text: str = "") -> None:
-    """SVG-иконка (для названий с ведущим эмодзи, когда favicon не скачан).
-
-    Флаги-эмодзи (🇸🇪) рисуются программно: на Windows они не рендерятся.
-    Для флага по коду страны рисуем вертикальные полосы цветов флага.
-    """
-    flag_colors = {
-        "SE": ["#006AA7", "#FECC00"],   # Швеция: синий, жёлтый
-        "FI": ["#FFFFFF", "#003580"],   # Финляндия
-        "NO": ["#BA0C2F", "#00205B"],
-        "DE": ["#000000", "#DD0000", "#FFCE00"],
-        "FR": ["#0055A4", "#FFFFFF", "#EF4135"],
-        "RU": ["#FFFFFF", "#0039A6", "#D52B1E"],
-        "UA": ["#005BBB", "#FFD500"],
-        "PL": ["#FFFFFF", "#DC143C"],
-        "US": ["#3C3B6E", "#B22234"],
-        "GB": ["#012169", "#C8102E"],
-        "NL": ["#AE1C28", "#FFFFFF", "#21468B"],
-        "CZ": ["#FFFFFF", "#D7141A"],
-    }
-    bars = ""
-    if len(emoji) == 2 and all(0x1F1E6 <= ord(c) <= 0x1F1FF for c in emoji):
-        # Это региональный флаг: рисуем цветные полосы
-        code = "".join(chr(ord(c) - 0x1F1E6 + ord("A")) for c in emoji)
-        colors = flag_colors.get(code, ["#888888"])
-        n = len(colors)
-        for i, col in enumerate(colors):
-            w = 32 / n
-            bars += f'<rect x="{i * w:.1f}" y="0" width="{w:.1f}" height="32" fill="{col}"/>'
-        svg = f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">{bars}</svg>'
-    else:
-        svg = (
-            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
-            f'<text x="16" y="24" font-size="24" fill="#ffffff" text-anchor="middle">{emoji}</text></svg>'
-        )
+def write_emoji_svg(slug: str, emoji: str) -> None:
+    """SVG-иконка с эмодзи «как есть» (для названий с ведущим эмодзи, когда favicon не скачан)."""
+    svg = (
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
+        f'<text x="16" y="25" font-size="24" text-anchor="middle">{emoji}</text></svg>'
+    )
     (API_DIR / slug / "icon.svg").write_text(svg, encoding="utf-8")
-    print(f"icon.svg written for {slug}: {emoji}")
 
 
 def main() -> None:
