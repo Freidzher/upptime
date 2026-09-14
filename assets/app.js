@@ -1,9 +1,10 @@
- // Runicore Status — главная страница. Автор: Freidzher
-// Данные: history/summary.json (агрегат как у Upptime) + api/incidents*.json
+// Runicore Status — главная страница. Автор: Freidzher
+// Данные: history/summary.json + api/incidents*.json
 (async function () {
   const banner = document.getElementById('banner');
   const rowsEl = document.getElementById('rows');
   const incEl = document.getElementById('incidents');
+  const maintEl = document.getElementById('maintenance');
   const pastEl = document.getElementById('past');
   const EMOJI_RE = /^[\u{1F1E6}-\u{1F1FF}]{2}|[\u{1F000}-\u{1FAFF}]|[\u2600-\u27BF]\uFE0F?/u;
 
@@ -15,6 +16,31 @@
 
   let owner = '', repo = '';
   fetchJson('config.json').then((c) => { owner = c.owner || ''; repo = c.repo || ''; }).catch(() => {});
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&', '<': '<', '>': '>', '"': '"', "'": '&#39;' }[c]));
+  }
+
+  function incidentCard(info, active, isMaint) {
+    const d = document.createElement('div');
+    d.className = 'incident';
+    const when = new Date(info.opened).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' });
+    let txt;
+    if (isMaint) {
+      txt = 'плановые работы с ' + when;
+    } else if (active) {
+      txt = 'недоступен с ' + when;
+    } else {
+      txt = 'устранён за ' + (info.minutes || '?') + ' мин (открыт ' + when + ')';
+    }
+    const issueNum = info.issue_number || info.issueNumber;
+    const link = (owner && repo && issueNum)
+      ? ' — <a href="https://github.com/' + esc(owner) + '/' + esc(repo) + '/issues/' + issueNum + '">репорт #' + issueNum + '</a>'
+      : '';
+    d.innerHTML = '<b></b> — ' + esc(txt) + link;
+    d.querySelector('b').textContent = info.name || 'Сервис';
+    return d;
+  }
 
   async function loadAll() {
     try {
@@ -33,12 +59,14 @@
   function render(summary, incidents, log) {
     if (!summary.length) { banner.textContent = 'Нет данных — монитор ещё не запускался'; return; }
 
+    // Banner
     const allUp = summary.every((s) => s.status === 'up');
     banner.className = 'banner ' + (allUp ? 'ok' : 'fail');
     banner.innerHTML = allUp
       ? '<span class="icon">🟢</span> Все системы работают'
       : '<span class="icon">🔴</span> Обнаружены проблемы с сервисами';
 
+    // Live Status — список серверов
     rowsEl.innerHTML = '';
     for (const s of summary) {
       const up = s.status === 'up';
@@ -49,7 +77,7 @@
       row.href = 'site.html?site=' + encodeURIComponent(s.slug);
       if (emoji) {
         row.innerHTML =
-          '<span class="favicon emoji" data-slug="' + s.slug + '">' + emoji + '</span>' +
+          '<span class="favicon emoji">' + emoji + '</span>' +
           '<span class="dot ' + (up ? 'up' : 'down') + '"></span>' +
           '<span class="name"></span>' +
           '<span class="uptime">' + s.uptimeDay + ' · ' + s.timeDay + ' мс</span>' +
@@ -66,30 +94,26 @@
       rowsEl.appendChild(row);
     }
 
+    // Active Incidents — открытые инциденты (не maintenance)
     const openInc = Object.entries(incidents || {}).filter(([, i]) => !i.maintenance);
-    const maint = Object.entries(incidents || {}).filter(([, i]) => i.maintenance);
-    const past = (log || []).slice().reverse();
-
-    incEl.innerHTML = ''; pastEl.innerHTML = '';
+    incEl.innerHTML = '';
     document.getElementById('incTitle').style.display = openInc.length ? '' : 'none';
+    for (const [, info] of openInc) incEl.appendChild(incidentCard(info, true, false));
+
+    // Scheduled Maintenance — открытые maintenance
+    const maint = Object.entries(incidents || {}).filter(([, i]) => i.maintenance);
+    maintEl.innerHTML = '';
     document.getElementById('maintTitle').style.display = maint.length ? '' : 'none';
+    for (const [, info] of maint) maintEl.appendChild(incidentCard(info, true, true));
+
+    // Past Incidents — закрытые инциденты из журнала (последние 10)
+    const past = (log || []).slice(-10).reverse();
+    pastEl.innerHTML = '';
     document.getElementById('pastTitle').style.display = past.length ? '' : 'none';
-
-    for (const [, info] of openInc) incEl.appendChild(card(info, true));
-    for (const [, info] of maint) document.getElementById('maintenance').appendChild(card(info, true, true));
-    for (const info of past.slice(0, 10)) pastEl.appendChild(card(info, false));
-  }
-
-  function card(info, active, isMaint) {
-    const d = document.createElement('div');
-    d.className = 'incident';
-    const when = new Date(info.opened).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' });
-    const txt = isMaint ? 'плановые работы с ' + when
-      : (active ? 'недоступен с ' : 'устранён за ' + info.minutes + ' мин (открыт ') + when + (active ? '' : ')');
-    d.innerHTML = '<b></b> — ' + txt +
-      ' — <a href="https://github.com/' + owner + '/' + repo + '/issues/' + info.issue_number + '">репорт #' + info.issue_number + '</a>';
-    d.querySelector('b').textContent = info.name || 'Сервис';
-    return d;
+    for (const info of past) {
+      const isMaint = info.maintenance || (info.name && info.name.toLowerCase().includes('maintenance'));
+      pastEl.appendChild(incidentCard(info, false, isMaint));
+    }
   }
 
   const y = document.getElementById('year');

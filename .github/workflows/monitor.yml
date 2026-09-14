@@ -26,13 +26,13 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref || github.ref_name }}
-          token: ${{ secrets.FINE_GRAINED_TOKEN || secrets.GH_PUT || github.token }}
+          token: ${{ secrets.FINE_GRAINED_TOKEN || github.token }}
 
       - name: Run monitor
         run: python monitor.py
         env:
           SECRETS_CONTEXT: ${{ toJson(secrets) }}
-          GH_TOKEN: ${{ secrets.FINE_GRAINED_TOKEN || secrets.GH_PUT || github.token }}
+          GH_TOKEN: ${{ secrets.FINE_GRAINED_TOKEN || github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
 
       - name: Upload data artifact
@@ -46,7 +46,7 @@ jobs:
 
       - name: Trigger site deploy
         env:
-          GH_TOKEN: ${{ secrets.FINE_GRAINED_TOKEN || secrets.GH_PUT || github.token }}
+          GH_TOKEN: ${{ secrets.FINE_GRAINED_TOKEN || github.token }}
         run: |
           curl -sS -X POST \
             -H "Authorization: Bearer ${GH_TOKEN}" \

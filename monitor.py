@@ -231,21 +231,28 @@ def load_log() -> list:
     return load_json(API_DIR / "incidents-log.json", [])
 
 
-def open_incident(key: str, name: str, result: dict, incidents: dict, repo: str) -> None:
-    issue = gh_api(f"/repos/{repo}/issues", "POST", {
-        "title": f"{name} is down",
-        "body": (
-            f"**{name}** недоступен.\n\n"
-            f"- Время: {result['ts']}\n"
-            f"- HTTP code: {result['code']}\n"
-            f"- Response time: {result['ms']} ms\n\n"
-            f"Комментарии — репорты инцидента. Закроется автоматически при восстановлении."
-        ),
-        "labels": ["incident"],
-    })
+def open_incident(key: str, name: str, result: dict, incidents: dict, repo: str, is_maint: bool = False) -> None:
+    title = f"{name} maintenance" if is_maint else f"{name} is down"
+    labels = ["maintenance"] if is_maint else ["incident"]
+    body = (
+        f"**{name}** — плановые работы.\n\n- Время: {result['ts']}\n\n"
+        "Закроется автоматически по завершении."
+    ) if is_maint else (
+        f"**{name}** недоступен.\n\n"
+        f"- Время: {result['ts']}\n"
+        f"- HTTP code: {result['code']}\n"
+        f"- Response time: {result['ms']} ms\n\n"
+        f"Комментарии — репорты инцидента. Закроется автоматически при восстановлении."
+    )
+    issue = gh_api(f"/repos/{repo}/issues", "POST", {"title": title, "body": body, "labels": labels})
     if issue:
-        incidents[key] = {"issue_number": issue["number"], "opened": result["ts"], "name": name}
-        print(f"Incident issue #{issue['number']} opened for {name}")
+        incidents[key] = {
+            "issue_number": issue["number"],
+            "opened": result["ts"],
+            "name": name,
+            "maintenance": is_maint,
+        }
+        print(f"Incident issue #{issue['number']} opened for {name} (maintenance={is_maint})")
 
 
 def close_incident(key: str, incidents: dict, last_ok_ts: str, repo: str) -> None:
@@ -256,8 +263,10 @@ def close_incident(key: str, incidents: dict, last_ok_ts: str, repo: str) -> Non
     opened = datetime.fromisoformat(info["opened"]).replace(tzinfo=timezone.utc)
     closed = datetime.fromisoformat(last_ok_ts).replace(tzinfo=timezone.utc)
     minutes = max(1, round((closed - opened).total_seconds() / 60))
+    is_maint = info.get("maintenance", False)
     gh_api(f"/repos/{repo}/issues/{num}", "POST", {
-        "body": f"✅ {info.get('name', key)} восстановлено в {last_ok_ts}. Устранено за ~{minutes} мин."
+        "body": f"✅ {info.get('name', key)} {'завершены плановые работы' if is_maint else 'восстановлено'} в {last_ok_ts}. "
+                f"{'Длительность' if is_maint else 'Устранено за'} ~{minutes} мин."
     })
     gh_api(f"/repos/{repo}/issues/{num}", "PATCH", {"state": "closed"})
     log = load_log()
@@ -268,6 +277,7 @@ def close_incident(key: str, incidents: dict, last_ok_ts: str, repo: str) -> Non
         "opened": info["opened"],
         "resolved": last_ok_ts,
         "minutes": minutes,
+        "maintenance": is_maint,
     })
     write_json(API_DIR / "incidents-log.json", log[-100:])
     print(f"Incident issue #{num} closed for {key}")

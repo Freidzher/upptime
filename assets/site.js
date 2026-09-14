@@ -3,7 +3,6 @@
   const banner = document.getElementById('banner');
   const nameEl = document.getElementById('siteName');
   const statsEl = document.getElementById('stats');
-  const incEl = document.getElementById('incidents');
   const pastEl = document.getElementById('past');
   const tabs = document.getElementById('rangeTabs');
 
@@ -21,6 +20,28 @@
 
   let owner = '', repo = '';
   fetchJson('config.json').then((c) => { owner = c.owner || ''; repo = c.repo || ''; }).catch(() => {});
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&', '<': '<', '>': '>', '"': '"', "'": '&#39;' }[c]));
+  }
+
+  function incidentCard(info) {
+    const d = document.createElement('div');
+    d.className = 'incident';
+    const opened = new Date(info.opened).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' });
+    const resolved = info.resolved ? new Date(info.resolved).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' }) : null;
+    const minutes = info.minutes || '?';
+    const txt = resolved
+      ? 'устранён за ' + minutes + ' мин (открыт ' + opened + ', закрыт ' + resolved + ')'
+      : 'открыт ' + opened;
+    const issueNum = info.issue_number || info.issueNumber;
+    const link = (owner && repo && issueNum)
+      ? ' — <a href="https://github.com/' + esc(owner) + '/' + esc(repo) + '/issues/' + issueNum + '">репорт #' + issueNum + '</a>'
+      : '';
+    d.innerHTML = '<b></b> — ' + esc(txt) + link;
+    d.querySelector('b').textContent = info.name || 'Сервис';
+    return d;
+  }
 
   function renderChart(entries) {
     const cutoff = Date.now() - range * 3600 * 1000;
@@ -50,9 +71,10 @@
 
   async function load() {
     try {
-      const [summary, points] = await Promise.all([
+      const [summary, points, log] = await Promise.all([
         fetchJson('history/summary.json'),
         fetchJson('api/' + slug + '/points.json').catch(() => []),
+        fetchJson('api/incidents-log.json').catch(() => []),
       ]);
       const s = summary.find((x) => x.slug === slug);
       if (!s) { banner.className = 'banner fail'; banner.textContent = 'Сайт не найден'; return; }
@@ -81,6 +103,13 @@
       }
 
       renderChart(points || []);
+
+      // Past Incidents — инциденты этого сайта
+      const siteLog = (log || []).filter((i) => i.slug === slug).slice(-20).reverse();
+      pastEl.innerHTML = '';
+      const pastTitle = document.getElementById('pastTitle');
+      if (pastTitle) pastTitle.style.display = siteLog.length ? '' : 'none';
+      for (const info of siteLog) pastEl.appendChild(incidentCard(info));
     } catch (e) {
       banner.className = 'banner fail';
       banner.textContent = '⚠ Не удалось загрузить данные';
