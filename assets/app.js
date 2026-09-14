@@ -63,8 +63,8 @@
     const allUp = summary.every((s) => s.status === 'up');
     banner.className = 'banner ' + (allUp ? 'ok' : 'fail');
     banner.innerHTML = allUp
-      ? '<span class="icon">🟢</span> Все системы работают'
-      : '<span class="icon">🔴</span> Обнаружены проблемы с сервисами';
+      ? '<span class="icon">🟢</span> Все сервисы работают'
+      : '<span class="icon">🔴</span> Сервисы нестабильны';
 
     // Live Status — список серверов
     rowsEl.innerHTML = '';
