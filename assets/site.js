@@ -71,7 +71,7 @@
         plugins: { legend: { display: false } },
         scales: {
           x: { ticks: { color: 'rgba(255,255,255,0.4)', maxTicksLimit: 8 }, grid: { display: false } },
-          y: { ticks: { color: 'rgba(255,255,255,0.4)' }, grid: { color: 'rgba(255,79,139,0.08)' }, beginAtZero: true },
+          y: { ticks: { color: 'rgba(255,255,255,0.4)' }, grid: { color: 'rgba(46, 204, 113, 0.08)' }, beginAtZero: true },
         },
       },
     });
