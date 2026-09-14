@@ -9,6 +9,8 @@ on:
       - "history/**"
       - "api/**"
       - "config.json"
+  repository_dispatch:
+    types: [site]
   workflow_dispatch:
 
 permissions:
