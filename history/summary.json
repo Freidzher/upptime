@@ -3,47 +3,11 @@
   "name": "📚 База знаний",
   "slug": "server2",
   "status": "up",
-  "uptime": "96.67%",
-  "uptimeDay": "96.67%",
-  "uptimeWeek": "96.67%",
-  "uptimeMonth": "96.67%",
-  "uptimeYear": "96.67%",
-  "time": 977,
-  "timeDay": 977,
-  "timeWeek": 977,
-  "timeMonth": 977,
-  "timeYear": 977,
-  "dailyMinutesDown": {
-   "2026-09-14": 5
-  }
- },
- {
-  "name": "🇸🇪 1.1 Стокгольм",
-  "slug": "server4",
-  "status": "up",
-  "uptime": "86.96%",
-  "uptimeDay": "86.96%",
-  "uptimeWeek": "86.96%",
-  "uptimeMonth": "86.96%",
-  "uptimeYear": "86.96%",
-  "time": 665,
-  "timeDay": 665,
-  "timeWeek": 665,
-  "timeMonth": 665,
-  "timeYear": 665,
-  "dailyMinutesDown": {
-   "2026-09-14": 15
-  }
- },
- {
-  "name": "Подписка",
-  "slug": "server3",
-  "status": "up",
-  "uptime": "95.83%",
-  "uptimeDay": "95.83%",
-  "uptimeWeek": "95.83%",
-  "uptimeMonth": "95.83%",
-  "uptimeYear": "95.83%",
+  "uptime": "96.77%",
+  "uptimeDay": "96.77%",
+  "uptimeWeek": "96.77%",
+  "uptimeMonth": "96.77%",
+  "uptimeYear": "96.77%",
   "time": 992,
   "timeDay": 992,
   "timeWeek": 992,
@@ -54,19 +18,55 @@
   }
  },
  {
+  "name": "🇸🇪 1.1 Стокгольм",
+  "slug": "server4",
+  "status": "up",
+  "uptime": "87.50%",
+  "uptimeDay": "87.50%",
+  "uptimeWeek": "87.50%",
+  "uptimeMonth": "87.50%",
+  "uptimeYear": "87.50%",
+  "time": 662,
+  "timeDay": 662,
+  "timeWeek": 662,
+  "timeMonth": 662,
+  "timeYear": 662,
+  "dailyMinutesDown": {
+   "2026-09-14": 15
+  }
+ },
+ {
+  "name": "Подписка",
+  "slug": "server3",
+  "status": "up",
+  "uptime": "96.00%",
+  "uptimeDay": "96.00%",
+  "uptimeWeek": "96.00%",
+  "uptimeMonth": "96.00%",
+  "uptimeYear": "96.00%",
+  "time": 971,
+  "timeDay": 971,
+  "timeWeek": 971,
+  "timeMonth": 971,
+  "timeYear": 971,
+  "dailyMinutesDown": {
+   "2026-09-14": 5
+  }
+ },
+ {
   "name": "🇸🇪 2.1 Стокгольм",
   "slug": "server5",
   "status": "up",
-  "uptime": "91.30%",
-  "uptimeDay": "91.30%",
-  "uptimeWeek": "91.30%",
-  "uptimeMonth": "91.30%",
-  "uptimeYear": "91.30%",
-  "time": 655,
-  "timeDay": 655,
-  "timeWeek": 655,
-  "timeMonth": 655,
-  "timeYear": 655,
+  "uptime": "91.67%",
+  "uptimeDay": "91.67%",
+  "uptimeWeek": "91.67%",
+  "uptimeMonth": "91.67%",
+  "uptimeYear": "91.67%",
+  "time": 652,
+  "timeDay": 652,
+  "timeWeek": 652,
+  "timeMonth": 652,
+  "timeYear": 652,
   "dailyMinutesDown": {
    "2026-09-14": 10
   }
@@ -80,11 +80,11 @@
   "uptimeWeek": "100.00%",
   "uptimeMonth": "100.00%",
   "uptimeYear": "100.00%",
-  "time": 882,
-  "timeDay": 882,
-  "timeWeek": 882,
-  "timeMonth": 882,
-  "timeYear": 882,
+  "time": 887,
+  "timeDay": 887,
+  "timeWeek": 887,
+  "timeMonth": 887,
+  "timeYear": 887,
   "dailyMinutesDown": {}
  }
 ]
