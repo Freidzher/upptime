@@ -1,4 +1,4 @@
-// Runicore Status — страница статистики сайта
+// Runicore Status — страница статистики сайта. Автор: Freidzher
 (async function () {
   const banner = document.getElementById('banner');
   const nameEl = document.getElementById('siteName');
@@ -10,6 +10,7 @@
   const slug = params.get('site') || '';
   let chart = null;
   let range = 24;
+
   const EMOJI_RE = /^[\u{1F1E6}-\u{1F1FF}]{2}|^[\u{1F300}-\u{1FAFF}]|^[\u2600-\u27BF]\uFE0F?/u;
 
   async function fetchJson(url) {
@@ -68,7 +69,11 @@
         fetchJson('api/incidents-log.json').catch(() => []),
       ]);
       const s = summary.find((x) => x.slug === slug);
-      if (!s) { banner.className = 'banner fail'; banner.textContent = 'Сайт не найден'; return; }
+      if (!s) {
+        banner.className = 'banner fail';
+        banner.textContent = 'Сайт не найден';
+        return;
+      }
       const clean = s.name.replace(EMOJI_RE, '').trim();
       document.title = clean + ' — Runicore';
       nameEl.textContent = clean;
@@ -78,10 +83,14 @@
       banner.innerHTML = up ? '<span class="icon">🟢</span> Работает' : '<span class="icon">🔴</span> Недоступен';
 
       const stats = [
-        { v: s.timeDay + ' мс', l: 'Отклик 24ч' }, { v: s.timeWeek + ' мс', l: 'Отклик 7д' },
-        { v: s.timeMonth + ' мс', l: 'Отклик 30д' }, { v: s.timeYear + ' мс', l: 'Отклик 1г' },
-        { v: s.uptimeDay, l: 'Аптайм 24ч' }, { v: s.uptimeWeek, l: 'Аптайм 7д' },
-        { v: s.uptimeMonth, l: 'Аптайм 30д' }, { v: s.uptimeYear, l: 'Аптайм 1г' },
+        { v: s.timeDay + ' мс', l: 'Отклик 24ч' },
+        { v: s.timeWeek + ' мс', l: 'Отклик 7д' },
+        { v: s.timeMonth + ' мс', l: 'Отклик 30д' },
+        { v: s.timeYear + ' мс', l: 'Отклик 1г' },
+        { v: s.uptimeDay, l: 'Аптайм 24ч' },
+        { v: s.uptimeWeek, l: 'Аптайм 7д' },
+        { v: s.uptimeMonth, l: 'Аптайм 30д' },
+        { v: s.uptimeYear, l: 'Аптайм 1г' },
       ];
       statsEl.innerHTML = '';
       for (const st of stats) {

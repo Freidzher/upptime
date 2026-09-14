@@ -1,77 +1,5 @@
 [
  {
-  "name": "📚 База знаний",
-  "slug": "server2",
-  "status": "up",
-  "uptime": "97.96%",
-  "uptimeDay": "97.96%",
-  "uptimeWeek": "97.96%",
-  "uptimeMonth": "97.96%",
-  "uptimeYear": "97.96%",
-  "time": 1097,
-  "timeDay": 1097,
-  "timeWeek": 1097,
-  "timeMonth": 1097,
-  "timeYear": 1097,
-  "dailyMinutesDown": {
-   "2026-09-14": 5
-  }
- },
- {
-  "name": "🇸🇪 1.1 Стокгольм",
-  "slug": "server4",
-  "status": "up",
-  "uptime": "92.86%",
-  "uptimeDay": "92.86%",
-  "uptimeWeek": "92.86%",
-  "uptimeMonth": "92.86%",
-  "uptimeYear": "92.86%",
-  "time": 698,
-  "timeDay": 698,
-  "timeWeek": 698,
-  "timeMonth": 698,
-  "timeYear": 698,
-  "dailyMinutesDown": {
-   "2026-09-14": 15
-  }
- },
- {
-  "name": "Подписка",
-  "slug": "server3",
-  "status": "up",
-  "uptime": "97.67%",
-  "uptimeDay": "97.67%",
-  "uptimeWeek": "97.67%",
-  "uptimeMonth": "97.67%",
-  "uptimeYear": "97.67%",
-  "time": 821,
-  "timeDay": 821,
-  "timeWeek": 821,
-  "timeMonth": 821,
-  "timeYear": 821,
-  "dailyMinutesDown": {
-   "2026-09-14": 5
-  }
- },
- {
-  "name": "🇸🇪 2.1 Стокгольм",
-  "slug": "server5",
-  "status": "up",
-  "uptime": "95.24%",
-  "uptimeDay": "95.24%",
-  "uptimeWeek": "95.24%",
-  "uptimeMonth": "95.24%",
-  "uptimeYear": "95.24%",
-  "time": 688,
-  "timeDay": 688,
-  "timeWeek": 688,
-  "timeMonth": 688,
-  "timeYear": 688,
-  "dailyMinutesDown": {
-   "2026-09-14": 10
-  }
- },
- {
   "name": "Сайт-визитка",
   "slug": "server1",
   "status": "up",
@@ -80,11 +8,83 @@
   "uptimeWeek": "100.00%",
   "uptimeMonth": "100.00%",
   "uptimeYear": "100.00%",
-  "time": 992,
-  "timeDay": 992,
-  "timeWeek": 992,
-  "timeMonth": 992,
-  "timeYear": 992,
+  "time": 786,
+  "timeDay": 786,
+  "timeWeek": 786,
+  "timeMonth": 786,
+  "timeYear": 786,
   "dailyMinutesDown": {}
+ },
+ {
+  "name": "📚 База знаний",
+  "slug": "server2",
+  "status": "up",
+  "uptime": "95.45%",
+  "uptimeDay": "95.45%",
+  "uptimeWeek": "95.45%",
+  "uptimeMonth": "95.45%",
+  "uptimeYear": "95.45%",
+  "time": 824,
+  "timeDay": 824,
+  "timeWeek": 824,
+  "timeMonth": 824,
+  "timeYear": 824,
+  "dailyMinutesDown": {
+   "2026-09-14": 5
+  }
+ },
+ {
+  "name": "Подписка",
+  "slug": "server3",
+  "status": "up",
+  "uptime": "93.75%",
+  "uptimeDay": "93.75%",
+  "uptimeWeek": "93.75%",
+  "uptimeMonth": "93.75%",
+  "uptimeYear": "93.75%",
+  "time": 1149,
+  "timeDay": 1149,
+  "timeWeek": 1149,
+  "timeMonth": 1149,
+  "timeYear": 1149,
+  "dailyMinutesDown": {
+   "2026-09-14": 5
+  }
+ },
+ {
+  "name": "🇸🇪 1.1 Стокгольм",
+  "slug": "server4",
+  "status": "up",
+  "uptime": "80.00%",
+  "uptimeDay": "80.00%",
+  "uptimeWeek": "80.00%",
+  "uptimeMonth": "80.00%",
+  "uptimeYear": "80.00%",
+  "time": 640,
+  "timeDay": 640,
+  "timeWeek": 640,
+  "timeMonth": 640,
+  "timeYear": 640,
+  "dailyMinutesDown": {
+   "2026-09-14": 15
+  }
+ },
+ {
+  "name": "🇸🇪 2.1 Стокгольм",
+  "slug": "server5",
+  "status": "up",
+  "uptime": "86.67%",
+  "uptimeDay": "86.67%",
+  "uptimeWeek": "86.67%",
+  "uptimeMonth": "86.67%",
+  "uptimeYear": "86.67%",
+  "time": 617,
+  "timeDay": 617,
+  "timeWeek": 617,
+  "timeMonth": 617,
+  "timeYear": 617,
+  "dailyMinutesDown": {
+   "2026-09-14": 10
+  }
  }
 ]

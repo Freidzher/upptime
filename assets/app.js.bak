@@ -41,54 +41,50 @@
     rowsEl.innerHTML = '';
     for (const s of summary) {
       const up = s.status === 'up';
-      const emoji = (s.name.match(EMOJI_RE) || [''])[0];
-      const cleanName = s.name.replace(EMOJI_RE, '').trim();
       const row = document.createElement('a');
       row.className = 'row';
       row.href = 'site.html?site=' + encodeURIComponent(s.slug);
-      if (emoji) {
-        row.innerHTML =
-          '<span class="favicon emoji" data-slug="' + s.slug + '">' + emoji + '</span>' +
-          '<span class="dot ' + (up ? 'up' : 'down') + '"></span>' +
-          '<span class="name"></span>' +
-          '<span class="uptime">' + s.uptimeDay + ' · ' + s.timeDay + ' мс</span>' +
-          '<span class="chevron">→</span>';
-      } else {
-        row.innerHTML =
-          '<img class="favicon" src="api/' + s.slug + '/favicon.ico" alt="" onerror="this.style.display=\'none\'">' +
-          '<span class="dot ' + (up ? 'up' : 'down') + '"></span>' +
-          '<span class="name"></span>' +
-          '<span class="uptime">' + s.uptimeDay + ' · ' + s.timeDay + ' мс</span>' +
-          '<span class="chevron">→</span>';
-      }
-      row.querySelector('.name').textContent = cleanName;
+      row.innerHTML =
+        '<img class="favicon" src="api/' + s.slug + '/favicon.ico" alt="" ' +
+        'onerror="this.onerror=function(){this.style.display=\'none\'};this.src=\'api/' + s.slug + '/icon.svg\'">' +
+        '<span class="dot ' + (up ? 'up' : 'down') + '"></span>' +
+        '<span class="name"></span>' +
+        '<span class="uptime">' + s.uptimeDay + ' · ' + s.timeDay + ' мс</span>' +
+        '<span class="chevron">→</span>';
+      row.querySelector('.name').textContent = s.name.replace(/^[\u{1F1E6}-\u{1F1FF}]{2}|^[\u{1F300}-\u{1FAFF}]|^[\u2600-\u27BF]\uFE0F?/u, '').trim();
       rowsEl.appendChild(row);
     }
 
-    const openInc = Object.entries(incidents || {}).filter(([, i]) => !i.maintenance);
-    const maint = Object.entries(incidents || {}).filter(([, i]) => i.maintenance);
+    const openInc = Object.entries(incidents || {});
     const past = (log || []).slice().reverse();
 
-    incEl.innerHTML = ''; pastEl.innerHTML = '';
-    document.getElementById('incTitle').style.display = openInc.length ? '' : 'none';
-    document.getElementById('maintTitle').style.display = maint.length ? '' : 'none';
-    document.getElementById('pastTitle').style.display = past.length ? '' : 'none';
+    incEl.innerHTML = '';
+    incTitle.style.display = (openInc.length || past.length) ? '' : 'none';
 
-    for (const [, info] of openInc) incEl.appendChild(card(info, true));
-    for (const [, info] of maint) document.getElementById('maintenance').appendChild(card(info, true, true));
-    for (const info of past.slice(0, 10)) pastEl.appendChild(card(info, false));
+    if (openInc.length) {
+      const t = document.createElement('div');
+      t.className = 'inc-subtitle';
+      t.textContent = 'Активные';
+      incEl.appendChild(t);
+      for (const [, info] of openInc) addIncident(info, true);
+    }
+    if (past.length) {
+      const t = document.createElement('div');
+      t.className = 'inc-subtitle';
+      t.textContent = 'Прошлые';
+      incEl.appendChild(t);
+      for (const info of past.slice(0, 10)) addIncident(info, false);
+    }
   }
 
-  function card(info, active, isMaint) {
+  function addIncident(info, active) {
     const d = document.createElement('div');
     d.className = 'incident';
     const when = new Date(info.opened).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' });
-    const txt = isMaint ? 'плановые работы с ' + when
-      : (active ? 'недоступен с ' : 'устранён за ' + info.minutes + ' мин (открыт ') + when + (active ? '' : ')');
-    d.innerHTML = '<b></b> — ' + txt +
+    d.innerHTML = '<b></b> — ' + (active ? 'недоступен с ' : 'устранён за ' + info.minutes + ' мин (открыт ') + when + (active ? '' : ')') +
       ' — <a href="https://github.com/' + owner + '/' + repo + '/issues/' + info.issue_number + '">репорт #' + info.issue_number + '</a>';
     d.querySelector('b').textContent = info.name || 'Сервис';
-    return d;
+    incEl.appendChild(d);
   }
 
   const y = document.getElementById('year');

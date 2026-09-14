@@ -155,39 +155,45 @@ def _open(req: urllib.request.Request, timeout: int):
     return urllib.request.urlopen(req, timeout=timeout, context=ctx)
 
 
-def check_site(name: str, url: str, timeout: int = 10) -> dict:
-    """Любой HTTP-ответ (включая 403/404/502 — защита/WAF) = сервер жив.
-
-    Если сертификат не проходит проверку (IP-адрес, self-signed) — повторяем
-    с отключённой версией SSL-верификации: рукопожатие прошло = сервер жив.
-    """
-    start = time.monotonic()
-    ok, code = False, 0
+def _single_check(url: str, timeout: int) -> tuple:
+    """Одна попытка проверки. Возвращает (ok, code)."""
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "RunicoreMonitor/1.0"})
-        with _open(req, timeout) as resp:
-            code = resp.status
+        with urllib.request.urlopen(req, timeout=timeout, context=ctx) as resp:
+            return True, resp.status
     except urllib.error.HTTPError as e:
-        code = e.code
+        return True, e.code  # HTTP-ответ = сервер жив
     except urllib.error.URLError as e:
         if isinstance(getattr(e, "reason", None), ssl.SSLCertVerificationError):
-            # Сертификат не совпадает, но TLS-рукопожатие прошло — сервер жив
-            insecure = ssl._create_unverified_context()
             try:
                 req2 = urllib.request.Request(url, headers={"User-Agent": "RunicoreMonitor/1.0"})
-                with urllib.request.urlopen(req2, timeout=timeout, context=insecure) as resp:
-                    code = resp.status
+                with urllib.request.urlopen(req2, timeout=timeout, context=ssl._create_unverified_context()) as resp:
+                    return True, resp.status
             except urllib.error.HTTPError as e2:
-                code = e2.code
+                return True, e2.code
             except Exception:
-                pass
+                return False, 0
+        return False, 0
     except Exception:
-        pass
-    # Любой HTTP-ответ = жив (0 = соединения не было вовсе)
-    ok = code > 0
+        return False, 0
+
+
+def check_site(name: str, url: str, timeout: int = 10) -> dict:
+    """3 попытки проверки: если 2+ успешных — работает, если все 3 неудачные — падение."""
+    start = time.monotonic()
+    successes = 0
+    last_code = 0
+    for attempt in range(3):
+        ok, code = _single_check(url, timeout)
+        if ok:
+            successes += 1
+            last_code = code
+        if successes >= 2:
+            break  # Достаточно успехов
+    ok = successes >= 2
     ms = round((time.monotonic() - start) * 1000)
-    print(f"{name}: {'UP' if ok else 'DOWN'} ({code}) {ms}ms".encode("utf-8", "replace").decode("utf-8", "replace"))
-    return {"ts": datetime.now(timezone.utc).isoformat(timespec="seconds"), "ok": ok, "code": code, "ms": ms}
+    print(f"{name}: {'UP' if ok else 'DOWN'} ({last_code}) {ms}ms [x{successes}/3]".encode("utf-8", "replace").decode("utf-8", "replace"))
+    return {"ts": datetime.now(timezone.utc).isoformat(timespec="seconds"), "ok": ok, "code": last_code, "ms": ms}
 
 
 def gh_api(path: str, method: str = "GET", payload=None):
@@ -390,15 +396,6 @@ def leading_emoji(name: str) -> str:
     return m.group(0) if m else ""
 
 
-def write_emoji_svg(slug: str, emoji: str) -> None:
-    """SVG-иконка с эмодзи «как есть» (для названий с ведущим эмодзи, когда favicon не скачан)."""
-    svg = (
-        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
-        f'<text x="16" y="25" font-size="24" text-anchor="middle">{emoji}</text></svg>'
-    )
-    (API_DIR / slug / "icon.svg").write_text(svg, encoding="utf-8")
-
-
 def main() -> None:
     load_env()
     config = load_json(CONFIG_FILE, {})
@@ -419,18 +416,12 @@ def main() -> None:
 
         api = API_DIR / slug
         api.mkdir(parents=True, exist_ok=True)
-        # Иконка: явная ссылка из секрета > favicon сайта > эмодзи из названия (любое)
-        emoji = leading_emoji(name)
+        # Иконка: явная ссылка из секрета > favicon сайта
         icon_done = False
         if site.get("icon_url"):
             icon_done = fetch_favicon(site["icon_url"], api / "favicon.ico", site["timeout"])
         if not icon_done:
-            icon_done = fetch_favicon(site["url"], api / "favicon.ico", site["timeout"])
-        if not icon_done and emoji:
-            write_emoji_svg(slug, emoji)
-        # Эмодзи из названия — всегда в иконку, из имени убираем
-        if emoji:
-            write_emoji_svg(slug, emoji)
+            fetch_favicon(site["url"], api / "favicon.ico", site["timeout"])
 
         points = load_json(api / "points.json", [])
         points.append(result)
