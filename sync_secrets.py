@@ -25,7 +25,9 @@ def load_config() -> dict:
 
 def repo() -> str:
     c = load_config()
-    return f"{c.get('owner', 'Freidzher')}/{c.get('repo', 'upptime')}"
+    if not c.get("owner") or not c.get("repo"):
+        raise SystemExit("Укажите owner и repo в config.json")
+    return f"{c['owner']}/{c['repo']}"
 
 
 _REPO = repo()

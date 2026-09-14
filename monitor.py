@@ -36,9 +36,9 @@ ctx = ssl.create_default_context()
 
 
 def repo_slug(config: dict) -> str:
-    owner = config.get("owner") or os.environ.get("GITHUB_REPOSITORY_OWNER", "Freidzher")
-    repo = config.get("repo", "upptime")
-    return f"{owner}/{repo}"
+    if not config.get("owner") or not config.get("repo"):
+        raise SystemExit("Укажите owner и repo в config.json")
+    return f"{config['owner']}/{config['repo']}"
 
 
 def load_env() -> None:
@@ -301,7 +301,7 @@ def write_site_files(slug: str, points: list, last: dict) -> None:
         f"responseTime: {last['ms']}\n"
         f"lastUpdated: {last['ts']}\n"
         f"startTime: {start_time}\n"
-        f"generator: Runicore <https://github.com/Freidzher/upptime>\n",
+        f"generator: Runicore\n",
         encoding="utf-8",
     )
 

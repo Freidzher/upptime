@@ -9,7 +9,13 @@
 
 owner/repo берутся из config.json — там же меняется автор и репозиторий.
 Workflow'ы также срабатывают сами: Monitor — по cron */5, Site — по push.
+
+Подкоманды (без аргументов — полный цикл выше):
+  python main.py status              — последние прогоны workflow
+  python main.py schedule            — прогоны по cron (диагностика расписания)
+  python main.py dispatch site|monitor — запустить один workflow
 """
+import argparse
 import json
 import subprocess
 import sys
@@ -39,9 +45,9 @@ def cfg() -> dict:
 
 def repo_actions() -> str:
     c = cfg()
-    owner = c.get("owner", "Freidzher")
-    repo = c.get("repo", "upptime")
-    return API.format(owner=owner, repo=repo)
+    if not c.get("owner") or not c.get("repo"):
+        raise SystemExit("Укажите owner и repo в config.json")
+    return API.format(owner=c["owner"], repo=c["repo"])
 
 
 def token() -> str:
@@ -88,8 +94,41 @@ def wait_run(t: str, wf: str, timeout_s: int = 420) -> str:
     return "timeout"
 
 
+def cmd_status(t: str, event: str = None) -> None:
+    url = f"{repo_actions()}/runs?per_page=10"
+    if event:
+        url += f"&event={event}"
+    status, data = call(url, t)
+    if status != 200:
+        print(status, data)
+        return
+    for r in data["workflow_runs"]:
+        print(f"{r['name']} | {r['event']} | {r['status']} | {r.get('conclusion')} | {r['created_at']}")
+
+
 def main() -> None:
     t = token()
+
+    parser = argparse.ArgumentParser(description="Runicore — полный цикл или подкоманда")
+    sub = parser.add_subparsers(dest="cmd")
+    sub.add_parser("status", help="последние прогоны workflow")
+    sub.add_parser("schedule", help="прогоны по cron (диагностика расписания)")
+    p_disp = sub.add_parser("dispatch", help="запустить один workflow")
+    p_disp.add_argument("workflow", choices=["site", "monitor"], help="site.yml или monitor.yml")
+    args = parser.parse_args()
+
+    if args.cmd == "status":
+        cmd_status(t)
+        return
+    if args.cmd == "schedule":
+        cmd_status(t, event="schedule")
+        return
+    if args.cmd == "dispatch":
+        wf = "site.yml" if args.workflow == "site" else "monitor.yml"
+        dispatch(t, wf)
+        return
+
+    # Полный цикл (по умолчанию)
 
     # 1. Секреты из .env -> GitHub
     print("[1/3] Секреты (sync_secrets.py)...")
@@ -107,7 +146,8 @@ def main() -> None:
     if dispatch(t, "site.yml"):
         wait_run(t, "site.yml")
 
-    print("Готово. Сайт: https://" + cfg().get("owner", "Freidzher") + ".github.io/" + cfg().get("repo", "upptime") + "/")
+    c = cfg()
+    print(f"Готово. Сайт: https://{c['owner']}.github.io/{c['repo']}/")
 
 
 if __name__ == "__main__":

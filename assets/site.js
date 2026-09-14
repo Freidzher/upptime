@@ -58,7 +58,6 @@
       banner.innerHTML = up ? '<span class="icon">🟢</span> Работает' : '<span class="icon">🔴</span> Недоступен';
 
       const stats = [
-        { v: up ? '🟢 UP' : '🔴 DOWN', l: 'Текущий статус' },
         { v: s.timeDay + ' мс', l: 'Отклик за 24ч' },
         { v: s.timeWeek + ' мс', l: 'Отклик за 7д' },
         { v: s.uptimeDay, l: 'Аптайм 24 часа' },

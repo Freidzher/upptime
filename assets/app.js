@@ -1,4 +1,4 @@
-// Runicore Status — главная страница. Автор: Freidzher
+ // Runicore Status — главная страница. Автор: Freidzher
 // Данные: history/summary.json (агрегат как у Upptime) + api/incidents*.json
 (async function () {
   const banner = document.getElementById('banner');
@@ -12,8 +12,8 @@
     return r.json();
   }
 
-  let owner = 'Freidzher', repo = 'upptime';
-  fetchJson('config.json').then((c) => { owner = c.owner || owner; repo = c.repo || repo; }).catch(() => {});
+  let owner = '', repo = '';
+  fetchJson('config.json').then((c) => { owner = c.owner || ''; repo = c.repo || ''; }).catch(() => {});
 
   async function loadAll() {
     try {
@@ -85,6 +85,9 @@
     d.querySelector('b').textContent = info.name || 'Сервис';
     incEl.appendChild(d);
   }
+
+  const y = document.getElementById('year');
+  if (y) y.textContent = new Date().getFullYear();
 
   await loadAll();
   setInterval(loadAll, 60000);
