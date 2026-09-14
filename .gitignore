@@ -8,3 +8,6 @@ examples/
 Thumbs.db
 .DS_Store
 scripts
+# Данные мониторинга — генерируются CI, деплоятся как артефакт
+history/
+api/

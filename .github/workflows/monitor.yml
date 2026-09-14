@@ -3,7 +3,7 @@ name: Monitor
 
 on:
   schedule:
-    - cron: "*/5 * * * *" # каждые 5 минут (GitHub может сдвигать до ~10 мин при высокой загрузке)
+    - cron: "*/5 * * * *"
   repository_dispatch:
     types: [monitor]
   workflow_dispatch:
@@ -11,6 +11,7 @@ on:
 permissions:
   contents: write
   issues: write
+  actions: write
 
 concurrency:
   group: ${{ github.repository }}-monitor
@@ -30,33 +31,26 @@ jobs:
       - name: Run monitor
         run: python monitor.py
         env:
-          # Все секреты разом (динамически) — monitor.py сам отфильтрует служебные
           SECRETS_CONTEXT: ${{ toJson(secrets) }}
-          # Токен для API GitHub (создание/закрытие Issue-инцидентов)
           GH_TOKEN: ${{ secrets.FINE_GRAINED_TOKEN || secrets.GH_PUT || github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
 
-      - name: Commit history and trigger site deploy
+      - name: Upload data artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: monitor-data
+          path: |
+            history/
+            api/
+          retention-days: 1
+
+      - name: Trigger site deploy
         env:
           GH_TOKEN: ${{ secrets.FINE_GRAINED_TOKEN || secrets.GH_PUT || github.token }}
         run: |
-          git config user.name "Runicore Bot"
-          git config user.email "Freidzher@users.noreply.github.com"
-          git add history/ api/
-          if git diff --cached --quiet; then
-            echo "No changes"
-          else
-            git commit -m "Monitor: update history"
-            # Устойчивый push: подтягиваем чужие коммиты (параллельные прогоны) и ретраим
-            for i in 1 2 3; do
-              git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push && break
-              sleep $((i * 5))
-            done
-          fi
-          # Явно запускаем деплой сайта: push от GITHUB_TOKEN не триггерит workflows
           curl -sS -X POST \
             -H "Authorization: Bearer ${GH_TOKEN}" \
             -H "Accept: application/vnd.github+json" \
             -H "User-Agent: runicore-monitor" \
             "https://api.github.com/repos/${GITHUB_REPOSITORY}/dispatches" \
-            -d '{"event_type": "site", "client_payload": {}}'
+            -d "{\"event_type\": \"site\", \"client_payload\": {\"run_id\": \"${GITHUB_RUN_ID}\"}}"

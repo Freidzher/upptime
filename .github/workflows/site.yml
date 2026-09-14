@@ -5,9 +5,6 @@ on:
     paths:
       - "assets/**"
       - "index.html"
-      - "site.html"
-      - "history/**"
-      - "api/**"
       - "config.json"
   repository_dispatch:
     types: [site]
@@ -17,6 +14,7 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  actions: read
 
 concurrency:
   group: github-pages
@@ -36,10 +34,18 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
+      - name: Download monitor data
+        uses: actions/download-artifact@v4
+        with:
+          name: monitor-data
+          path: .
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.client_payload.run_id || '' }}
+        continue-on-error: true
+
       - name: Upload site
         uses: actions/upload-pages-artifact@v3
         with:
-          # tar сам исключает .git/.github; секретов (.env) в репо нет, data — только имена и метрики
           path: .
 
       - name: Deploy to GitHub Pages
