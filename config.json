@@ -3,7 +3,9 @@
   "repo": "upptime",
   "names": {
     "SERVER1": "Сайт-визитка",
-    "SERVER2": "Google"
+    "SERVER2": "База знаний",
+    "SERVER3": "Подписка",
+    "SERVER4": "\uD83C\uDDF8\uD83C\uDDEA 1.1 Стокгольм"
   },
   "interval_minutes": 5,
   "history_days": 90,
