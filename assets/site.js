@@ -50,8 +50,9 @@
         banner.textContent = 'Сайт не найден';
         return;
       }
-      document.title = s.name + ' — Runicore';
-      nameEl.textContent = s.name;
+      const clean = s.name.replace(/^[\u{1F1E6}-\u{1F1FF}]{2}|^[\u{1F300}-\u{1FAFF}]|^[\u2600-\u27BF]\uFE0F?/u, '').trim();
+      document.title = clean + ' — Runicore';
+      nameEl.textContent = clean;
 
       const up = s.status === 'up';
       banner.className = 'banner ' + (up ? 'ok' : 'fail');

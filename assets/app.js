@@ -51,7 +51,7 @@
         '<span class="name"></span>' +
         '<span class="uptime">' + s.uptimeDay + ' · ' + s.timeDay + ' мс</span>' +
         '<span class="chevron">→</span>';
-      row.querySelector('.name').textContent = s.name;
+      row.querySelector('.name').textContent = s.name.replace(/^[\u{1F1E6}-\u{1F1FF}]{2}|^[\u{1F300}-\u{1FAFF}]|^[\u2600-\u27BF]\uFE0F?/u, '').trim();
       rowsEl.appendChild(row);
     }
 

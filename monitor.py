@@ -96,78 +96,7 @@ def discover_sites(config: dict, secrets: dict) -> dict:
     return sites
 
 
-ICON_LINK_RE = re.compile(
-    r"<link[^>]+rel=[\"'][^\"']*(icon|apple-touch-icon)[^\"']*[\"'][^>]*>", re.I)
-ICON_HREF_RE = re.compile(r"href=[\"']([^\"']+)[\"']", re.I)
-
-
-def _get(url: str, timeout: int, allow_insecure: bool = True):
-    """GET с полными редиректами; при SSL-mismatch — повтор без верификации."""
-    try:
-        req = urllib.request.Request(url, headers={"User-Agent": "RunicoreMonitor/1.0"})
-        return urllib.request.urlopen(req, timeout=timeout, context=ctx)
-    except urllib.error.URLError as e:
-        if allow_insecure and isinstance(getattr(e, "reason", None), ssl.SSLCertVerificationError):
-            req = urllib.request.Request(url, headers={"User-Agent": "RunicoreMonitor/1.0"})
-            return urllib.request.urlopen(req, timeout=timeout,
-                                          context=ssl._create_unverified_context())
-        raise
-
-
-def _save(dest: Path, resp) -> bool:
-    data = resp.read()
-    if data and len(data) > 100:
-        dest.write_bytes(data)
-        return True
-    return False
-
-
-def _icon_candidates(url: str, timeout: int) -> list:
-    """Строит кандидатов: <link rel=icon> из HTML, /favicon.ico, DuckDuckGo, Google S2."""
-    out = []
-    try:
-        with _get(url, timeout) as resp:
-            final_url = resp.geturl()
-            html = resp.read(200_000).decode("utf-8", "replace")
-        # Ищем <link ... rel="... icon ...">
-        for m in ICON_LINK_RE.finditer(html):
-            href = m.group(1)
-            if href:
-                out.append(urllib.parse.urljoin(final_url, href))
-    except Exception:
-        final_url = url
-    try:
-        p = urllib.parse.urlparse(final_url)
-        base = f"{p.scheme}://{p.netloc}"
-        out.append(f"{base}/favicon.ico")
-        out.append(f"https://icons.duckduckgo.com/ip3/{p.netloc}.ico")
-        out.append(f"https://www.google.com/s2/favicons?domain={p.netloc}&sz=64")
-    except Exception:
-        pass
-    return out
-
-
 def fetch_favicon(url: str, dest: Path, timeout: int = 10) -> bool:
-    """Обновляет api/{slug}/favicon.ico при каждой проверке.
-
-    Источники по порядку: <link rel=icon> из HTML конечной страницы,
-    /favicon.ico конечного origin, DuckDuckGo, Google S2.
-    Домен сайта нигде не публикуется — иконка хранится локально в репо.
-    """
-    for icon_url in _icon_candidates(url, timeout):
-        try:
-            with _get(icon_url, timeout) as resp:
-                data = resp.read()
-            if data and len(data) > 100:
-                dest.write_bytes(data)
-                return True
-        except Exception:
-            continue
-    return False
-
-
-def _fetch_favicon_old(url: str, dest: Path, timeout: int = 10) -> bool:
-    """(устаревшая, оставлена на всякий случай)"""
     """Скачивает favicon по конечному пути (следуя редиректам) в api/{slug}/favicon.ico.
 
     Порядок: /favicon.ico исходного URL (с редиректами), затем DuckDuckGo.
@@ -451,13 +380,43 @@ def leading_emoji(name: str) -> str:
     return m.group(0) if m else ""
 
 
-def write_emoji_svg(slug: str, emoji: str) -> None:
-    """SVG-иконка с эмодзи (для названий с ведущим эмодзи, когда favicon не скачан)."""
-    svg = (
-        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
-        f'<text x="16" y="24" font-size="24" text-anchor="middle">{emoji}</text></svg>'
-    )
+def write_emoji_svg(slug: str, emoji: str, text: str = "") -> None:
+    """SVG-иконка (для названий с ведущим эмодзи, когда favicon не скачан).
+
+    Флаги-эмодзи (🇸🇪) рисуются программно: на Windows они не рендерятся.
+    Для флага по коду страны рисуем вертикальные полосы цветов флага.
+    """
+    flag_colors = {
+        "SE": ["#006AA7", "#FECC00"],   # Швеция: синий, жёлтый
+        "FI": ["#FFFFFF", "#003580"],   # Финляндия
+        "NO": ["#BA0C2F", "#00205B"],
+        "DE": ["#000000", "#DD0000", "#FFCE00"],
+        "FR": ["#0055A4", "#FFFFFF", "#EF4135"],
+        "RU": ["#FFFFFF", "#0039A6", "#D52B1E"],
+        "UA": ["#005BBB", "#FFD500"],
+        "PL": ["#FFFFFF", "#DC143C"],
+        "US": ["#3C3B6E", "#B22234"],
+        "GB": ["#012169", "#C8102E"],
+        "NL": ["#AE1C28", "#FFFFFF", "#21468B"],
+        "CZ": ["#FFFFFF", "#D7141A"],
+    }
+    bars = ""
+    if len(emoji) == 2 and all(0x1F1E6 <= ord(c) <= 0x1F1FF for c in emoji):
+        # Это региональный флаг: рисуем цветные полосы
+        code = "".join(chr(ord(c) - 0x1F1E6 + ord("A")) for c in emoji)
+        colors = flag_colors.get(code, ["#888888"])
+        n = len(colors)
+        for i, col in enumerate(colors):
+            w = 32 / n
+            bars += f'<rect x="{i * w:.1f}" y="0" width="{w:.1f}" height="32" fill="{col}"/>'
+        svg = f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">{bars}</svg>'
+    else:
+        svg = (
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
+            f'<text x="16" y="24" font-size="24" fill="#ffffff" text-anchor="middle">{emoji}</text></svg>'
+        )
     (API_DIR / slug / "icon.svg").write_text(svg, encoding="utf-8")
+    print(f"icon.svg written for {slug}: {emoji}")
 
 
 def main() -> None:
