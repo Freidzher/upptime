@@ -1,6 +1,6 @@
 {
  "schemaVersion": 1,
  "label": "response time",
- "message": "990 ms",
- "color": "yellow"
+ "message": "1041 ms",
+ "color": "red"
 }
