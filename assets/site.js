@@ -5,12 +5,13 @@
   const statsEl = document.getElementById('stats');
   const incEl = document.getElementById('incidents');
   const pastEl = document.getElementById('past');
+  const tabs = document.getElementById('rangeTabs');
 
   const params = new URLSearchParams(location.search);
   const slug = params.get('site') || '';
   let chart = null;
   let range = 24;
-  const EMOJI_RE = /^[\u{1F1E6}-\u{1F1FF}]{2}|^[\u{1F300}-\u{1FAFF}]|^[\u2600-\u27BF]\uFE0F?/u;
+  const EMOJI_RE = /^[\u{1F1E6}-\u{1F1FF}]{2}|^[\u{1F300}-\u{1FAFF}]|^[\u2600-\u{27BF}]\uFE0F?/u;
 
   async function fetchJson(url) {
     const r = await fetch(url + '?t=' + Date.now(), { cache: 'no-store' });
@@ -20,18 +21,6 @@
 
   let owner = '', repo = '';
   fetchJson('config.json').then((c) => { owner = c.owner || ''; repo = c.repo || ''; }).catch(() => {});
-
-  function card(info, active, isMaint) {
-    const d = document.createElement('div');
-    d.className = 'incident';
-    const when = new Date(info.opened).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' });
-    const txt = isMaint ? 'плановые работы с ' + when
-      : (active ? 'недоступен с ' : 'устранён за ' + info.minutes + ' мин (открыт ') + when + (active ? '' : ')');
-    d.innerHTML = '<b></b> — ' + txt +
-      ' — <a href="https://github.com/' + owner + '/' + repo + '/issues/' + info.issue_number + '">репорт #' + info.issue_number + '</a>';
-    d.querySelector('b').textContent = info.name || 'Сервис';
-    return d;
-  }
 
   function renderChart(entries) {
     const cutoff = Date.now() - range * 3600 * 1000;
@@ -61,11 +50,9 @@
 
   async function load() {
     try {
-      const [summary, points, cur, log] = await Promise.all([
+      const [summary, points] = await Promise.all([
         fetchJson('history/summary.json'),
         fetchJson('api/' + slug + '/points.json').catch(() => []),
-        fetchJson('api/incidents.json').catch(() => ({})),
-        fetchJson('api/incidents-log.json').catch(() => []),
       ]);
       const s = summary.find((x) => x.slug === slug);
       if (!s) { banner.className = 'banner fail'; banner.textContent = 'Сайт не найден'; return; }
@@ -94,35 +81,22 @@
       }
 
       renderChart(points || []);
-
-      const openInc = Object.entries(cur || {}).filter(([, i]) => !i.maintenance);
-      const maint = Object.entries(cur || {}).filter(([, i]) => i.maintenance);
-      const past = (log || []).filter((i) => i.slug === slug).slice().reverse();
-      incEl.innerHTML = ''; pastEl.innerHTML = '';
-      document.getElementById('incTitle').style.display = openInc.length ? '' : 'none';
-      document.getElementById('maintTitle').style.display = maint.length ? '' : 'none';
-      document.getElementById('pastTitle').style.display = past.length ? '' : 'none';
-      for (const [, info] of openInc) incEl.appendChild(card(info, true));
-      for (const [, info] of maint) document.getElementById('maintenance').appendChild(card(info, true, true));
-      for (const info of past.slice(0, 20)) pastEl.appendChild(card(info, false));
     } catch (e) {
       banner.className = 'banner fail';
       banner.textContent = '⚠ Не удалось загрузить данные';
     }
   }
 
-  const tabs = document.getElementById('rangeTabs');
-  tabs.addEventListener('click', async (e) => {
-    if (e.target.tagName !== 'BUTTON') return;
-    range = Number(e.target.dataset.r);
-    tabs.querySelectorAll('button').forEach((b) => b.classList.toggle('active', b === e.target));
-    const pts = await fetch('api/' + slug + '/points.json?t=' + Date.now()).then(r => r.json()).catch(() => []);
-    renderChart(pts || []);
-  });
-  tabs.querySelector('button[data-r="24"]').classList.add('active');
-
-  const y = document.getElementById('year');
-  if (y) y.textContent = new Date().getFullYear();
+  if (tabs) {
+    tabs.addEventListener('click', async (e) => {
+      if (e.target.tagName !== 'BUTTON') return;
+      range = Number(e.target.dataset.r);
+      tabs.querySelectorAll('button').forEach((b) => b.classList.toggle('active', b === e.target));
+      const pts = await fetch('api/' + slug + '/points.json?t=' + Date.now()).then(r => r.json()).catch(() => []);
+      renderChart(pts || []);
+    });
+    tabs.querySelector('button[data-r="24"]').classList.add('active');
+  }
 
   await load();
   setInterval(load, 60000);
