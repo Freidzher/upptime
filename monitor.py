@@ -79,7 +79,13 @@ def slugify(key: str) -> str:
     return key.strip().lower().replace("_", "-")
 
 
+EMOJI_RE = re.compile(
+    "[\U0001F000-\U0001FAFF\u2600-\u27BF\u2B00-\u2BFF\u2190-\u21FF]"
+    "(?:\uFE0F|\u200D[\U0001F000-\U0001FAFF\u2600-\u27BF])*")
+
+
 def discover_sites(config: dict, secrets: dict) -> dict:
+    """Секрет может быть: 'https://site' или 'https://site,https://icon-url'."""
     custom = config.get("names", {})
     sites = {}
     for key, value in secrets.items():
@@ -87,10 +93,14 @@ def discover_sites(config: dict, secrets: dict) -> dict:
             continue
         if not value or not value.startswith(("http://", "https://")):
             continue
+        parts = [p.strip() for p in value.split(",") if p.strip()]
+        url = parts[0]
+        icon_url = parts[1] if len(parts) > 1 and parts[1].startswith(("http://", "https://")) else ""
         sites[key] = {
             "slug": slugify(key),
             "name": custom.get(key, pretty_name(key)),
-            "url": value,
+            "url": url,
+            "icon_url": icon_url,
             "timeout": config.get("timeout", 10),
         }
     return sites
@@ -409,12 +419,18 @@ def main() -> None:
 
         api = API_DIR / slug
         api.mkdir(parents=True, exist_ok=True)
-        # Favicon обновляется при каждой проверке
-        if not fetch_favicon(site["url"], api / "favicon.ico", site["timeout"]):
-            # Если favicon взять не удалось, но в имени есть эмодзи — используем его
-            emoji = leading_emoji(name)
-            if emoji:
-                write_emoji_svg(slug, emoji)
+        # Иконка: явная ссылка из секрета > favicon сайта > эмодзи из названия (любое)
+        emoji = leading_emoji(name)
+        icon_done = False
+        if site.get("icon_url"):
+            icon_done = fetch_favicon(site["icon_url"], api / "favicon.ico", site["timeout"])
+        if not icon_done:
+            icon_done = fetch_favicon(site["url"], api / "favicon.ico", site["timeout"])
+        if not icon_done and emoji:
+            write_emoji_svg(slug, emoji)
+        # Эмодзи из названия — всегда в иконку, из имени убираем
+        if emoji:
+            write_emoji_svg(slug, emoji)
 
         points = load_json(api / "points.json", [])
         points.append(result)
@@ -425,8 +441,9 @@ def main() -> None:
 
         write_site_files(slug, points, result)
 
+        clean_name = EMOJI_RE.sub("", name).strip()
         if not result["ok"] and key not in incidents:
-            open_incident(key, name, result, incidents, repo)
+            open_incident(key, clean_name or name, result, incidents, repo)
         elif result["ok"] and key in incidents:
             close_incident(key, incidents, result["ts"], repo)
 

@@ -7,6 +7,8 @@
 
   const params = new URLSearchParams(location.search);
   const slug = params.get('site') || '';
+  let owner = '', repo = '';
+  fetchJson('config.json').then((c) => { owner = c.owner || ''; repo = c.repo || ''; }).catch(() => {});
 
   async function fetchJson(url) {
     const r = await fetch(url + '?t=' + Date.now(), { cache: 'no-store' });
