@@ -80,14 +80,14 @@
           '<span class="favicon emoji">' + emoji + '</span>' +
           '<span class="dot ' + (up ? 'up' : 'down') + '"></span>' +
           '<span class="name"></span>' +
-          '<span class="uptime">' + s.uptimeDay + ' · ' + s.timeDay + ' мс</span>' +
+          '<span class="uptime"><b>' + s.uptimeDay + '</b> · ' + s.timeDay + ' мс</span>' +
           '<span class="chevron">→</span>';
       } else {
         row.innerHTML =
           '<img class="favicon" src="api/' + s.slug + '/favicon.ico" alt="" onerror="this.style.display=\'none\'">' +
           '<span class="dot ' + (up ? 'up' : 'down') + '"></span>' +
           '<span class="name"></span>' +
-          '<span class="uptime">' + s.uptimeDay + ' · ' + s.timeDay + ' мс</span>' +
+          '<span class="uptime"><b>' + s.uptimeDay + '</b> · ' + s.timeDay + ' мс</span>' +
           '<span class="chevron">→</span>';
       }
       row.querySelector('.name').textContent = cleanName;

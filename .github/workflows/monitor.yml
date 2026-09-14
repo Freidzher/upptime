@@ -15,7 +15,7 @@ permissions:
 
 concurrency:
   group: ${{ github.repository }}-monitor
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   check:

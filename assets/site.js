@@ -53,10 +53,18 @@
         labels: pts.map((e) => new Date(e.ts).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })),
         datasets: [{
           data: pts.map((e) => e.ms),
-          borderColor: 'rgba(255,79,139,0.9)',
-          backgroundColor: 'rgba(255,79,139,0.15)',
-          pointBackgroundColor: pts.map((e) => (e.ok ? 'rgba(255,79,139,.9)' : '#ff4f6d')),
-          pointRadius: 2, fill: true, tension: 0.35,
+          borderColor: (ctx) => {
+            const i = ctx.dataIndex;
+            const p = pts[i];
+            return p && p.ok ? '#2ecc71' : '#ff4f6d';
+          },
+          backgroundColor: (ctx) => {
+            const i = ctx.dataIndex;
+            const p = pts[i];
+            return p && p.ok ? 'rgba(46,204,113,.15)' : 'rgba(255,79,109,.15)';
+          },
+          pointBackgroundColor: pts.map((e) => (e.ok ? '#2ecc71' : '#ff4f6d')),
+          pointRadius: 2, fill: true, tension: 0.35, segment: { borderColor: (ctx) => ctx.p0.parsed.y && ctx.p1.parsed.y ? (pts[ctx.p0DataIndex].ok && pts[ctx.p1DataIndex].ok ? '#2ecc71' : '#ff4f6d') : 'rgba(255,79,139,.5)' },
         }],
       },
       options: {

@@ -107,9 +107,9 @@ def discover_sites(config: dict, secrets: dict) -> dict:
 
 
 def fetch_favicon(url: str, dest: Path, timeout: int = 10) -> bool:
-    """Скачивает favicon по конечному пути (следуя редиректам) в api/{slug}/favicon.ico.
+    """Скачивает favicon (ico/png/svg) по URL в api/{slug}/favicon.ico.
 
-    Порядок: /favicon.ico исходного URL (с редиректами), затем DuckDuckGo.
+    Приоритет: прямой URL > /favicon.ico > /favicon.png > /favicon.svg > DuckDuckGo.
     Домен сайта нигде не публикуется — иконка хранится локально в репо.
     """
     class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -118,6 +118,19 @@ def fetch_favicon(url: str, dest: Path, timeout: int = 10) -> bool:
 
     final_url = url
     try:
+        # Если URL уже ведёт на иконку (ico/png/svg) — скачиваем напрямую
+        lower = url.lower()
+        if lower.endswith(('.ico', '.png', '.svg')):
+            try:
+                req = urllib.request.Request(url, headers={"User-Agent": "RunicoreMonitor/1.0"})
+                with urllib.request.urlopen(req, timeout=timeout, context=ctx) as resp:
+                    data = resp.read()
+                if data and len(data) > 100:
+                    dest.write_bytes(data)
+                    return True
+            except Exception:
+                pass
+
         # Разрешаем редиректы вручную, чтобы узнать конечный URL
         opener = urllib.request.build_opener(NoRedirect)
         req = urllib.request.Request(url, headers={"User-Agent": "RunicoreMonitor/1.0"})
@@ -133,11 +146,12 @@ def fetch_favicon(url: str, dest: Path, timeout: int = 10) -> bool:
         base = "{0.scheme}://{0.netloc}".format(urllib.parse.urlparse(final_url))
         candidates = (
             f"{base}/favicon.ico",
+            f"{base}/favicon.png",
+            f"{base}/favicon.svg",
             f"https://icons.duckduckgo.com/ip3/{urllib.parse.urlparse(final_url).netloc}.ico",
         )
         for icon_url in candidates:
             try:
-                # urlopen сам следует редиректам
                 req = urllib.request.Request(icon_url, headers={"User-Agent": "RunicoreMonitor/1.0"})
                 with urllib.request.urlopen(req, timeout=timeout, context=ctx) as resp:
                     data = resp.read()
