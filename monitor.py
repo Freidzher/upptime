@@ -17,6 +17,7 @@
 """
 import json
 import os
+import sys
 import time
 import urllib.request
 import urllib.error
@@ -33,6 +34,12 @@ ENV_FILE = ROOT / ".env"
 
 SERVICE_KEYS = {"FINE_GRAINED_TOKEN", "GH_TOKEN", "GITHUB_TOKEN"}
 ctx = ssl.create_default_context()
+
+# Безопасный вывод: не падать на не-CP1251 символах в консоли Windows
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
 
 
 def repo_slug(config: dict) -> str:
@@ -133,19 +140,42 @@ def fetch_favicon(url: str, dest: Path, timeout: int = 10) -> bool:
     return False
 
 
+def _open(req: urllib.request.Request, timeout: int):
+    return urllib.request.urlopen(req, timeout=timeout, context=ctx)
+
+
 def check_site(name: str, url: str, timeout: int = 10) -> dict:
+    """Любой HTTP-ответ (включая 403/404/502 — защита/WAF) = сервер жив.
+
+    Если сертификат не проходит проверку (IP-адрес, self-signed) — повторяем
+    с отключённой версией SSL-верификации: рукопожатие прошло = сервер жив.
+    """
     start = time.monotonic()
     ok, code = False, 0
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "RunicoreMonitor/1.0"})
-        with urllib.request.urlopen(req, timeout=timeout, context=ctx) as resp:
-            code, ok = resp.status, 200 <= resp.status < 400
+        with _open(req, timeout) as resp:
+            code = resp.status
     except urllib.error.HTTPError as e:
         code = e.code
+    except urllib.error.URLError as e:
+        if isinstance(getattr(e, "reason", None), ssl.SSLCertVerificationError):
+            # Сертификат не совпадает, но TLS-рукопожатие прошло — сервер жив
+            insecure = ssl._create_unverified_context()
+            try:
+                req2 = urllib.request.Request(url, headers={"User-Agent": "RunicoreMonitor/1.0"})
+                with urllib.request.urlopen(req2, timeout=timeout, context=insecure) as resp:
+                    code = resp.status
+            except urllib.error.HTTPError as e2:
+                code = e2.code
+            except Exception:
+                pass
     except Exception:
         pass
+    # Любой HTTP-ответ = жив (0 = соединения не было вовсе)
+    ok = code > 0
     ms = round((time.monotonic() - start) * 1000)
-    print(f"{name}: {'UP' if ok else 'DOWN'} ({code}) {ms}ms")
+    print(f"{name}: {'UP' if ok else 'DOWN'} ({code}) {ms}ms".encode("utf-8", "replace").decode("utf-8", "replace"))
     return {"ts": datetime.now(timezone.utc).isoformat(timespec="seconds"), "ok": ok, "code": code, "ms": ms}
 
 
@@ -363,8 +393,8 @@ def main() -> None:
 
         api = API_DIR / slug
         api.mkdir(parents=True, exist_ok=True)
-        if not (api / "favicon.ico").exists():
-            fetch_favicon(site["url"], api / "favicon.ico", site["timeout"])
+        # Favicon обновляется при каждой проверке
+        fetch_favicon(site["url"], api / "favicon.ico", site["timeout"])
 
         points = load_json(api / "points.json", [])
         points.append(result)
