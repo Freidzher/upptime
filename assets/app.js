@@ -4,7 +4,8 @@
   const banner = document.getElementById('banner');
   const rowsEl = document.getElementById('rows');
   const incEl = document.getElementById('incidents');
-  const incTitle = document.getElementById('incTitle');
+  const pastEl = document.getElementById('past');
+  const EMOJI_RE = /^[\u{1F1E6}-\u{1F1FF}]{2}|[\u{1F000}-\u{1FAFF}]|[\u2600-\u27BF]\uFE0F?/u;
 
   async function fetchJson(url) {
     const r = await fetch(url + '?t=' + Date.now(), { cache: 'no-store' });
