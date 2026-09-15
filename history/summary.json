@@ -1,6 +1,6 @@
 [
  {
-  "name": "База знаний",
+  "name": "База знаний (+Служба поддержки)",
   "slug": "server2",
   "status": "up",
   "uptime": "100.00%",
@@ -40,11 +40,11 @@
   "uptimeWeek": "100.00%",
   "uptimeMonth": "100.00%",
   "uptimeYear": "100.00%",
-  "time": 1177,
-  "timeDay": 1190,
-  "timeWeek": 1177,
-  "timeMonth": 1177,
-  "timeYear": 1177,
+  "time": 1176,
+  "timeDay": 1189,
+  "timeWeek": 1176,
+  "timeMonth": 1176,
+  "timeYear": 1176,
   "dailyMinutesDown": {}
  },
  {
@@ -57,7 +57,7 @@
   "uptimeMonth": "100.00%",
   "uptimeYear": "100.00%",
   "time": 1565,
-  "timeDay": 1578,
+  "timeDay": 1577,
   "timeWeek": 1565,
   "timeMonth": 1565,
   "timeYear": 1565,
