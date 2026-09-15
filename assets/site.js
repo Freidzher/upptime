@@ -134,6 +134,9 @@
     });
     tabs.querySelector('button[data-r="24"]').classList.add('active');
   }
+  
+  const y = document.getElementById('year');
+  if (y) y.textContent = new Date().getFullYear();
 
   await load();
   setInterval(load, 60000);
