@@ -90,6 +90,21 @@
       document.title = clean + ' — Runicore';
       nameEl.textContent = clean;
 
+      // Favicon рядом с названием (как на главной)
+      const favEl = document.getElementById('siteFavicon');
+      if (favEl) {
+        if (s.icon) {
+          favEl.src = 'api/' + slug + '/' + s.icon;
+          favEl.style.display = '';
+          favEl.onerror = () => { favEl.style.display = 'none'; };
+        } else {
+          const emoji = (s.name.match(EMOJI_RE) || [''])[0];
+          if (emoji) {
+            favEl.outerHTML = '<span id="siteFavicon" style="font-size:28px; vertical-align:middle; margin-right:10px;">' + emoji + '</span>';
+          }
+        }
+      }
+
       const up = s.status === 'up';
       banner.className = 'banner ' + (up ? 'ok' : 'fail');
       banner.innerHTML = up ? '<span class="icon">🟢</span> Работает' : '<span class="icon">🔴</span> Недоступен';

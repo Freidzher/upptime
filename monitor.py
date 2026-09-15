@@ -106,30 +106,39 @@ def discover_sites(config: dict, secrets: dict) -> dict:
     return sites
 
 
-def fetch_favicon(url: str, dest: Path, timeout: int = 10) -> bool:
-    """Скачивает favicon (ico/png/svg) по URL в api/{slug}/favicon.ico.
+def fetch_favicon(url: str, api_dir: Path, timeout: int = 10) -> str:
+    """Скачивает favicon (ico/png/svg) в api/{slug}/favicon.{ext}.
 
+    Возвращает имя файла ('favicon.ico'|'favicon.png'|'favicon.svg') или ''.
     Приоритет: прямой URL > /favicon.ico > /favicon.png > /favicon.svg > DuckDuckGo.
-    Домен сайта нигде не публикуется — иконка хранится локально в репо.
+    Старые favicon.* с другим расширением удаляются.
     """
     class NoRedirect(urllib.request.HTTPRedirectHandler):
         def redirect_request(self, req, fp, code, msg, headers, newurl):
             return None
 
-    final_url = url
+    def save(data: bytes, ext: str) -> str:
+        # Удаляем старые иконки с другим расширением
+        for old in api_dir.glob("favicon.*"):
+            if old.name != f"favicon.{ext}":
+                old.unlink(missing_ok=True)
+        (api_dir / f"favicon.{ext}").write_bytes(data)
+        return f"favicon.{ext}"
+
     try:
         # Если URL уже ведёт на иконку (ico/png/svg) — скачиваем напрямую
         lower = url.lower()
-        if lower.endswith(('.ico', '.png', '.svg')):
-            try:
-                req = urllib.request.Request(url, headers={"User-Agent": "RunicoreMonitor/1.0"})
-                with urllib.request.urlopen(req, timeout=timeout, context=ctx) as resp:
-                    data = resp.read()
-                if data and len(data) > 100:
-                    dest.write_bytes(data)
-                    return True
-            except Exception:
-                pass
+        for ext in ("ico", "png", "svg"):
+            if lower.endswith("." + ext):
+                try:
+                    req = urllib.request.Request(url, headers={"User-Agent": "RunicoreMonitor/1.0"})
+                    with urllib.request.urlopen(req, timeout=timeout, context=ctx) as resp:
+                        data = resp.read()
+                    if data and len(data) > 100:
+                        return save(data, ext)
+                except Exception:
+                    pass
+                break
 
         # Разрешаем редиректы вручную, чтобы узнать конечный URL
         opener = urllib.request.build_opener(NoRedirect)
@@ -137,32 +146,31 @@ def fetch_favicon(url: str, dest: Path, timeout: int = 10) -> bool:
         try:
             with opener.open(req, timeout=timeout) as resp:
                 if 300 <= resp.status < 400:
-                    final_url = resp.headers.get("Location") or url
+                    url = resp.headers.get("Location") or url
         except urllib.error.HTTPError as e:
             if 300 <= e.code < 400:
-                final_url = e.headers.get("Location") or url
+                url = e.headers.get("Location") or url
 
-        host = urllib.parse.urlparse(final_url).netloc or urllib.parse.urlparse(url).netloc
-        base = "{0.scheme}://{0.netloc}".format(urllib.parse.urlparse(final_url))
+        host = urllib.parse.urlparse(url).netloc
+        base = "{0.scheme}://{0.netloc}".format(urllib.parse.urlparse(url))
         candidates = (
-            f"{base}/favicon.ico",
-            f"{base}/favicon.png",
-            f"{base}/favicon.svg",
-            f"https://icons.duckduckgo.com/ip3/{urllib.parse.urlparse(final_url).netloc}.ico",
+            (f"{base}/favicon.ico", "ico"),
+            (f"{base}/favicon.png", "png"),
+            (f"{base}/favicon.svg", "svg"),
+            (f"https://icons.duckduckgo.com/ip3/{host}.ico", "ico"),
         )
-        for icon_url in candidates:
+        for icon_url, ext in candidates:
             try:
                 req = urllib.request.Request(icon_url, headers={"User-Agent": "RunicoreMonitor/1.0"})
                 with urllib.request.urlopen(req, timeout=timeout, context=ctx) as resp:
                     data = resp.read()
                 if data and len(data) > 100:
-                    dest.write_bytes(data)
-                    return True
+                    return save(data, ext)
             except Exception:
                 continue
     except Exception:
         pass
-    return False
+    return ""
 
 
 def _open(req: urllib.request.Request, timeout: int):
@@ -395,9 +403,17 @@ def build_summary(sites: dict, history_points: dict, interval_min: int) -> list:
         slug = site["slug"]
         points = history_points.get(slug, [])
         last = points[-1] if points else {"ok": True, "ms": 0, "code": 0, "ts": ""}
+        # Фактическая иконка: первый найденный favicon.* в папке сайта
+        icon = ""
+        icon_dir = API_DIR / slug
+        if icon_dir.exists():
+            for old in sorted(icon_dir.glob("favicon.*")):
+                icon = old.name
+                break
         summary.append({
             "name": site["name"],
             "slug": slug,
+            "icon": icon,
             "status": "up" if (points and last["ok"]) else "down",
             "uptime": f"{uptime_pct(points, 24 * 90):.2f}%",
             "uptimeDay": f"{uptime_pct(points, 24):.2f}%",
@@ -441,11 +457,13 @@ def main() -> None:
         api = API_DIR / slug
         api.mkdir(parents=True, exist_ok=True)
         # Иконка: явная ссылка из секрета > favicon сайта
-        icon_done = False
+        icon_done = ""
         if site.get("icon_url"):
-            icon_done = fetch_favicon(site["icon_url"], api / "favicon.ico", site["timeout"])
+            icon_done = fetch_favicon(site["icon_url"], api, site["timeout"])
         if not icon_done:
-            fetch_favicon(site["url"], api / "favicon.ico", site["timeout"])
+            icon_done = fetch_favicon(site["url"], api, site["timeout"])
+        if icon_done:
+            site["icon"] = icon_done
 
         points = load_json(api / "points.json", [])
         points.append(result)
