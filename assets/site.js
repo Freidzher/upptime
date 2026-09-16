@@ -101,7 +101,12 @@
       nameEl.textContent = clean;
 
       if (updatedEl) {
-        updatedEl.textContent = 'Обновлено: ' + new Date().toLocaleTimeString('ru-RU', { timeZone: 'Europe/Moscow' });
+        // Время реального обновления данных мониторинга (из summary.json)
+        const ts = s.updatedAt || null;
+        const when = ts
+          ? new Date(ts).toLocaleTimeString('ru-RU', { timeZone: 'Europe/Moscow' })
+          : new Date().toLocaleTimeString('ru-RU', { timeZone: 'Europe/Moscow' });
+        updatedEl.textContent = 'Данные обновлены: ' + when + ' МСК';
       }
 
       const favEl = document.getElementById('siteFavicon');

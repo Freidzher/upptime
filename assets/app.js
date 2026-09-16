@@ -57,7 +57,7 @@
         const when = ts
           ? new Date(ts).toLocaleTimeString('ru-RU', { timeZone: 'Europe/Moscow' })
           : new Date().toLocaleTimeString('ru-RU', { timeZone: 'Europe/Moscow' });
-        updatedEl.textContent = 'Данные обновлены: ' + when;
+        updatedEl.textContent = 'Данные обновлены: ' + when + ' МСК';
       }
     } catch (e) {
       banner.className = 'banner fail';
