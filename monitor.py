@@ -12,7 +12,10 @@
 
 Конфиг: config.json (owner, repo, names, interval_minutes, history_days, timeout).
 Секреты приходят через SECRETS_CONTEXT (Actions) или .env (локально).
-Служебные (FINE_GRAINED_TOKEN, GH_TOKEN) исключаются. URL нигде не публикуются.
+Формат секрета (разделитель '|', без пробелов):
+  'https://site|https://icon-url'  — HTTP/HTTPS-сайт (второе — своя иконка);
+  '1.2.3.4' или 'host.example.com' — машина: проверка SSH-порта 22 (TCP, без авторизации).
+Служебные (FINE_GRAINED_TOKEN, GH_TOKEN) исключаются. URL/IP нигде не публикуются.
 Автор: Freidzher
 """
 import json
@@ -24,6 +27,7 @@ import urllib.request
 import urllib.error
 import urllib.parse
 import ssl
+import socket
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
@@ -84,22 +88,38 @@ EMOJI_RE = re.compile(
     "(?:\uFE0F|\u200D[\U0001F000-\U0001FAFF\u2600-\u27BF])*")
 
 
+# Хост без схемы: домен или IPv4 (буквы/цифры/точки/дефисы, без пробелов и слэшей)
+HOST_RE = re.compile(r"^[a-zA-Z0-9](?:[a-zA-Z0-9.-]*[a-zA-Z0-9])?$")
+
+
 def discover_sites(config: dict, secrets: dict) -> dict:
-    """Секрет может быть: 'https://site' или 'https://site,https://icon-url'."""
+    """Разделитель секрета — '|' (без пробелов):
+      'https://site|https://icon-url'  — HTTP/HTTPS-сайт (+ необязательная иконка);
+      '1.2.3.4' или 'host.example.com' — машина: проверка SSH-порта 22 (TCP, без авторизации).
+    """
     custom = config.get("names", {})
     sites = {}
     for key, value in secrets.items():
         if key in SERVICE_KEYS or key.startswith(("GITHUB_", "RUNNER_", "CI")):
             continue
-        if not value or not value.startswith(("http://", "https://")):
+        if not value:
             continue
-        parts = [p.strip() for p in value.split(",") if p.strip()]
-        url = parts[0]
+        parts = [p.strip() for p in value.split("|") if p.strip()]
+        if not parts:
+            continue
+        target = parts[0]
         icon_url = parts[1] if len(parts) > 1 and parts[1].startswith(("http://", "https://")) else ""
+        if target.startswith(("http://", "https://")):
+            kind = "http"
+        elif HOST_RE.match(target):
+            kind = "ssh"  # IP или домен без схемы -> TCP-проверка порта 22
+        else:
+            continue  # не похоже ни на URL, ни на хост — пропускаем
         sites[key] = {
             "slug": slugify(key),
             "name": custom.get(key, pretty_name(key)),
-            "url": url,
+            "kind": kind,
+            "url": target,
             "icon_url": icon_url,
             "timeout": config.get("timeout", 10),
         }
@@ -218,6 +238,34 @@ def check_site(name: str, url: str, timeout: int = 10) -> dict:
     return {"ts": datetime.now(timezone.utc).isoformat(timespec="seconds"), "ok": ok, "code": last_code, "ms": ms}
 
 
+def _single_ssh_check(host: str, timeout: int) -> tuple:
+    """Одна TCP-попытка на порт 22 (SSH, без авторизации). Возвращает (ok, code)."""
+    try:
+        with socket.create_connection((host, 22), timeout=timeout):
+            return True, 22  # соединение установлено -> машина активна
+    except Exception:
+        return False, 0
+
+
+def check_ssh(name: str, host: str, timeout: int = 10) -> dict:
+    """Живость машины: TCP-подключение к порту 22 (без авторизации).
+    3 попытки: 2+ успешных — работает, иначе — падение."""
+    start = time.monotonic()
+    successes = 0
+    last_code = 0
+    for attempt in range(3):
+        ok, code = _single_ssh_check(host, timeout)
+        if ok:
+            successes += 1
+            last_code = code
+        if successes >= 2:
+            break  # Достаточно успехов
+    ok = successes >= 2
+    ms = round((time.monotonic() - start) * 1000)
+    print(f"{name}: {'UP' if ok else 'DOWN'} ({last_code}) {ms}ms [x{successes}/3] [ssh]".encode("utf-8", "replace").decode("utf-8", "replace"))
+    return {"ts": datetime.now(timezone.utc).isoformat(timespec="seconds"), "ok": ok, "code": last_code, "ms": ms}
+
+
 def gh_api(path: str, method: str = "GET", payload=None):
     token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
     if not token:
@@ -262,7 +310,7 @@ def open_incident(key: str, name: str, result: dict, incidents: dict, repo: str,
     ) if is_maint else (
         f"**{name}** недоступен.\n\n"
         f"- Время: {result['ts']}\n"
-        f"- HTTP code: {result['code']}\n"
+        f"- Code: {result['code']}\n"
         f"- Response time: {result['ms']} ms\n\n"
         f"Комментарии — репорты инцидента. Закроется автоматически при восстановлении."
     )
@@ -442,7 +490,7 @@ def main() -> None:
     secrets = load_secrets()
     sites = discover_sites(config, secrets)
     if not sites:
-        raise SystemExit("Не найдено ни одного сайта (секретов с URL).")
+        raise SystemExit("Не найдено ни одного сайта/сервера (секретов с URL или IP/доменом).")
 
     interval_min = int(config.get("interval_minutes", 5))
     incidents = load_json(API_DIR / "incidents.json", {})
@@ -452,15 +500,19 @@ def main() -> None:
 
     for key, site in sites.items():
         slug, name = site["slug"], site["name"]
-        result = check_site(name, site["url"], site["timeout"])
+        if site["kind"] == "ssh":
+            # Машина: TCP-проверка SSH-порта 22 по IP/домену (без авторизации)
+            result = check_ssh(name, site["url"], site["timeout"])
+        else:
+            result = check_site(name, site["url"], site["timeout"])
 
         api = API_DIR / slug
         api.mkdir(parents=True, exist_ok=True)
-        # Иконка: явная ссылка из секрета > favicon сайта
+        # Иконка: явная ссылка из секрета; для HTTP — дополнительно favicon сайта
         icon_done = ""
         if site.get("icon_url"):
             icon_done = fetch_favicon(site["icon_url"], api, site["timeout"])
-        if not icon_done:
+        if not icon_done and site["kind"] == "http":
             icon_done = fetch_favicon(site["url"], api, site["timeout"])
         if icon_done:
             site["icon"] = icon_done
