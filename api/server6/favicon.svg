@@ -1,57 +1,25 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>Chatwoot</title>
-    <meta name="csrf-param" content="authenticity_token" />
-<meta name="csrf-token" content="W1YC7NEktUn8rem7aiPmSE-rsw3NhjJH6L7IdB1mLJ-j_3-1T_kl456fsUkrhq-qLVLWprrO46hDgzpxQDHbSQ" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
-    <script>
-      window.chatwootWebChannel = {
-        avatarUrl: 'https://cw.dp.pdqp.ru/rails/active_storage/representations/redirect/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBYQT09IiwiZXhwIjpudWxsLCJwdXIiOiJibG9iX2lkIn19--589512b5638cc25e7e32132702e2099ecd68c43c/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaDdCem9MWm05eWJXRjBTU0lJY0c1bkJqb0dSVlE2RTNKbGMybDZaVjkwYjE5bWFXeHNXd2RwQWZvdyIsImV4cCI6bnVsbCwicHVyIjoidmFyaWF0aW9uIn19--e7c5ae92eaa443cc28d076ac35db30fe6b5fa9d1/favicon.png',
-        hasAConnectedAgentBot: '',
-        locale: 'ru',
-        websiteName: 'Runicore (Подписка)',
-        websiteToken: '14uwWnubVknfp7NcwDa2ggbd',
-        welcomeTagline: "",
-        welcomeTitle: '',
-        widgetColor: '#0C8599',
-        portal: {"id":1,"account_id":1,"name":"Runicore","slug":"runicore","custom_domain":null,"color":"#2781F6","homepage_link":null,"page_title":"База знаний","header_text":"База знаний","created_at":"2026-03-09T16:28:30.732Z","updated_at":"2026-09-14T10:40:45.128Z","config":{"layout":"classic","draft_locales":[],"default_locale":"ru","allowed_locales":["ru"],"social_profiles":{}},"archived":false,"channel_web_widget_id":null,"ssl_settings":{}},
-        enabledFeatures: ["attachments","emoji_picker"],
-        enabledLanguages: [{"name":"English (en)","iso_639_1_code":"en"},{"name":"العربية (ar)","iso_639_1_code":"ar"},{"name":"Nederlands (nl) ","iso_639_1_code":"nl"},{"name":"Français (fr)","iso_639_1_code":"fr"},{"name":"Deutsch (de)","iso_639_1_code":"de"},{"name":"Italiano (it)","iso_639_1_code":"it"},{"name":"日本語 (ja)","iso_639_1_code":"ja"},{"name":"한국어 (ko)","iso_639_1_code":"ko"},{"name":"Português (pt)","iso_639_1_code":"pt"},{"name":"русский (ru)","iso_639_1_code":"ru"},{"name":"Español (es)","iso_639_1_code":"es"},{"name":"മലയാളം (ml)","iso_639_1_code":"ml"},{"name":"Català (ca)","iso_639_1_code":"ca"},{"name":"ελληνικά (el)","iso_639_1_code":"el"},{"name":"Português Brasileiro (pt-BR)","iso_639_1_code":"pt_BR"},{"name":"Română (ro)","iso_639_1_code":"ro"},{"name":"தமிழ் (ta)","iso_639_1_code":"ta"},{"name":"فارسی (fa)","iso_639_1_code":"fa"},{"name":"中文 (台湾) (zh-TW)","iso_639_1_code":"zh_TW"},{"name":"Tiếng Việt (vi)","iso_639_1_code":"vi"},{"name":"dansk (da)","iso_639_1_code":"da"},{"name":"Türkçe (tr)","iso_639_1_code":"tr"},{"name":"čeština (cs)","iso_639_1_code":"cs"},{"name":"suomi, suomen kieli (fi)","iso_639_1_code":"fi"},{"name":"Bahasa Indonesia (id)","iso_639_1_code":"id"},{"name":"Svenska (sv)","iso_639_1_code":"sv"},{"name":"magyar nyelv (hu)","iso_639_1_code":"hu"},{"name":"norsk (no)","iso_639_1_code":"no"},{"name":"中文 (zh-CN)","iso_639_1_code":"zh_CN"},{"name":"język polski (pl)","iso_639_1_code":"pl"},{"name":"slovenčina (sk)","iso_639_1_code":"sk"},{"name":"украї́нська мо́ва (uk)","iso_639_1_code":"uk"},{"name":"ภาษาไทย (th)","iso_639_1_code":"th"},{"name":"latviešu valoda (lv)","iso_639_1_code":"lv"},{"name":"íslenska (is)","iso_639_1_code":"is"},{"name":"עִברִית (he)","iso_639_1_code":"he"},{"name":"lietuvių (lt)","iso_639_1_code":"lt"},{"name":"Српски (sr)","iso_639_1_code":"sr"},{"name":"български (bg)","iso_639_1_code":"bg"},{"name":"Eesti keel (et)","iso_639_1_code":"et"},{"name":"Oʻzbekcha (uz)","iso_639_1_code":"uz"},{"name":"slovenščina (sl)","iso_639_1_code":"sl"}],
-        replyTime: 'in_a_day',
-        preChatFormEnabled: true,
-        preChatFormOptions: {"pre_chat_fields":[{"name":"emailAddress","type":"email","label":"Email Id","enabled":false,"required":true,"field_type":"standard","placeholder":"emailAddress"},{"name":"fullName","type":"text","label":"Full name","enabled":false,"required":false,"field_type":"standard","placeholder":"fullName"},{"name":"phoneNumber","type":"text","label":"Phone number","enabled":false,"required":false,"field_type":"standard","placeholder":"phoneNumber"},{"name":"referrer","type":"text","label":"Реферрер (если_есть)","values":[],"enabled":false,"required":false,"regex_cue":"Name-S","field_type":"contact_attribute","placeholder":"Реферрер (если_есть)","regex_pattern":"/^[A-Za-zА-Яа-яЁё]+-[A-Za-zА-Яа-яЁё]+$/"},{"name":"refferer_successful","type":"checkbox","label":"Реферрер вознагражден","values":[],"enabled":false,"required":false,"regex_cue":null,"field_type":"contact_attribute","placeholder":"Реферрер вознагражден","regex_pattern":null},{"name":"telegram_id","type":"number","label":"Telegram ID","values":[],"enabled":false,"required":false,"regex_cue":null,"field_type":"contact_attribute","placeholder":"Telegram ID","regex_pattern":null},{"name":"telegram_username","type":"text","label":"@Telegram","values":[],"enabled":false,"required":false,"regex_cue":"@telegram","field_type":"contact_attribute","placeholder":"@Telegram","regex_pattern":"/^@[A-Za-z0-9_]{5,32}$/"},{"name":"department","type":"list","label":"Обращение","values":["Технические проблемы","Финансовые вопросы","Бонусы и акции","Другое"],"enabled":true,"required":true,"regex_cue":null,"field_type":"conversation_attribute","placeholder":"По какому вопросу?","regex_pattern":null},{"name":"trial_period","type":"checkbox","label":"Тестировал сервис","values":[],"enabled":false,"required":false,"regex_cue":null,"field_type":"contact_attribute","placeholder":"Тестировал сервис","regex_pattern":null},{"name":"tariff","type":"list","label":"*Тариф","values":["249 ₽ / месяц (200-2_BASE_07-2026)","399 ₽ / месяц (400-4_DUET_07-2026)","699 ₽ / месяц (800-8_FMLY_07-2026)","🪪 KYC | 149 ₽ / месяц (120-1_EDU_07-2026)"],"enabled":false,"required":false,"regex_cue":null,"field_type":"conversation_attribute","placeholder":"*Тариф","regex_pattern":null}],"pre_chat_message":""},
-        workingHoursEnabled: false,
-        csatSurveyEnabled: true,
-        workingHours: [{"id":3,"inbox_id":1,"account_id":1,"day_of_week":2,"closed_all_day":false,"open_hour":14,"open_minutes":0,"close_hour":20,"close_minutes":0,"created_at":"2026-03-09T12:42:10.403Z","updated_at":"2026-05-17T21:12:24.216Z","open_all_day":false},{"id":4,"inbox_id":1,"account_id":1,"day_of_week":3,"closed_all_day":false,"open_hour":14,"open_minutes":0,"close_hour":20,"close_minutes":0,"created_at":"2026-03-09T12:42:10.405Z","updated_at":"2026-05-17T21:12:24.219Z","open_all_day":false},{"id":5,"inbox_id":1,"account_id":1,"day_of_week":4,"closed_all_day":false,"open_hour":14,"open_minutes":0,"close_hour":20,"close_minutes":0,"created_at":"2026-03-09T12:42:10.406Z","updated_at":"2026-05-17T21:12:24.223Z","open_all_day":false},{"id":7,"inbox_id":1,"account_id":1,"day_of_week":6,"closed_all_day":true,"open_hour":null,"open_minutes":null,"close_hour":null,"close_minutes":null,"created_at":"2026-03-09T12:42:10.409Z","updated_at":"2026-05-17T21:12:24.229Z","open_all_day":false},{"id":1,"inbox_id":1,"account_id":1,"day_of_week":0,"closed_all_day":true,"open_hour":null,"open_minutes":null,"close_hour":null,"close_minutes":null,"created_at":"2026-03-09T12:42:10.399Z","updated_at":"2026-05-22T13:47:39.094Z","open_all_day":false},{"id":6,"inbox_id":1,"account_id":1,"day_of_week":5,"closed_all_day":false,"open_hour":14,"open_minutes":0,"close_hour":20,"close_minutes":0,"created_at":"2026-03-09T12:42:10.408Z","updated_at":"2026-05-22T13:47:39.116Z","open_all_day":false},{"id":2,"inbox_id":1,"account_id":1,"day_of_week":1,"closed_all_day":true,"open_hour":null,"open_minutes":null,"close_hour":null,"close_minutes":null,"created_at":"2026-03-09T12:42:10.402Z","updated_at":"2026-06-09T14:24:16.644Z","open_all_day":false}],
-        outOfOfficeMessage: "",
-        utcOffset: '+04:00',
-        timezone: 'Europe/Samara',
-        allowMessagesAfterResolved: false,
-        disableBranding: false,
-      }
-      window.chatwootPubsubToken = 'Kx676V2U5PPqJMdvtZfj2W46'
-      window.authToken = 'eyJhbGciOiJIUzI1NiJ9.eyJzb3VyY2VfaWQiOiJhZDM4NTUwMi0xZDg3LTQ1N2YtOGQ1Zi1lYzA1YTdkNDRkMWMiLCJpbmJveF9pZCI6MSwiZXhwIjoxODA1MTEyMDczLCJpYXQiOjE3ODk1NjAwNzN9.EJXChRhZzvjxdOHpEtuJhjd-Xl-KIwmADvDtMI3tzy4'
-      window.globalConfig = {"LOGO_THUMBNAIL":"/brand-assets/logo_thumbnail.svg","BRAND_NAME":"Chatwoot","WIDGET_BRAND_URL":"https://www.chatwoot.com","DIRECT_UPLOADS_ENABLED":false,"MAXIMUM_FILE_UPLOAD_SIZE":40,"INSTALLATION_NAME":"Chatwoot"}
-    </script>
-    
-    <script src="/vite/assets/widget-C_EztarX.js" crossorigin="" type="module"></script><link rel="modulepreload" href="/vite/assets/_plugin-vue_export-helper-C2mj1YQq.js" as="script" crossorigin="">
-<link rel="modulepreload" href="/vite/assets/utils.esm-qHqIGgqd.js" as="script" crossorigin="">
-<link rel="modulepreload" href="/vite/assets/useBranding-BBcfFkJ1.js" as="script" crossorigin="">
-<link rel="modulepreload" href="/vite/assets/vue-dompurify-html-xc1cZssS.js" as="script" crossorigin="">
-<link rel="modulepreload" href="/vite/assets/sharedFrameEvents-Cz3L815q.js" as="script" crossorigin="">
-<link rel="modulepreload" href="/vite/assets/constants-lVAyZKq6.js" as="script" crossorigin="">
-<link rel="modulepreload" href="/vite/assets/index-DJvsux1d.js" as="script" crossorigin="">
-<link rel="modulepreload" href="/vite/assets/Validators-F9jwcOBy.js" as="script" crossorigin="">
-<link rel="modulepreload" href="/vite/assets/index-C8nv0jBS.js" as="script" crossorigin="">
-<link rel="modulepreload" href="/vite/assets/Icon-jHSQyKb-.js" as="script" crossorigin="">
-<link rel="modulepreload" href="/vite/assets/module-DHXVxwIq.js" as="script" crossorigin="">
-<link rel="modulepreload" href="/vite/assets/Branding-HZvQHS_N.js" as="script" crossorigin="">
-<link rel="modulepreload" href="/vite/assets/HTMLSanitizer-cciupgGC.js" as="script" crossorigin=""><link rel="stylesheet" crossorigin="" href="/vite/assets/widget-N6tjfUwx.css" media="screen" />
-<link rel="stylesheet" crossorigin="" href="/vite/assets/useBranding-DSFJg_40.css" media="screen" />
-  </head>
-  <body>
-    <div id="app" class="h-full"></div>
-    
-  </body>
-</html>
+<svg
+  width="16"
+  height="16"
+  viewBox="0 0 16 16"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <g clip-path="url(#woot-logo-clip-2342424e23u32098)">
+    <path
+      d="M8 16C12.4183 16 16 12.4183 16 8C16 3.58172 12.4183 0 8 0C3.58172 0 0 3.58172 0 8C0 12.4183 3.58172 16 8 16Z"
+      fill="#2781F6"
+    />
+    <path
+      d="M11.4172 11.4172H7.70831C5.66383 11.4172 4 9.75328 4 7.70828C4 5.66394 5.66383 4 7.70835 4C9.75339 4 11.4172 5.66394 11.4172 7.70828V11.4172Z"
+      fill="white"
+      stroke="white"
+      stroke-width="0.1875"
+    />
+  </g>
+  <defs>
+    <clipPath id="woot-logo-clip-2342424e23u32098">
+      <rect width="16" height="16" fill="white" />
+    </clipPath>
+  </defs>
+</svg>
