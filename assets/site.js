@@ -27,21 +27,34 @@
     return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&', '<': '<', '>': '>', '"': '"', "'": '&#39;' }[c]));
   }
 
-  function incidentCard(info) {
+  function pluralMin(n) {
+    const m10 = n % 10, m100 = n % 100;
+    if (m10 === 1 && m100 !== 11) return n + ' минуту';
+    if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return n + ' минуты';
+    return n + ' минут';
+  }
+
+  function incidentCard(info, isMaint) {
     const d = document.createElement('div');
     d.className = 'incident';
-    const opened = new Date(info.opened).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' });
+    const started = new Date(info.opened).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' });
     const resolved = info.resolved ? new Date(info.resolved).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' }) : null;
-    const minutes = info.minutes || '?';
-    const txt = resolved
-      ? 'устранён за ' + minutes + ' мин (открыт ' + opened + ', закрыт ' + resolved + ')'
-      : 'открыт ' + opened;
+    let txt;
+    if (isMaint) {
+      txt = 'плановые работы' + (resolved ? '' : ' (идут)');
+    } else {
+      txt = resolved ? 'устранён' : 'недоступен (открыт ' + started + ')';
+    }
     const issueNum = info.issue_number || info.issueNumber;
     const link = (owner && repo && issueNum)
-      ? ' — <a href="https://github.com/' + esc(owner) + '/' + esc(repo) + '/issues/' + issueNum + '">репорт #' + issueNum + '</a>'
+      ? ' — <a href="https://github.com/' + esc(owner) + '/' + esc(repo) + '/issues/' + issueNum + '" target="_blank" rel="noopener">репорт #' + issueNum + '</a>'
       : '';
-    d.innerHTML = '<b></b> — ' + esc(txt) + link;
-    d.querySelector('b').textContent = info.name || 'Сервис';
+    const meta = resolved
+      ? '<span class="t">Начато: ' + started + ' МСК · Закрыто: ' + resolved + ' МСК · Длительность: ' + pluralMin(info.minutes || 0) + '</span>'
+      : '<span class="t">Начато: ' + started + ' МСК</span>';
+    const name = (info.title ? info.title + ' — ' : '') + (info.name || 'Сервис');
+    d.innerHTML = '<b></b> — ' + esc(txt) + link + meta;
+    d.querySelector('b').textContent = name;
     return d;
   }
 
@@ -63,7 +76,7 @@
             const p = pts[ctx.dataIndex];
             return p && p.ok ? 'rgba(46,204,113,.15)' : 'rgba(255,79,109,.15)';
           },
-          pointBackgroundColor: pts.map((e) => (e.maint ? '#f1c40f' : (e.ok ? '#2ecc71' : '#ff4f6d'))),
+          pointBackgroundColor: pts.map((e) => (e.annulled ? '#8a9b8f' : (e.maint ? '#f1c40f' : (e.ok ? '#2ecc71' : '#ff4f6d')))),
           pointRadius: (ctx) => (pts[ctx.dataIndex] && pts[ctx.dataIndex].maint ? 3.5 : 2),
           fill: true,
           tension: 0.35,
@@ -153,11 +166,17 @@
 
       renderChart(cachedPoints);
 
-      const siteLog = (log || []).filter((i) => i.slug === slug).slice(-20).reverse();
+      const siteLog = (log || []).filter((i) => i.slug === slug && !i.hidden).slice(-20)
+        .sort((a, b) => new Date(b.resolved || b.opened) - new Date(a.resolved || a.opened));
       pastEl.innerHTML = '';
       const pastTitle = document.getElementById('pastTitle');
       if (pastTitle) pastTitle.style.display = siteLog.length ? '' : 'none';
-      for (const info of siteLog) pastEl.appendChild(incidentCard(info));
+      for (const info of siteLog) {
+        const isMaint = info.maintenance || (info.name && info.name.toLowerCase().includes('maintenance'));
+        const card = incidentCard(info, isMaint);
+        if (info.annulled) card.classList.add('annulled');
+        pastEl.appendChild(card);
+      }
     } catch (e) {
       banner.className = 'banner fail';
       banner.textContent = '⚠ Не удалось загрузить данные';

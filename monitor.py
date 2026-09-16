@@ -95,6 +95,8 @@ EMOJI_RE = re.compile(
 HOST_RE = re.compile(r"^[a-zA-Z0-9](?:[a-zA-Z0-9.-]*[a-zA-Z0-9])?$")
 # Числовой идентификатор сортировки/группировки: '1', '1.1', '2.10'
 GROUP_ID_RE = re.compile(r"^\d+(?:\.\d+)?$")
+# Ключи сервисов в заголовке ТО: 'SERVER1 - Обновление', 'SERVER1,SERVER3 Обновление'
+MAINT_KEY_RE = re.compile(r"(SERVER\d+(?:_\d+)?)", re.IGNORECASE)
 
 
 def discover_sites(config: dict, secrets: dict) -> dict:
@@ -369,13 +371,63 @@ def close_incident(key: str, incidents: dict, last_ok_ts: str, repo: str) -> Non
 
 # ---------- Лейблы и синхронизация с Issues ----------
 
+# Режимы события по лейблам issue (приоритет: hidden > annulled > maintenance > incident)
+MAINT_LABELS = {
+    "hidden": "Скрыто полностью: точки интервала — зелёные, аптайм зелёный, событие не показывается",
+    "annulled": "Аннулировано: точки серые, из аптайма исключены, в истории серым",
+    "maintenance": "Плановые техработы: точки жёлтые, из аптайма исключены",
+}
+
+
+def _event_mode(labels: set) -> str:
+    for mode in ("hidden", "annulled", "maintenance"):
+        if mode in labels:
+            return mode
+    return "incident"
+
+
+def _rewrite_points_interval(slug: str, opened_ts: str, mode: str) -> None:
+    """Ретроактивно переписывает точки в интервале [opened, сейчас] по режиму issue:
+      maintenance -> ok=True, maint=True; annulled -> ok=True, annulled=True;
+      hidden -> ok=True (и maint/annulled сняты); incident -> снять все флаги."""
+    if mode not in ("hidden", "annulled", "maintenance"):
+        return
+    path = API_DIR / slugify(slug) if slug else None
+    path = API_DIR / slug
+    points = load_json(path / "points.json", [])
+    try:
+        cutoff = datetime.fromisoformat(opened_ts).replace(tzinfo=timezone.utc).timestamp()
+    except Exception:
+        return
+    changed = False
+    for p in points:
+        try:
+            if _ts(p) >= cutoff:
+                if mode == "maintenance":
+                    p["ok"], p["maint"], p["annulled"] = True, True, False
+                elif mode == "annulled":
+                    p["ok"], p["maint"], p["annulled"] = True, False, True
+                else:  # hidden
+                    p["ok"], p["maint"], p["annulled"] = True, False, False
+                changed = True
+        except Exception:
+            continue
+    if changed:
+        write_json(path / "points.json", points)
+        last = points[-1] if points else {"ok": True, "code": 0, "ms": 0, "ts": ""}
+        write_site_files(path.name, points, last)
+        print(f"{slug}: переписано {sum(1 for _ in points)} точек (режим {mode} ретроактивно)")
+
+
 def ensure_labels(repo: str) -> None:
     """Создаёт служебные лейблы (если их нет), чтобы их можно было выбрать в UI Issues:
       incident    — падение сервиса (ставится автоматически);
-      maintenance — плановые техработы (ставится/снимается вручную)."""
+      maintenance — техработы; annulled — аннулировано (серым); hidden — скрыто полностью."""
     wanted = {
         "incident": ("FF4F6D", "Падение сервиса (ставится автоматически монитором)"),
-        "maintenance": ("F1C40F", "Плановые техработы: добавьте/уберите лейбл у инцидента"),
+        "maintenance": ("F1C40F", MAINT_LABELS["maintenance"]),
+        "annulled": ("8A9B8F", MAINT_LABELS["annulled"]),
+        "hidden": ("4A554D", MAINT_LABELS["hidden"]),
     }
     existing = gh_api(f"/repos/{repo}/labels?per_page=100") or []
     names = {l["name"] for l in existing}
@@ -385,18 +437,57 @@ def ensure_labels(repo: str) -> None:
             print(f"Label created: {name} ({color})")
 
 
-def sync_incidents(incidents: dict, repo: str) -> None:
+def _resolve_maint_keys(title: str, sites: dict) -> list:
+    """Извлекает ключи сервисов из заголовка ТО: 'SERVER1 - Обновление',
+    'SERVER1,SERVER3 Обновление'. Возвращает ключи, существующие в sites."""
+    keys = []
+    for m in MAINT_KEY_RE.finditer(title):
+        k = m.group(1).upper()
+        if k in sites:
+            keys.append(k)
+    return keys
+
+
+def sync_incidents(incidents: dict, repo: str, sites: dict = None) -> None:
     """Сверяет incidents.json с реальными открытыми issues:
       - issue закрыт вручную -> инцидент/техработы завершены (в журнал);
-      - лейбл 'maintenance' добавлен/убран -> переквалификация инцидента."""
+      - лейбл 'maintenance' добавлен/убран -> переквалификация инцидента;
+      - открытый issue с лейблом maintenance и ключами сервисов в заголовке
+        ('SERVER1 - Обновление', 'SERVER1,SERVER3 Обновление') -> техработы
+        на этих сервисах (статус жёлтый, maint-точки на графике), без падения.
+      При закрытии issue в журнал идут реальные opened/resolved."""
     issues = gh_api(f"/repos/{repo}/issues?state=open&per_page=100") or []
     by_num = {i["number"]: i for i in issues if "pull_request" not in i}
     changed = False
+
+    # 1. Техработы/аннулирование/скрытие из issues по лейблам
+    for issue in issues:
+        if "pull_request" in issue:
+            continue
+        labels = {l["name"] for l in issue.get("labels", [])}
+        mode = _event_mode(labels)
+        if mode == "incident":
+            continue
+        keys = _resolve_maint_keys(issue.get("title", ""), sites or {})
+        for key in keys:
+            if key not in incidents:
+                incidents[key] = {
+                    "issue_number": issue["number"],
+                    "opened": issue["created_at"],
+                    "name": (sites or {}).get(key, {}).get("name", key),
+                    "maintenance": mode == "maintenance",
+                    "mode": mode,
+                    "title": issue.get("title", ""),
+                }
+                changed = True
+                print(f"{key}: {mode} по issue #{issue['number']} ({issue.get('title', '')})")
+
+    # 2. Существующие записи: закрытие issue вручную, переквалификация по лейблу
     for key in list(incidents.keys()):
         info = incidents[key]
         issue = by_num.get(info.get("issue_number"))
         if issue is None:
-            # Issue закрыли вручную -> работы завершены
+            # Issue закрыли вручную -> работы завершены (реальное время закрытия)
             now = datetime.now(timezone.utc).isoformat(timespec="seconds")
             opened = datetime.fromisoformat(info["opened"]).replace(tzinfo=timezone.utc)
             minutes = max(1, round((datetime.now(timezone.utc) - opened).total_seconds() / 60))
@@ -410,18 +501,24 @@ def sync_incidents(incidents: dict, repo: str) -> None:
                 "resolved": now,
                 "minutes": minutes,
                 "maintenance": info.get("maintenance", False),
+                "title": info.get("title", ""),
             })
             write_json(API_DIR / "incidents-log.json", log[-100:])
             changed = True
             print(f"{key}: issue закрыт вручную — работы завершены ({minutes} мин)")
         else:
             labels = {l["name"] for l in issue.get("labels", [])}
-            is_maint = "maintenance" in labels
-            if is_maint != info.get("maintenance", False):
-                info["maintenance"] = is_maint
+            mode = _event_mode(labels)
+            if mode != info.get("mode"):
+                info["mode"] = mode
+                info["maintenance"] = mode == "maintenance"
                 changed = True
-                kind = "техработы" if is_maint else "инцидент"
-                print(f"{key}: переквалифицирован в {kind} (по лейблу issue)")
+                print(f"{key}: режим события -> {mode} (по лейблу issue)")
+                # Ретроактивный пересчёт точек интервала issue
+                _rewrite_points_interval(slugify(key), info["opened"], mode)
+            if issue.get("title") != info.get("title"):
+                info["title"] = issue.get("title", "")
+                changed = True
     if changed:
         write_json(API_DIR / "incidents.json", incidents)
 
@@ -464,14 +561,15 @@ def _ts(p: dict) -> float:
 
 
 def uptime_pct(points: list, hours: float) -> float:
-    w = window(points, hours)
+    # Точки режима annulled исключаются; maint и hidden считаются успешными (ok=True записан)
+    w = [p for p in window(points, hours) if not p.get("annulled")]
     if not w:
         return 100.0
     return 100.0 * sum(1 for p in w if p["ok"]) / len(w)
 
 
 def avg_ms(points: list, hours: float) -> float:
-    w = [p for p in window(points, hours) if p["ok"]]
+    w = [p for p in window(points, hours) if p["ok"] and not p.get("annulled")]
     return round(sum(p["ms"] for p in w) / len(w)) if w else 0
 
 
@@ -479,7 +577,7 @@ def daily_minutes_down(points_list: list, interval_min: int) -> dict:
     """Примерное время простоя по дням: failed-проверки * интервал."""
     out = {}
     for p in points_list:
-        if not p["ok"]:
+        if not p["ok"] and not p.get("annulled"):
             day = p["ts"][:10]
             out[day] = out.get(day, 0) + interval_min
     return out
@@ -592,9 +690,10 @@ def main() -> None:
     repo = repo_slug(config)
 
     # Лейблы incident/maintenance (создаются при отсутствии) + синхронизация с issues:
-    # закрытие issue вручную завершает работы, лейбл maintenance переквалифицирует инцидент
+    # закрытие issue вручную завершает работы, лейбл maintenance переквалифицирует инцидент,
+    # issue 'SERVER1 - Обновление' с maintenance-лейблом включает ТО на сервисе
     ensure_labels(repo)
-    sync_incidents(incidents, repo)
+    sync_incidents(incidents, repo, sites)
 
     HISTORY_DIR.mkdir(exist_ok=True)
 

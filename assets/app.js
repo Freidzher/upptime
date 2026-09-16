@@ -22,24 +22,35 @@
     return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&', '<': '<', '>': '>', '"': '"', "'": '&#39;' }[c]));
   }
 
+  function pluralMin(n) {
+    const m10 = n % 10, m100 = n % 100;
+    if (m10 === 1 && m100 !== 11) return n + ' минуту';
+    if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return n + ' минуты';
+    return n + ' минут';
+  }
+
   function incidentCard(info, active, isMaint) {
     const d = document.createElement('div');
     d.className = 'incident';
-    const when = new Date(info.opened).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' });
+    const started = new Date(info.opened).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' });
     let txt;
     if (isMaint) {
-      txt = 'плановые работы с ' + when;
+      txt = active ? 'плановые работы (идут)' : 'плановые работы завершены';
     } else if (active) {
-      txt = 'недоступен с ' + when;
+      txt = 'недоступен с ' + started;
     } else {
-      txt = 'устранён за ' + (info.minutes || '?') + ' мин (открыт ' + when + ')';
+      txt = 'устранён';
     }
     const issueNum = info.issue_number || info.issueNumber;
     const link = (owner && repo && issueNum)
-      ? ' — <a href="https://github.com/' + esc(owner) + '/' + esc(repo) + '/issues/' + issueNum + '">репорт #' + issueNum + '</a>'
+      ? ' — <a href="https://github.com/' + esc(owner) + '/' + esc(repo) + '/issues/' + issueNum + '" target="_blank" rel="noopener">репорт #' + issueNum + '</a>'
       : '';
-    d.innerHTML = '<b></b> — ' + esc(txt) + link;
-    d.querySelector('b').textContent = info.name || 'Сервис';
+    const meta = active
+      ? '<span class="t">Начато: ' + started + ' МСК</span>'
+      : '<span class="t">Начато: ' + started + ' МСК · Длительность: ' + pluralMin(info.minutes || 0) + '</span>';
+    const name = (info.title ? info.title + ' — ' : '') + (info.name || 'Сервис');
+    d.innerHTML = '<b></b> — ' + esc(txt) + link + meta;
+    d.querySelector('b').textContent = name;
     return d;
   }
 
@@ -146,12 +157,16 @@
     document.getElementById('maintTitle').style.display = maint.length ? '' : 'none';
     for (const [, info] of maint) maintEl.appendChild(incidentCard(info, true, true));
 
-    const past = (log || []).slice(-10).reverse();
+    // Past Events — единая хронология: прошлые инциденты + ТО (новые сверху), hidden скрыты
+    const past = (log || []).filter((i) => !i.hidden).slice(-20).reverse()
+      .sort((a, b) => new Date(b.resolved || b.opened) - new Date(a.resolved || a.opened));
     pastEl.innerHTML = '';
     document.getElementById('pastTitle').style.display = past.length ? '' : 'none';
     for (const info of past) {
       const isMaint = info.maintenance || (info.name && info.name.toLowerCase().includes('maintenance'));
-      pastEl.appendChild(incidentCard(info, false, isMaint));
+      const card = incidentCard(info, false, isMaint);
+      if (info.annulled) card.classList.add('annulled');
+      pastEl.appendChild(card);
     }
   }
 

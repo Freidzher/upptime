@@ -11,6 +11,7 @@ owner/repo берутся из config.json — там же меняется ав
 Workflow'ы также срабатывают сами: Monitor — по cron */5, Site — по push.
 
 Подкоманды (без аргументов — полный цикл выше):
+  Секреты: sync_secrets.py; лейблы: sync_labels.py
   python main.py status              — последние прогоны workflow
   python main.py schedule            — прогоны по cron (диагностика расписания)
   python main.py dispatch site|monitor — запустить один workflow
@@ -130,11 +131,13 @@ def main() -> None:
 
     # Полный цикл (по умолчанию)
 
-    # 1. Секреты из .env -> GitHub
+    # 1. Секреты из .env -> GitHub (+ лейблы incident/maintenance)
     print("[1/3] Секреты (sync_secrets.py)...")
     r = subprocess.run([sys.executable, str(ROOT / "sync_secrets.py")])
     if r.returncode != 0:
         raise SystemExit("sync_secrets.py упал — секреты не залиты.")
+    print("[1b] Лейблы (sync_labels.py)...")
+    subprocess.run([sys.executable, str(ROOT / "sync_labels.py")])
 
     # 2. Монитор
     print("[2/3] Монитор (Monitor)")
