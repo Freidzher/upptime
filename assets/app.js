@@ -2,6 +2,7 @@
 // Данные: history/summary.json + api/incidents*.json
 (async function () {
   const banner = document.getElementById('banner');
+  const updatedEl = document.getElementById('updated');
   const rowsEl = document.getElementById('rows');
   const incEl = document.getElementById('incidents');
   const maintEl = document.getElementById('maintenance');
@@ -50,6 +51,9 @@
         fetchJson('api/incidents-log.json').catch(() => []),
       ]);
       render(summary, cur, log);
+      if (updatedEl) {
+        updatedEl.textContent = 'Обновлено: ' + new Date().toLocaleTimeString('ru-RU', { timeZone: 'Europe/Moscow' });
+      }
     } catch (e) {
       banner.className = 'banner fail';
       banner.textContent = '⚠ Не удалось загрузить данные мониторинга';
@@ -59,16 +63,13 @@
   function render(summary, incidents, log) {
     if (!summary.length) { banner.textContent = 'Нет данных — монитор ещё не запускался'; return; }
 
-    // Banner
     const allUp = summary.every((s) => s.status === 'up');
     banner.className = 'banner ' + (allUp ? 'ok' : 'fail');
     banner.innerHTML = allUp
       ? '<span class="icon">🟢</span> Все сервисы работают'
       : '<span class="icon">🔴</span> Сервисы нестабильны';
 
-    // Live Status — список серверов (с группировкой по ID: целые = заголовки ВМ)
     rowsEl.innerHTML = '';
-    // Агрегированный статус группы: 🔴, если хотя бы один вложенный сервис упал
     const childDown = {};
     for (const s of summary) {
       if (s.group && !s.isGroup) {
@@ -81,7 +82,6 @@
       const emoji = (s.name.match(EMOJI_RE) || [''])[0];
       const cleanName = s.name.replace(EMOJI_RE, '').trim();
       if (s.isGroup) {
-        // Заголовок группы (ВМ): подложка + агрегированный статус
         const gUp = up && !childDown[s.group];
         const head = document.createElement('div');
         head.className = 'group-head';
@@ -97,7 +97,6 @@
       row.className = 'row' + (s.group ? ' nested' : '');
       row.href = 'site.html?site=' + encodeURIComponent(s.slug);
       if (s.icon) {
-        // Реальная иконка (ico/png/svg — правильное расширение из summary)
         row.innerHTML =
           '<img class="favicon" src="api/' + s.slug + '/' + s.icon + '" alt="" onerror="this.style.display=\'none\'">' +
           '<span class="dot ' + (up ? 'up' : 'down') + '"></span>' +
@@ -122,19 +121,16 @@
       rowsEl.appendChild(row);
     }
 
-    // Active Incidents — открытые инциденты (не maintenance)
     const openInc = Object.entries(incidents || {}).filter(([, i]) => !i.maintenance);
     incEl.innerHTML = '';
     document.getElementById('incTitle').style.display = openInc.length ? '' : 'none';
     for (const [, info] of openInc) incEl.appendChild(incidentCard(info, true, false));
 
-    // Scheduled Maintenance — открытые maintenance
     const maint = Object.entries(incidents || {}).filter(([, i]) => i.maintenance);
     maintEl.innerHTML = '';
     document.getElementById('maintTitle').style.display = maint.length ? '' : 'none';
     for (const [, info] of maint) maintEl.appendChild(incidentCard(info, true, true));
 
-    // Past Incidents — закрытые инциденты из журнала (последние 10)
     const past = (log || []).slice(-10).reverse();
     pastEl.innerHTML = '';
     document.getElementById('pastTitle').style.display = past.length ? '' : 'none';

@@ -1,6 +1,7 @@
 // Runicore Status — страница статистики сайта
 (async function () {
   const banner = document.getElementById('banner');
+  const updatedEl = document.getElementById('updated');
   const nameEl = document.getElementById('siteName');
   const statsEl = document.getElementById('stats');
   const pastEl = document.getElementById('past');
@@ -10,7 +11,8 @@
   const slug = params.get('site') || '';
   let chart = null;
   let range = 24;
-  const EMOJI_RE = /^[\u{1F1E6}-\u{1F1FF}]{2}|^[\u{1F300}-\u{1FAFF}]|^[\u2600-\u{27BF}]\uFE0F?/u;
+  let cachedPoints = [];
+  const EMOJI_RE = /^[\u{1F1E6}-\u{1F1FF}]{2}|[\u{1F000}-\u{1FAFF}]|[\u2600-\u27BF]\uFE0F?/u;
 
   async function fetchJson(url) {
     const r = await fetch(url + '?t=' + Date.now(), { cache: 'no-store' });
@@ -54,17 +56,24 @@
         datasets: [{
           data: pts.map((e) => e.ms),
           borderColor: (ctx) => {
-            const i = ctx.dataIndex;
-            const p = pts[i];
+            const p = pts[ctx.dataIndex];
             return p && p.ok ? '#2ecc71' : '#ff4f6d';
           },
           backgroundColor: (ctx) => {
-            const i = ctx.dataIndex;
-            const p = pts[i];
+            const p = pts[ctx.dataIndex];
             return p && p.ok ? 'rgba(46,204,113,.15)' : 'rgba(255,79,109,.15)';
           },
           pointBackgroundColor: pts.map((e) => (e.ok ? '#2ecc71' : '#ff4f6d')),
-          pointRadius: 2, fill: true, tension: 0.35, segment: { borderColor: (ctx) => ctx.p0.parsed.y && ctx.p1.parsed.y ? (pts[ctx.p0DataIndex].ok && pts[ctx.p1DataIndex].ok ? '#2ecc71' : '#ff4f6d') : 'rgba(255,79,139,.5)' },
+          pointRadius: 2,
+          fill: true,
+          tension: 0.35,
+          segment: {
+            borderColor: (ctx) => {
+              const p0 = pts[ctx.p0DataIndex];
+              const p1 = pts[ctx.p1DataIndex];
+              return (p0 && p0.ok && p1 && p1.ok) ? '#2ecc71' : '#ff4f6d';
+            }
+          },
         }],
       },
       options: {
@@ -84,13 +93,17 @@
         fetchJson('api/' + slug + '/points.json').catch(() => []),
         fetchJson('api/incidents-log.json').catch(() => []),
       ]);
+      cachedPoints = points || [];
       const s = summary.find((x) => x.slug === slug);
       if (!s) { banner.className = 'banner fail'; banner.textContent = 'Сайт не найден'; return; }
       const clean = s.name.replace(EMOJI_RE, '').trim();
       document.title = clean + ' — Runicore';
       nameEl.textContent = clean;
 
-      // Favicon рядом с названием (как на главной)
+      if (updatedEl) {
+        updatedEl.textContent = 'Обновлено: ' + new Date().toLocaleTimeString('ru-RU', { timeZone: 'Europe/Moscow' });
+      }
+
       const favEl = document.getElementById('siteFavicon');
       if (favEl) {
         if (s.icon) {
@@ -125,9 +138,8 @@
         statsEl.appendChild(d);
       }
 
-      renderChart(points || []);
+      renderChart(cachedPoints);
 
-      // Past Incidents — инциденты этого сайта
       const siteLog = (log || []).filter((i) => i.slug === slug).slice(-20).reverse();
       pastEl.innerHTML = '';
       const pastTitle = document.getElementById('pastTitle');
@@ -140,12 +152,11 @@
   }
 
   if (tabs) {
-    tabs.addEventListener('click', async (e) => {
+    tabs.addEventListener('click', (e) => {
       if (e.target.tagName !== 'BUTTON') return;
       range = Number(e.target.dataset.r);
       tabs.querySelectorAll('button').forEach((b) => b.classList.toggle('active', b === e.target));
-      const pts = await fetch('api/' + slug + '/points.json?t=' + Date.now()).then(r => r.json()).catch(() => []);
-      renderChart(pts || []);
+      renderChart(cachedPoints);
     });
     tabs.querySelector('button[data-r="24"]').classList.add('active');
   }
