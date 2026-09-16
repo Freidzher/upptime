@@ -118,9 +118,18 @@
     }
     .incident a { color: #52f099; text-decoration: none; }
     .incident .t { color: var(--muted); font-size: .8rem; margin-top: 4px; }
-    /* Аннулированные события: приглушённый серый, историю не прячем */
-    .incident.annulled { opacity: .55; border-style: dashed; }
+    /* Цветные кромки событий: красный (падение), жёлтый (ТО), серый (аннулировано) */
+    .incident { display: block; text-decoration: none; color: var(--text); border-left-width: 3px; transition: border-color .25s, transform .15s; }
+    .incident:hover { transform: translateX(2px); }
+    .incident.incident { border-left-color: var(--fail); }
+    .incident.maintenance { border-left-color: #f1c40f; }
+    .incident.maintenance .t::before, .incident.maintenance > *:first-child::before { content: ''; }
+    .incident.annulled { opacity: .6; border-style: dashed; }
     .incident.annulled b { color: var(--muted); text-decoration: line-through; }
+    .incident.annulled, .incident.hidden { border-left-color: #8a9b8f; }
+    /* Активные: лёгкое свечение кромки соответствующего цвета */
+    .incident.active { box-shadow: -3px 0 12px -6px var(--fail); }
+    .incident.active.maintenance { box-shadow: -3px 0 12px -6px #f1c40f; }
     footer {
       text-align: center; margin-top: 50px; padding-top: 24px;
       border-top: 1px solid rgba(255,255,255,.05);
@@ -134,11 +143,9 @@
     <p class="sub">Нажмите на сервис — откроется страница со статистикой.</p>
     <div class="updated" id="updated"></div>
     <div class="banner ok" id="banner">⏳ Загрузка…</div>
-    <div id="rows"></div>
-    <div class="inc-title" id="liveTitle" style="display:none">Живой статус</div>
-    <div id="live"></div>
-    <div class="inc-title" id="incTitle" style="display:none">Активные инциденты</div>
+    <div class="inc-title" id="incTitle" style="display:none">Активные события</div>
     <div id="incidents"></div>
+    <div id="rows"></div>
     <div class="inc-title" id="maintTitle" style="display:none">Плановые работы</div>
     <div id="maintenance"></div>
     <div class="inc-title" id="pastTitle" style="display:none">Прошлые события</div>
@@ -147,6 +154,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
-  <script src="assets/app.js?v=6"></script>
+  <script src="assets/app.js?v=8"></script>
 </body>
 </html>

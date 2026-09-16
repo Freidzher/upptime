@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#020b05">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" href="assets/favicon.ico">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="icon" sizes="96x96" type="image/png" href="assets/favicon-96x96.png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="manifest" href="assets/manifest.json">
+  <title>Событие — Runicore</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+    :root {
+      --bg: #020b05;
+      --card: rgba(4, 26, 12, 0.75);
+      --border: rgba(46, 204, 113, 0.2);
+      --accent: #2ecc71;
+      --ok: #00ff88;
+      --fail: #ff4f6d;
+      --warn: #f1c40f;
+      --gray: #8a9b8f;
+      --text: #ffffff;
+      --muted: rgba(255, 255, 255, 0.65);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      background-image:
+        linear-gradient(to right, rgba(46, 204, 113, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(46, 204, 113, 0.04) 1px, transparent 1px),
+        radial-gradient(circle at 10% 20%, rgba(16, 185, 129, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(46, 204, 113, 0.08) 0%, transparent 50%);
+      background-size: 50px 50px, 50px 50px, auto, auto;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: var(--text);
+      min-height: 100vh;
+      padding: 60px 20px;
+    }
+    .wrap { max-width: 760px; margin: 0 auto; }
+    .back { color: var(--muted); text-decoration: none; font-size: .88rem; display: inline-block; margin-bottom: 18px; transition: color 0.2s; }
+    .back:hover { color: var(--accent); }
+    h1 {
+      font-size: 1.6rem; font-weight: 800; margin-bottom: 14px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    /* Цветная кромка события */
+    .evt {
+      background: var(--card); border: 1px solid var(--border); border-left-width: 4px;
+      border-radius: 12px; padding: 18px 20px; margin-bottom: 18px;
+    }
+    .evt.incident { border-left-color: var(--fail); }
+    .evt.maintenance { border-left-color: var(--warn); }
+    .evt.annulled { border-left-color: var(--gray); opacity: .75; }
+    .evt.hidden { border-left-color: var(--gray); opacity: .6; }
+    .evt .status { font-weight: 700; font-size: 1.05rem; margin-bottom: 10px; }
+    .evt.incident .status { color: var(--fail); }
+    .evt.maintenance .status { color: var(--warn); }
+    .evt.annulled .status, .evt.hidden .status { color: var(--gray); }
+    .evt .meta { color: var(--muted); font-size: .85rem; display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 14px; }
+    .evt .meta b { color: var(--text); }
+    .evt .desc { font-size: .92rem; line-height: 1.55; white-space: pre-line; }
+    .evt .desc b { color: var(--text); }
+    .service-link {
+      display: inline-block; background: rgba(46, 204, 113, 0.1); border: 1px solid var(--border);
+      color: #52f099 !important; text-decoration: none; border-radius: 10px;
+      padding: 9px 16px; font-size: .88rem; font-weight: 600; transition: background .2s, border-color .2s;
+    }
+    .service-link:hover { background: rgba(46, 204, 113, 0.2); border-color: rgba(46, 204, 113, .5); }
+    footer {
+      text-align: center; margin-top: 50px; padding-top: 24px;
+      border-top: 1px solid rgba(255,255,255,.05);
+      color: var(--muted); font-size: .82rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <a class="back" href="index.html">← К списку сервисов</a>
+    <h1 id="evtTitle">Загрузка…</h1>
+    <div class="evt incident" id="evtCard">
+      <div class="status" id="evtStatus">…</div>
+      <div class="meta" id="evtMeta"></div>
+      <div class="desc" id="evtDesc"></div>
+    </div>
+    <a class="service-link" id="serviceLink" style="display:none" href="#">Страница сервиса →</a>
+    <footer>© 2024–<span id="year"></span> Runicore. Все права защищены.</footer>
+  </div>
+
+  <script src="assets/incident.js?v=1"></script>
+</body>
+</html>

@@ -15,8 +15,7 @@
     return r.json();
   }
 
-  let owner = '', repo = '';
-  fetchJson('config.json').then((c) => { owner = c.owner || ''; repo = c.repo || ''; }).catch(() => {});
+  // События полностью внутри сайта — GitHub не используется во фронтенде
 
   function esc(s) {
     return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&', '<': '<', '>': '>', '"': '"', "'": '&#39;' }[c]));
@@ -29,27 +28,28 @@
     return n + ' минут';
   }
 
-  function incidentCard(info, active, isMaint) {
-    const d = document.createElement('div');
-    d.className = 'incident';
+  function incidentCard(info, active, isMaint, slug) {
+    const mode = info.mode || (info.annulled ? 'annulled' : (info.hidden ? 'hidden' : (isMaint ? 'maintenance' : 'incident')));
+    if (mode === 'hidden') return null;
+    const d = document.createElement('a');
+    d.className = 'incident ' + mode;
+    if (slug) d.href = 'site.html?site=' + encodeURIComponent(slug);
     const started = new Date(info.opened).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' });
     let txt;
-    if (isMaint) {
+    if (mode === 'maintenance') {
       txt = active ? 'плановые работы (идут)' : 'плановые работы завершены';
-    } else if (active) {
-      txt = 'недоступен с ' + started;
+    } else if (mode === 'annulled') {
+      txt = active ? 'аннулировано (идёт)' : 'аннулировано';
     } else {
-      txt = 'устранён';
+      txt = active ? 'недоступен с ' + started : 'устранён';
     }
-    const issueNum = info.issue_number || info.issueNumber;
-    const link = (owner && repo && issueNum)
-      ? ' — <a href="https://github.com/' + esc(owner) + '/' + esc(repo) + '/issues/' + issueNum + '" target="_blank" rel="noopener">репорт #' + issueNum + '</a>'
-      : '';
+    // Клик по карточке — страница события (всё внутри сайта, без GitHub)
+    if (info.issue_number) d.href = 'incident.html?issue=' + info.issue_number;
     const meta = active
       ? '<span class="t">Начато: ' + started + ' МСК</span>'
       : '<span class="t">Начато: ' + started + ' МСК · Длительность: ' + pluralMin(info.minutes || 0) + '</span>';
-    const name = (info.title ? info.title + ' — ' : '') + (info.name || 'Сервис');
-    d.innerHTML = '<b></b> — ' + esc(txt) + link + meta;
+    const name = info.title || (info.name || 'Сервис');
+    d.innerHTML = '<b></b> — ' + esc(txt) + meta;
     d.querySelector('b').textContent = name;
     return d;
   }
@@ -147,15 +147,13 @@
       rowsEl.appendChild(row);
     }
 
-    const openInc = Object.entries(incidents || {}).filter(([, i]) => !i.maintenance);
+    const openInc = Object.entries(incidents || {}).filter(([, i]) => (i.mode || 'incident') !== 'hidden');
     incEl.innerHTML = '';
     document.getElementById('incTitle').style.display = openInc.length ? '' : 'none';
-    for (const [, info] of openInc) incEl.appendChild(incidentCard(info, true, false));
-
-    const maint = Object.entries(incidents || {}).filter(([, i]) => i.maintenance);
-    maintEl.innerHTML = '';
-    document.getElementById('maintTitle').style.display = maint.length ? '' : 'none';
-    for (const [, info] of maint) maintEl.appendChild(incidentCard(info, true, true));
+    for (const [key, info] of openInc) {
+      const card = incidentCard(info, true, info.maintenance, key.toLowerCase().replace(/_/g, '-'));
+      if (card) incEl.appendChild(card);
+    }
 
     // Past Events — единая хронология: прошлые инциденты + ТО (новые сверху), hidden скрыты
     const past = (log || []).filter((i) => !i.hidden).slice(-20).reverse()
@@ -163,10 +161,8 @@
     pastEl.innerHTML = '';
     document.getElementById('pastTitle').style.display = past.length ? '' : 'none';
     for (const info of past) {
-      const isMaint = info.maintenance || (info.name && info.name.toLowerCase().includes('maintenance'));
-      const card = incidentCard(info, false, isMaint);
-      if (info.annulled) card.classList.add('annulled');
-      pastEl.appendChild(card);
+      const card = incidentCard(info, false, info.maintenance, info.slug);
+      if (card) pastEl.appendChild(card);
     }
   }
 

@@ -318,14 +318,14 @@ def load_log() -> list:
 
 
 def open_incident(key: str, name: str, result: dict, incidents: dict, repo: str, is_maint: bool = False) -> None:
-    title = f"{name} maintenance" if is_maint else f"{name} is down"
+    title = f"{name} — техработы" if is_maint else f"{name} — недоступен"
     labels = ["maintenance"] if is_maint else ["incident"]
     body = (
-        f"**{name}** — плановые работы.\n\n- Время: {result['ts']}\n\n"
-        "Закроется автоматически по завершении."
+        f"**{name}** — плановые работы.\n\n- Начато: {result['ts']}\n\n"
+        "Завершается закрытием issue."
     ) if is_maint else (
         f"**{name}** недоступен.\n\n"
-        f"- Время: {result['ts']}\n"
+        f"- Начато: {result['ts']}\n"
         f"- Code: {result['code']}\n"
         f"- Response time: {result['ms']} ms\n\n"
         f"Комментарии — репорты инцидента. Закроется автоматически при восстановлении."
@@ -337,8 +337,11 @@ def open_incident(key: str, name: str, result: dict, incidents: dict, repo: str,
             "opened": result["ts"],
             "name": name,
             "maintenance": is_maint,
+            "mode": "maintenance" if is_maint else "incident",
+            "title": title,
+            "desc": body,
         }
-        print(f"Incident issue #{issue['number']} opened for {name} (maintenance={is_maint})")
+        print(f"Incident issue #{issue['number']} opened for {name} (mode={'maintenance' if is_maint else 'incident'})")
 
 
 def close_incident(key: str, incidents: dict, last_ok_ts: str, repo: str) -> None:
@@ -364,9 +367,14 @@ def close_incident(key: str, incidents: dict, last_ok_ts: str, repo: str) -> Non
         "resolved": last_ok_ts,
         "minutes": minutes,
         "maintenance": is_maint,
+        "mode": info.get("mode", "maintenance" if is_maint else "incident"),
+        "annulled": info.get("mode") == "annulled",
+        "hidden": info.get("mode") == "hidden",
+        "title": info.get("title", ""),
+        "desc": info.get("desc", ""),
     })
     write_json(API_DIR / "incidents-log.json", log[-100:])
-    print(f"Incident issue #{num} closed for {key}")
+    print(f"Incident issue #{num} closed for {key} (mode={info.get('mode', 'incident')})")
 
 
 # ---------- Лейблы и синхронизация с Issues ----------
@@ -437,6 +445,15 @@ def ensure_labels(repo: str) -> None:
             print(f"Label created: {name} ({color})")
 
 
+def _humanize_title(title: str, sites: dict) -> str:
+    """Заменяет ключи сервисов в заголовке на человекочитаемые имена:
+    'SERVER4 - Обновление' -> '🇸🇪 1. Стокгольм — Обновление'."""
+    def repl(m: re.Match) -> str:
+        k = m.group(1).upper()
+        return (sites or {}).get(k, {}).get("name", k)
+    return MAINT_KEY_RE.sub(repl, title)
+
+
 def _resolve_maint_keys(title: str, sites: dict) -> list:
     """Извлекает ключи сервисов из заголовка ТО: 'SERVER1 - Обновление',
     'SERVER1,SERVER3 Обновление'. Возвращает ключи, существующие в sites."""
@@ -477,7 +494,8 @@ def sync_incidents(incidents: dict, repo: str, sites: dict = None) -> None:
                     "name": (sites or {}).get(key, {}).get("name", key),
                     "maintenance": mode == "maintenance",
                     "mode": mode,
-                    "title": issue.get("title", ""),
+                    "title": _humanize_title(issue.get("title", ""), sites or {}),
+                    "desc": f"Событие открыто вручную через issue #{issue['number']} (лейбл: {mode}).",
                 }
                 changed = True
                 print(f"{key}: {mode} по issue #{issue['number']} ({issue.get('title', '')})")
@@ -501,11 +519,15 @@ def sync_incidents(incidents: dict, repo: str, sites: dict = None) -> None:
                 "resolved": now,
                 "minutes": minutes,
                 "maintenance": info.get("maintenance", False),
+                "mode": info.get("mode", "incident"),
+                "annulled": info.get("mode") == "annulled",
+                "hidden": info.get("mode") == "hidden",
                 "title": info.get("title", ""),
+                "desc": info.get("desc", ""),
             })
             write_json(API_DIR / "incidents-log.json", log[-100:])
             changed = True
-            print(f"{key}: issue закрыт вручную — работы завершены ({minutes} мин)")
+            print(f"{key}: issue закрыт вручную — событие завершено ({minutes} мин, mode={info.get('mode', 'incident')})")
         else:
             labels = {l["name"] for l in issue.get("labels", [])}
             mode = _event_mode(labels)
@@ -516,8 +538,10 @@ def sync_incidents(incidents: dict, repo: str, sites: dict = None) -> None:
                 print(f"{key}: режим события -> {mode} (по лейблу issue)")
                 # Ретроактивный пересчёт точек интервала issue
                 _rewrite_points_interval(slugify(key), info["opened"], mode)
-            if issue.get("title") != info.get("title"):
-                info["title"] = issue.get("title", "")
+            raw_title = issue.get("title", "")
+            if raw_title != info.get("title_raw", raw_title):
+                info["title_raw"] = raw_title
+                info["title"] = _humanize_title(raw_title, sites or {})
                 changed = True
     if changed:
         write_json(API_DIR / "incidents.json", incidents)
