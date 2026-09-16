@@ -13,8 +13,11 @@
 Конфиг: config.json (owner, repo, names, interval_minutes, history_days, timeout).
 Секреты приходят через SECRETS_CONTEXT (Actions) или .env (локально).
 Формат секрета (разделитель '|', без пробелов):
-  'https://site|https://icon-url'  — HTTP/HTTPS-сайт (второе — своя иконка);
-  '1.2.3.4' или 'host.example.com' — машина: проверка SSH-порта 22 (TCP, без авторизации).
+  '[ID|]цель[|icon-url]', где цель:
+    'https://site'                   — HTTP/HTTPS-сайт;
+    '1.2.3.4' или 'host.example.com' — машина: проверка SSH-порта 22 (TCP, без авторизации);
+  ID — необязательный числовой идентификатор для сортировки/группировки:
+    целое ('1') — группа/ВМ (заголовок), дробное ('1.1') — вложенный в неё сервис.
 Служебные (FINE_GRAINED_TOKEN, GH_TOKEN) исключаются. URL/IP нигде не публикуются.
 Автор: Freidzher
 """
@@ -90,12 +93,16 @@ EMOJI_RE = re.compile(
 
 # Хост без схемы: домен или IPv4 (буквы/цифры/точки/дефисы, без пробелов и слэшей)
 HOST_RE = re.compile(r"^[a-zA-Z0-9](?:[a-zA-Z0-9.-]*[a-zA-Z0-9])?$")
+# Числовой идентификатор сортировки/группировки: '1', '1.1', '2.10'
+GROUP_ID_RE = re.compile(r"^\d+(?:\.\d+)?$")
 
 
 def discover_sites(config: dict, secrets: dict) -> dict:
-    """Разделитель секрета — '|' (без пробелов):
+    """Формат секрета — '[ID|]цель[|icon-url]', разделитель '|' (без пробелов):
       'https://site|https://icon-url'  — HTTP/HTTPS-сайт (+ необязательная иконка);
-      '1.2.3.4' или 'host.example.com' — машина: проверка SSH-порта 22 (TCP, без авторизации).
+      '1.2.3.4' или 'host.example.com' — машина: проверка SSH-порта 22 (TCP, без авторизации);
+      '1|https://site'                 — сервис группы '1' (целый ID = группа/ВМ),
+      '1.1|https://site'               — вложенный сервис группы '1'.
     """
     custom = config.get("names", {})
     sites = {}
@@ -107,6 +114,11 @@ def discover_sites(config: dict, secrets: dict) -> dict:
         parts = [p.strip() for p in value.split("|") if p.strip()]
         if not parts:
             continue
+        group, is_group = "", False
+        if GROUP_ID_RE.match(parts[0]) and len(parts) > 1:
+            group = parts[0]
+            is_group = "." not in group  # целый ID — группа/ВМ, дробный — вложенный сервис
+            parts = parts[1:]
         target = parts[0]
         icon_url = parts[1] if len(parts) > 1 and parts[1].startswith(("http://", "https://")) else ""
         if target.startswith(("http://", "https://")):
@@ -121,6 +133,8 @@ def discover_sites(config: dict, secrets: dict) -> dict:
             "kind": kind,
             "url": target,
             "icon_url": icon_url,
+            "group": group,
+            "is_group": is_group,
             "timeout": config.get("timeout", 10),
         }
     return sites
@@ -445,6 +459,18 @@ def write_site_files(slug: str, points: list, last: dict) -> None:
                        badge(f"response time{labels[suffix]}", f"{m} ms", rt_color(m)))
 
 
+def _group_sort_key(site: dict) -> tuple:
+    """Сортировка: сервисы с ID — по числу (целые группы перед своими 1.x),
+    без ID — в конец (в исходном порядке)."""
+    g = site.get("group", "")
+    if not g:
+        return (2, 0.0, 0)
+    whole, _, frac = g.partition(".")
+    # Группа (целый ID) идёт перед вложенными 1.x: ключ (1, 1.0-eps) < (1, 1.1)
+    val = float(g) - (0.001 if site.get("is_group") and frac == "" else 0.0)
+    return (1, val, 0)
+
+
 def build_summary(sites: dict, history_points: dict, interval_min: int) -> list:
     summary = []
     for key, site in sites.items():
@@ -462,6 +488,8 @@ def build_summary(sites: dict, history_points: dict, interval_min: int) -> list:
             "name": site["name"],
             "slug": slug,
             "icon": icon,
+            "group": site.get("group", ""),
+            "isGroup": site.get("is_group", False),
             "status": "up" if (points and last["ok"]) else "down",
             "uptime": f"{uptime_pct(points, 24 * 90):.2f}%",
             "uptimeDay": f"{uptime_pct(points, 24):.2f}%",
@@ -475,6 +503,8 @@ def build_summary(sites: dict, history_points: dict, interval_min: int) -> list:
             "timeYear": avg_ms(points, 24 * 365),
             "dailyMinutesDown": daily_minutes_down(points, interval_min),
         })
+    # Сервисы с ID (по возрастанию) — раньше; без ID — в конце
+    summary.sort(key=lambda s: (_group_sort_key({**next(v for v in sites.values() if v["slug"] == s["slug"])}), s["slug"]))
     return summary
 
 

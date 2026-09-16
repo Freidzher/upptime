@@ -152,3 +152,38 @@ h2 {
   border-color: rgba(46, 204, 113, 0.4) !important;
   background-color: var(--card-bg) !important;
 }
+
+/* ---------- Группировка сервисов (ID в .env: '1' — ВМ, '1.1' — вложенный сервис) ---------- */
+
+.group-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0 6px;
+  padding: 10px 16px;
+  background: rgba(46, 204, 113, 0.08);
+  border: 1px solid rgba(46, 204, 113, 0.25);
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 1.02em;
+}
+.group-head:first-child {
+  margin-top: 0;
+}
+.group-head .name {
+  flex: 1;
+}
+.group-head .group-status {
+  font-size: 0.82em;
+  font-weight: 500;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* Вложенные сервисы: отступ + линия-связка к родителю */
+.row.nested {
+  margin-left: 26px;
+  border-left: 2px solid rgba(46, 204, 113, 0.35);
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
+}

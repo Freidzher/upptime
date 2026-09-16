@@ -66,14 +66,35 @@
       ? '<span class="icon">🟢</span> Все сервисы работают'
       : '<span class="icon">🔴</span> Сервисы нестабильны';
 
-    // Live Status — список серверов
+    // Live Status — список серверов (с группировкой по ID: целые = заголовки ВМ)
     rowsEl.innerHTML = '';
+    // Агрегированный статус группы: 🔴, если хотя бы один вложенный сервис упал
+    const childDown = {};
+    for (const s of summary) {
+      if (s.group && !s.isGroup) {
+        const head = s.group.split('.')[0];
+        childDown[head] = childDown[head] || (s.status !== 'up');
+      }
+    }
     for (const s of summary) {
       const up = s.status === 'up';
       const emoji = (s.name.match(EMOJI_RE) || [''])[0];
       const cleanName = s.name.replace(EMOJI_RE, '').trim();
+      if (s.isGroup) {
+        // Заголовок группы (ВМ): подложка + агрегированный статус
+        const gUp = up && !childDown[s.group];
+        const head = document.createElement('div');
+        head.className = 'group-head';
+        head.innerHTML =
+          '<span class="dot ' + (gUp ? 'up' : 'down') + '"></span>' +
+          '<span class="name"></span>' +
+          '<span class="group-status">' + (gUp ? '🟢 все сервисы работают' : '🔴 есть проблемы') + '</span>';
+        head.querySelector('.name').textContent = cleanName;
+        rowsEl.appendChild(head);
+        continue;
+      }
       const row = document.createElement('a');
-      row.className = 'row';
+      row.className = 'row' + (s.group ? ' nested' : '');
       row.href = 'site.html?site=' + encodeURIComponent(s.slug);
       if (s.icon) {
         // Реальная иконка (ico/png/svg — правильное расширение из summary)
