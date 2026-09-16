@@ -52,7 +52,12 @@
       ]);
       render(summary, cur, log);
       if (updatedEl) {
-        updatedEl.textContent = 'Обновлено: ' + new Date().toLocaleTimeString('ru-RU', { timeZone: 'Europe/Moscow' });
+        // Время реального обновления данных мониторинга (из summary.json)
+        const ts = summary.length && summary[0].updatedAt ? summary[0].updatedAt : null;
+        const when = ts
+          ? new Date(ts).toLocaleTimeString('ru-RU', { timeZone: 'Europe/Moscow' })
+          : new Date().toLocaleTimeString('ru-RU', { timeZone: 'Europe/Moscow' });
+        updatedEl.textContent = 'Данные обновлены: ' + when;
       }
     } catch (e) {
       banner.className = 'banner fail';
@@ -83,12 +88,20 @@
       const cleanName = s.name.replace(EMOJI_RE, '').trim();
       if (s.isGroup) {
         const gUp = up && !childDown[s.group];
-        const head = document.createElement('div');
+        // Кликабельный заголовок группы (ВМ): флаг-эмодзи, uptime и текущий отклик
+        const head = document.createElement('a');
         head.className = 'group-head';
+        head.href = 'site.html?site=' + encodeURIComponent(s.slug);
         head.innerHTML =
           '<span class="dot ' + (gUp ? 'up' : 'down') + '"></span>' +
+          (emoji && !s.icon
+            ? '<span class="favicon emoji">' + emoji + '</span>'
+            : '') +
+          (s.icon
+            ? '<img class="favicon" src="api/' + s.slug + '/' + s.icon + '" alt="" onerror="this.style.display=\'none\'">'
+            : '') +
           '<span class="name"></span>' +
-          '<span class="group-status">' + (gUp ? '🟢 все сервисы работают' : '🔴 есть проблемы') + '</span>';
+          '<span class="group-status"><b>' + s.uptimeDay + '</b> · ' + (s.curMs || 0) + ' мс</span>';
         head.querySelector('.name').textContent = cleanName;
         rowsEl.appendChild(head);
         continue;
@@ -101,20 +114,20 @@
           '<img class="favicon" src="api/' + s.slug + '/' + s.icon + '" alt="" onerror="this.style.display=\'none\'">' +
           '<span class="dot ' + (up ? 'up' : 'down') + '"></span>' +
           '<span class="name"></span>' +
-          '<span class="uptime"><b>' + s.uptimeDay + '</b> · ' + s.timeDay + ' мс</span>' +
+          '<span class="uptime"><b>' + s.uptimeDay + '</b> · ' + (s.curMs || 0) + ' мс</span>' +
           '<span class="chevron">→</span>';
       } else if (emoji) {
         row.innerHTML =
           '<span class="favicon emoji">' + emoji + '</span>' +
           '<span class="dot ' + (up ? 'up' : 'down') + '"></span>' +
           '<span class="name"></span>' +
-          '<span class="uptime"><b>' + s.uptimeDay + '</b> · ' + s.timeDay + ' мс</span>' +
+          '<span class="uptime"><b>' + s.uptimeDay + '</b> · ' + (s.curMs || 0) + ' мс</span>' +
           '<span class="chevron">→</span>';
       } else {
         row.innerHTML =
           '<span class="dot ' + (up ? 'up' : 'down') + '"></span>' +
           '<span class="name"></span>' +
-          '<span class="uptime"><b>' + s.uptimeDay + '</b> · ' + s.timeDay + ' мс</span>' +
+          '<span class="uptime"><b>' + s.uptimeDay + '</b> · ' + (s.curMs || 0) + ' мс</span>' +
           '<span class="chevron">→</span>';
       }
       row.querySelector('.name').textContent = cleanName;

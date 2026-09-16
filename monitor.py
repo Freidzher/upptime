@@ -473,10 +473,13 @@ def _group_sort_key(site: dict) -> tuple:
 
 def build_summary(sites: dict, history_points: dict, interval_min: int) -> list:
     summary = []
+    updated_at = ""
     for key, site in sites.items():
         slug = site["slug"]
         points = history_points.get(slug, [])
         last = points[-1] if points else {"ok": True, "ms": 0, "code": 0, "ts": ""}
+        if last["ts"] > updated_at:
+            updated_at = last["ts"]  # когда данные реально обновлялись последний раз
         # Фактическая иконка: первый найденный favicon.* в папке сайта
         icon = ""
         icon_dir = API_DIR / slug
@@ -496,6 +499,7 @@ def build_summary(sites: dict, history_points: dict, interval_min: int) -> list:
             "uptimeWeek": f"{uptime_pct(points, 24 * 7):.2f}%",
             "uptimeMonth": f"{uptime_pct(points, 24 * 30):.2f}%",
             "uptimeYear": f"{uptime_pct(points, 24 * 365):.2f}%",
+            "curMs": last["ms"],
             "time": avg_ms(points, 24 * 90),
             "timeDay": avg_ms(points, 24),
             "timeWeek": avg_ms(points, 24 * 7),
@@ -505,6 +509,8 @@ def build_summary(sites: dict, history_points: dict, interval_min: int) -> list:
         })
     # Сервисы с ID (по возрастанию) — раньше; без ID — в конце
     summary.sort(key=lambda s: (_group_sort_key({**next(v for v in sites.values() if v["slug"] == s["slug"])}), s["slug"]))
+    if summary:
+        summary[0]["updatedAt"] = updated_at
     return summary
 
 

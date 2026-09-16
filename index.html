@@ -59,7 +59,12 @@
       background: rgba(10, 40, 20, 0.65); border: 1px solid var(--border);
       border-radius: 12px; padding: 12px 18px; margin: 18px 0 8px;
       font-weight: 700; backdrop-filter: blur(8px);
+      text-decoration: none; color: var(--text);
+      transition: border-color .25s, background .25s;
     }
+    .group-head:hover { border-color: rgba(46, 204, 113, 0.55); background: rgba(6, 36, 16, 0.85); }
+    .group-head .favicon { width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0; }
+    .group-head .favicon.emoji { font-size: 18px; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
     .group-head .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
     .group-head .dot.up { background: var(--ok); box-shadow: 0 0 8px var(--ok); }
     .group-head .dot.down { background: var(--fail); box-shadow: 0 0 8px var(--fail); }
@@ -135,6 +140,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
-  <script src="assets/app.js?v=2"></script>
+  <script src="assets/app.js?v=3"></script>
 </body>
 </html>
