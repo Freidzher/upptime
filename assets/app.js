@@ -111,15 +111,15 @@
       row.href = 'site.html?site=' + encodeURIComponent(s.slug);
       if (s.icon) {
         row.innerHTML =
-          '<img class="favicon" src="api/' + s.slug + '/' + s.icon + '" alt="" onerror="this.style.display=\'none\'">' +
           '<span class="dot ' + (up ? 'up' : 'down') + '"></span>' +
+          '<img class="favicon" src="api/' + s.slug + '/' + s.icon + '" alt="" onerror="this.style.display=\'none\'">' +
           '<span class="name"></span>' +
           '<span class="uptime"><b>' + s.uptimeDay + '</b> · ' + (s.curMs || 0) + ' мс</span>' +
           '<span class="chevron">→</span>';
       } else if (emoji) {
         row.innerHTML =
-          '<span class="favicon emoji">' + emoji + '</span>' +
           '<span class="dot ' + (up ? 'up' : 'down') + '"></span>' +
+          '<span class="favicon emoji">' + emoji + '</span>' +
           '<span class="name"></span>' +
           '<span class="uptime"><b>' + s.uptimeDay + '</b> · ' + (s.curMs || 0) + ' мс</span>' +
           '<span class="chevron">→</span>';

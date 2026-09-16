@@ -113,7 +113,9 @@
         } else {
           const emoji = (s.name.match(EMOJI_RE) || [''])[0];
           if (emoji) {
-            favEl.outerHTML = '<span id="siteFavicon" style="font-size:28px; vertical-align:middle; margin-right:10px;">' + emoji + '</span>';
+            // Сбрасываем градиентную заливку h1 (-webkit-text-fill-color: transparent),
+            // иначе эмодзи-флаг рендерится белым
+            favEl.outerHTML = '<span id="siteFavicon" style="font-size:28px; vertical-align:middle; margin-right:10px; -webkit-text-fill-color:initial; background:none;">' + emoji + '</span>';
           }
         }
       }
