@@ -104,9 +104,9 @@
         // Время реального обновления данных мониторинга (из summary.json)
         const ts = s.updatedAt || null;
         const when = ts
-          ? new Date(ts).toLocaleTimeString('ru-RU', { timeZone: 'Europe/Moscow' })
-          : new Date().toLocaleTimeString('ru-RU', { timeZone: 'Europe/Moscow' });
-        updatedEl.textContent = 'Данные обновлены: ' + when + ' МСК';
+          ? new Date(ts).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' })
+          : new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' });
+        updatedEl.textContent = 'Обновлено: ' + when + ' МСК';
       }
 
       const favEl = document.getElementById('siteFavicon');
@@ -126,8 +126,14 @@
       }
 
       const up = s.status === 'up';
-      banner.className = 'banner ' + (up ? 'ok' : 'fail');
-      banner.innerHTML = up ? '<span class="icon">🟢</span> Работает' : '<span class="icon">🔴</span> Недоступен';
+      // Индикатор-точка перед названием вместо баннера-смайлика — меньше визуального шума
+      banner.style.display = 'none';
+      const dotEl = document.getElementById('siteDot');
+      if (dotEl) {
+        dotEl.className = 'dot ' + (up ? 'up' : 'down');
+        dotEl.style.display = '';
+      }
+      document.title = clean + ' — Runicore';
 
       const stats = [
         { v: s.timeDay + ' мс', l: 'Отклик 24ч' }, { v: s.timeWeek + ' мс', l: 'Отклик 7д' },

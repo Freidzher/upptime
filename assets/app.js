@@ -55,9 +55,9 @@
         // Время реального обновления данных мониторинга (из summary.json)
         const ts = summary.length && summary[0].updatedAt ? summary[0].updatedAt : null;
         const when = ts
-          ? new Date(ts).toLocaleTimeString('ru-RU', { timeZone: 'Europe/Moscow' })
-          : new Date().toLocaleTimeString('ru-RU', { timeZone: 'Europe/Moscow' });
-        updatedEl.textContent = 'Данные обновлены: ' + when + ' МСК';
+          ? new Date(ts).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' })
+          : new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' });
+        updatedEl.textContent = 'Обновлено: ' + when + ' МСК';
       }
     } catch (e) {
       banner.className = 'banner fail';
@@ -70,9 +70,11 @@
 
     const allUp = summary.every((s) => s.status === 'up');
     banner.className = 'banner ' + (allUp ? 'ok' : 'fail');
+    // Индикатор-точка вместо смайлика — как у пинга серверов
+    const hasMaint = Object.values(incidents || {}).some((i) => i.maintenance);
     banner.innerHTML = allUp
-      ? '<span class="icon">🟢</span> Все сервисы работают'
-      : '<span class="icon">🔴</span> Сервисы нестабильны';
+      ? '<span class="banner-dot' + (hasMaint ? ' warn' : '') + '"></span> Все сервисы работают'
+      : '<span class="banner-dot fail"></span> Сервисы нестабильны';
 
     rowsEl.innerHTML = '';
     const childDown = {};

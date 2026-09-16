@@ -51,6 +51,10 @@
     }
     .banner.ok { border-color: rgba(46,204,113,.4); }
     .banner.fail { border-color: var(--fail); }
+    /* Индикатор-точка в баннере (как у пинга) */
+    .banner-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: -1px; margin-right: 6px; background: var(--ok); box-shadow: 0 0 10px var(--ok); }
+    .banner-dot.fail { background: var(--fail); box-shadow: 0 0 10px var(--fail); }
+    .banner-dot.warn { background: #f1c40f; box-shadow: 0 0 10px #f1c40f; }
     .updated { text-align: right; color: var(--muted); font-size: .78rem; margin-bottom: 24px; }
 
     /* Группы серверов */
@@ -140,6 +144,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
-  <script src="assets/app.js?v=4"></script>
+  <script src="assets/app.js?v=5"></script>
 </body>
 </html>
