@@ -367,6 +367,65 @@ def close_incident(key: str, incidents: dict, last_ok_ts: str, repo: str) -> Non
     print(f"Incident issue #{num} closed for {key}")
 
 
+# ---------- Лейблы и синхронизация с Issues ----------
+
+def ensure_labels(repo: str) -> None:
+    """Создаёт служебные лейблы (если их нет), чтобы их можно было выбрать в UI Issues:
+      incident    — падение сервиса (ставится автоматически);
+      maintenance — плановые техработы (ставится/снимается вручную)."""
+    wanted = {
+        "incident": ("FF4F6D", "Падение сервиса (ставится автоматически монитором)"),
+        "maintenance": ("F1C40F", "Плановые техработы: добавьте/уберите лейбл у инцидента"),
+    }
+    existing = gh_api(f"/repos/{repo}/labels?per_page=100") or []
+    names = {l["name"] for l in existing}
+    for name, (color, desc) in wanted.items():
+        if name not in names:
+            gh_api(f"/repos/{repo}/labels", "POST", {"name": name, "color": color, "description": desc})
+            print(f"Label created: {name} ({color})")
+
+
+def sync_incidents(incidents: dict, repo: str) -> None:
+    """Сверяет incidents.json с реальными открытыми issues:
+      - issue закрыт вручную -> инцидент/техработы завершены (в журнал);
+      - лейбл 'maintenance' добавлен/убран -> переквалификация инцидента."""
+    issues = gh_api(f"/repos/{repo}/issues?state=open&per_page=100") or []
+    by_num = {i["number"]: i for i in issues if "pull_request" not in i}
+    changed = False
+    for key in list(incidents.keys()):
+        info = incidents[key]
+        issue = by_num.get(info.get("issue_number"))
+        if issue is None:
+            # Issue закрыли вручную -> работы завершены
+            now = datetime.now(timezone.utc).isoformat(timespec="seconds")
+            opened = datetime.fromisoformat(info["opened"]).replace(tzinfo=timezone.utc)
+            minutes = max(1, round((datetime.now(timezone.utc) - opened).total_seconds() / 60))
+            incidents.pop(key)
+            log = load_log()
+            log.append({
+                "name": info.get("name", key),
+                "slug": slugify(key),
+                "issue_number": info.get("issue_number"),
+                "opened": info["opened"],
+                "resolved": now,
+                "minutes": minutes,
+                "maintenance": info.get("maintenance", False),
+            })
+            write_json(API_DIR / "incidents-log.json", log[-100:])
+            changed = True
+            print(f"{key}: issue закрыт вручную — работы завершены ({minutes} мин)")
+        else:
+            labels = {l["name"] for l in issue.get("labels", [])}
+            is_maint = "maintenance" in labels
+            if is_maint != info.get("maintenance", False):
+                info["maintenance"] = is_maint
+                changed = True
+                kind = "техработы" if is_maint else "инцидент"
+                print(f"{key}: переквалифицирован в {kind} (по лейблу issue)")
+    if changed:
+        write_json(API_DIR / "incidents.json", incidents)
+
+
 # ---------- Хранение в стиле Upptime ----------
 
 def badge(label: str, message: str, color: str) -> dict:
@@ -532,6 +591,11 @@ def main() -> None:
     incidents = load_json(API_DIR / "incidents.json", {})
     repo = repo_slug(config)
 
+    # Лейблы incident/maintenance (создаются при отсутствии) + синхронизация с issues:
+    # закрытие issue вручную завершает работы, лейбл maintenance переквалифицирует инцидент
+    ensure_labels(repo)
+    sync_incidents(incidents, repo)
+
     HISTORY_DIR.mkdir(exist_ok=True)
 
     for key, site in sites.items():
@@ -541,6 +605,9 @@ def main() -> None:
             result = check_ssh(name, site["url"], site["timeout"])
         else:
             result = check_site(name, site["url"], site["timeout"])
+        # Флаг техработ: если по сервису открыто maintenance-issue — точка на графике жёлтая
+        if key in incidents and incidents[key].get("maintenance"):
+            result["maint"] = True
 
         api = API_DIR / slug
         api.mkdir(parents=True, exist_ok=True)
@@ -563,9 +630,11 @@ def main() -> None:
         write_site_files(slug, points, result)
 
         clean_name = EMOJI_RE.sub("", name).strip()
+        is_maint_now = key in incidents and incidents[key].get("maintenance")
         if not result["ok"] and key not in incidents:
             open_incident(key, clean_name or name, result, incidents, repo)
-        elif result["ok"] and key in incidents:
+        elif result["ok"] and key in incidents and not is_maint_now:
+            # Техработы завершаются только вручную (закрытием issue или снятием лейбла)
             close_incident(key, incidents, result["ts"], repo)
 
     # Итоговый summary по всем сайтам

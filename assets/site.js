@@ -63,8 +63,8 @@
             const p = pts[ctx.dataIndex];
             return p && p.ok ? 'rgba(46,204,113,.15)' : 'rgba(255,79,109,.15)';
           },
-          pointBackgroundColor: pts.map((e) => (e.ok ? '#2ecc71' : '#ff4f6d')),
-          pointRadius: 2,
+          pointBackgroundColor: pts.map((e) => (e.maint ? '#f1c40f' : (e.ok ? '#2ecc71' : '#ff4f6d'))),
+          pointRadius: (ctx) => (pts[ctx.dataIndex] && pts[ctx.dataIndex].maint ? 3.5 : 2),
           fill: true,
           tension: 0.35,
           segment: {

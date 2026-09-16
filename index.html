@@ -55,7 +55,7 @@
     .banner-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: -1px; margin-right: 6px; background: var(--ok); box-shadow: 0 0 10px var(--ok); }
     .banner-dot.fail { background: var(--fail); box-shadow: 0 0 10px var(--fail); }
     .banner-dot.warn { background: #f1c40f; box-shadow: 0 0 10px #f1c40f; }
-    .updated { text-align: right; color: var(--muted); font-size: .78rem; margin-bottom: 24px; }
+    .updated { text-align: left; color: var(--muted); font-size: .78rem; margin-bottom: 12px; }
 
     /* Группы серверов */
     .group-head {
@@ -129,8 +129,8 @@
   <div class="wrap">
     <h1>β Мониторинг сети Runicore</h1>
     <p class="sub">Нажмите на сервис — откроется страница со статистикой.</p>
-    <div class="banner ok" id="banner">⏳ Загрузка…</div>
     <div class="updated" id="updated"></div>
+    <div class="banner ok" id="banner">⏳ Загрузка…</div>
     <div id="rows"></div>
     <div class="inc-title" id="liveTitle" style="display:none">Живой статус</div>
     <div id="live"></div>
