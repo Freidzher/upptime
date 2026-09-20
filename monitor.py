@@ -220,7 +220,9 @@ def _single_check(url: str, timeout: int) -> tuple:
         with urllib.request.urlopen(req, timeout=timeout, context=ctx) as resp:
             return True, resp.status
     except urllib.error.HTTPError as e:
-        return True, e.code  # HTTP-ответ = сервер жив
+        # 5xx — серверная ошибка (502 Bad Gateway, 503, 504): бэкенд за шлюзом не отвечает -> DOWN.
+        # 2xx-4xx (включая 401/403/404/429) — отвечает само приложение -> UP.
+        return not (500 <= e.code < 600), e.code
     except urllib.error.URLError as e:
         if isinstance(getattr(e, "reason", None), ssl.SSLCertVerificationError):
             try:
@@ -228,7 +230,7 @@ def _single_check(url: str, timeout: int) -> tuple:
                 with urllib.request.urlopen(req2, timeout=timeout, context=ssl._create_unverified_context()) as resp:
                     return True, resp.status
             except urllib.error.HTTPError as e2:
-                return True, e2.code
+                return not (500 <= e2.code < 600), e2.code
             except Exception:
                 return False, 0
         return False, 0
