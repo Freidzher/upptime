@@ -20,6 +20,10 @@
     return ts ? new Date(ts).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' }) : null;
   }
 
+  // Год в футере — до выхода из try (иначе return при найденном событии его пропускает)
+  const y = document.getElementById('year');
+  if (y) y.textContent = new Date().getFullYear();
+
   async function fetchJson(url) {
     const r = await fetch(url + '?t=' + Date.now(), { cache: 'no-store' });
     if (!r.ok) throw new Error(url);
@@ -71,7 +75,4 @@
   } catch (e) {
     titleEl.textContent = 'Не удалось загрузить событие';
   }
-
-  const y = document.getElementById('year');
-  if (y) y.textContent = new Date().getFullYear();
 })();

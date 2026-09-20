@@ -46,15 +46,15 @@
     } else if (mode === 'annulled') {
       txt = 'аннулировано';
     } else {
-      txt = resolved ? 'устранён' : 'недоступен (открыт ' + started + ')';
+      txt = resolved ? 'устранён' : 'недоступен';
     }
     // Клик по карточке — страница события (всё внутри сайта, без GitHub)
     if (info.issue_number) d.href = 'incident.html?issue=' + info.issue_number;
     const meta = resolved
-      ? '<span class="t">Начато: ' + started + ' МСК · Закрыто: ' + resolved + ' МСК · Длительность: ' + pluralMin(info.minutes || 0) + '</span>'
-      : '<span class="t">Начато: ' + started + ' МСК</span>';
-    const name = info.title || (info.name || 'Сервис');
-    d.innerHTML = '<b></b> — ' + esc(txt) + meta;
+      ? '<span class="t">· Начато: ' + started + ' МСК · Закрыто: ' + resolved + ' МСК · Длительность: ' + pluralMin(info.minutes || 0) + '</span>'
+      : '<span class="t">· Начато: ' + started + ' МСК</span>';
+    const name = info.name || (info.title || 'Сервис');
+    d.innerHTML = '<b></b>' + esc(' — ' + txt + ' ') + meta;
     d.querySelector('b').textContent = name;
     return d;
   }

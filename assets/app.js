@@ -48,8 +48,8 @@
     const meta = active
       ? '<span class="t">· Начато: ' + started + ' МСК</span>'
       : '<span class="t">· Начато: ' + started + ' МСК · Длительность: ' + pluralMin(info.minutes || 0) + '</span>';
-    const name = info.title || (info.name || 'Сервис');
-    d.innerHTML = '<b></b> — ' + esc(txt) + ' ' + meta;
+    const name = info.name || (info.title || 'Сервис');
+    d.innerHTML = '<b></b>' + esc(' — ' + txt + ' ') + meta;
     d.querySelector('b').textContent = name;
     return d;
   }
