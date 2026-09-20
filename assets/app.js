@@ -41,15 +41,15 @@
     } else if (mode === 'annulled') {
       txt = active ? 'аннулировано (идёт)' : 'аннулировано';
     } else {
-      txt = active ? 'недоступен с ' + started : 'устранён';
+      txt = active ? 'недоступен' : 'устранён';
     }
     // Клик по карточке — страница события (всё внутри сайта, без GitHub)
     if (info.issue_number) d.href = 'incident.html?issue=' + info.issue_number;
     const meta = active
-      ? '<span class="t">Начато: ' + started + ' МСК</span>'
-      : '<span class="t">Начато: ' + started + ' МСК · Длительность: ' + pluralMin(info.minutes || 0) + '</span>';
+      ? '<span class="t">· Начато: ' + started + ' МСК</span>'
+      : '<span class="t">· Начато: ' + started + ' МСК · Длительность: ' + pluralMin(info.minutes || 0) + '</span>';
     const name = info.title || (info.name || 'Сервис');
-    d.innerHTML = '<b></b> — ' + esc(txt) + meta;
+    d.innerHTML = '<b></b> — ' + esc(txt) + ' ' + meta;
     d.querySelector('b').textContent = name;
     return d;
   }

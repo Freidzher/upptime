@@ -333,14 +333,14 @@ def open_incident(key: str, name: str, result: dict, incidents: dict, repo: str,
     title = f"{name} — техработы" if is_maint else f"{name} — недоступен"
     labels = ["maintenance"] if is_maint else ["incident"]
     body = (
-        f"**{name}** — плановые работы.\n\n- Начато: {result['ts']}\n\n"
+        f"{name} — плановые работы.\n\n- Начато: {result['ts']}\n\n"
         "Завершается закрытием issue."
     ) if is_maint else (
-        f"**{name}** недоступен.\n\n"
+        f"{name} недоступен.\n\n"
         f"- Начато: {result['ts']}\n"
         f"- Code: {result['code']}\n"
         f"- Response time: {result['ms']} ms\n\n"
-        f"Комментарии — репорты инцидента. Закроется автоматически при восстановлении."
+        f"Комментарии: репорты инцидента. Закроется автоматически при восстановлении."
     )
     issue = gh_api(f"/repos/{repo}/issues", "POST", {"title": title, "body": body, "labels": labels})
     if issue:
