@@ -213,10 +213,20 @@ def _open(req: urllib.request.Request, timeout: int):
     return urllib.request.urlopen(req, timeout=timeout, context=ctx)
 
 
+# Браузерные заголовки: некоторые reverse-proxy (например, Caddy перед Remnawave)
+# отдают 502 на запросы с не-браузерным Accept/User-Agent.
+BROWSER_HEADERS = {
+    "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                   "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"),
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7",
+}
+
+
 def _single_check(url: str, timeout: int) -> tuple:
     """Одна попытка проверки. Возвращает (ok, code)."""
     try:
-        req = urllib.request.Request(url, headers={"User-Agent": "RunicoreMonitor/1.0"})
+        req = urllib.request.Request(url, headers=BROWSER_HEADERS)
         with urllib.request.urlopen(req, timeout=timeout, context=ctx) as resp:
             return True, resp.status
     except urllib.error.HTTPError as e:
@@ -226,7 +236,7 @@ def _single_check(url: str, timeout: int) -> tuple:
     except urllib.error.URLError as e:
         if isinstance(getattr(e, "reason", None), ssl.SSLCertVerificationError):
             try:
-                req2 = urllib.request.Request(url, headers={"User-Agent": "RunicoreMonitor/1.0"})
+                req2 = urllib.request.Request(url, headers=BROWSER_HEADERS)
                 with urllib.request.urlopen(req2, timeout=timeout, context=ssl._create_unverified_context()) as resp:
                     return True, resp.status
             except urllib.error.HTTPError as e2:
