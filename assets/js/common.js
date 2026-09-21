@@ -26,7 +26,7 @@ window.Runicore = (function () {
     if (mode === 'maintenance') return active ? 'плановые работы (идут)' : 'плановые работы завершены';
     if (mode === 'annulled') return active ? 'аннулировано (идёт)' : 'аннулировано';
     if (active) return 'недоступен';
-    return 'устранён';
+    return 'восстановлено';
   }
 
   // Единая карточка события: <b>Имя</b> — статус · Начато: … [· Закрыто: … · Длительность: …]

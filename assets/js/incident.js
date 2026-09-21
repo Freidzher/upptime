@@ -19,30 +19,38 @@
     const started = fmtTs(info.opened);
     const resolved = fmtTs(info.resolved);
 
+    const label = { incident: 'Инцидент', maintenance: 'Техработы', annulled: 'Аннулировано', hidden: 'Скрыто' }[mode];
     let status;
     if (mode === 'maintenance') status = active ? 'Идут плановые работы' : 'Плановые работы завершены';
     else if (mode === 'annulled') status = active ? 'Событие аннулировано (идёт)' : 'Событие аннулировано';
     else status = active ? 'Сервис недоступен' : 'Восстановлено';
+    // Лейбл типа события переносим в статус: «Инцидент · Восстановлено»
+    status = label + ' · ' + status;
 
-    const label = { incident: 'Инцидент', maintenance: 'Техработы', annulled: 'Аннулировано', hidden: 'Скрыто' }[mode];
     const name = info.name || (info.title || 'Сервис').replace(/ — недоступен$/, '').replace(/ — техработы$/, '');
-    titleEl.textContent = name + ' · ' + label;
-    document.title = (info.title || 'Событие') + ' — Runicore';
+    titleEl.textContent = name;
+    document.title = name + ' — Событие — Runicore';
 
     statusEl.textContent = status;
     const parts = ['Начато: ' + started + ' МСК'];
     if (resolved) parts.push('Закрыто: ' + resolved + ' МСК');
     if (info.minutes) parts.push('Длительность: ' + pluralMin(info.minutes));
-    if (info.code !== undefined) parts.push('Код ошибки: ' + info.code);
-    if (info.ms !== undefined) parts.push('Время отклика: ' + (info.ms || 0) + ' мс');
     metaEl.innerHTML = parts.map((p) => '<span>' + p + '</span>').join('');
+
+    // Описание показываем только если оно добавляет что-то сверх шапки
+    // (иначе «Код ошибки / Время отклика» дублируются дважды)
+    const desc = (info.desc || '').trim();
+    const metaText = parts.join('\n');
+    const duplicatesMeta = !desc || metaText.includes(desc.replace(/^- /gm, '').trim());
+    descEl.textContent = duplicatesMeta ? '' : desc;
+    descEl.style.display = duplicatesMeta ? 'none' : '';
+
     // Ссылка на страницу сервиса (без GitHub): «Страница сервиса → {название}»
     if (info.slug) {
       linkEl.href = 'site.html?site=' + encodeURIComponent(info.slug);
       linkEl.style.display = '';
       linkEl.textContent = 'Страница сервиса → ' + (info.name || name);
     }
-    descEl.textContent = info.desc || '';
   }
 
   try {
