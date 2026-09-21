@@ -5,63 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#020b05">
   <meta name="robots" content="noindex, nofollow">
-  <link rel="icon" href="assets/favicon.ico">
-  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
-  <link rel="icon" sizes="96x96" type="image/png" href="assets/favicon-96x96.png">
-  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="icon" href="assets/icons/favicon.ico">
+  <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg">
+  <link rel="icon" sizes="96x96" type="image/png" href="assets/icons/favicon-96x96.png">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
   <link rel="manifest" href="assets/manifest.json">
+  <link rel="stylesheet" href="assets/css/status.css?v=2">
   <title>Статистика — Runicore</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-
-    :root {
-      --bg: #020b05;
-      --card: rgba(4, 26, 12, 0.75);
-      --border: rgba(46, 204, 113, 0.2);
-      --accent: #2ecc71;
-      --ok: #00ff88;
-      --fail: #ff4f6d;
-      --text: #ffffff;
-      --muted: rgba(255, 255, 255, 0.65);
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      background-color: var(--bg);
-      background-image:
-        linear-gradient(to right, rgba(46, 204, 113, 0.04) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(46, 204, 113, 0.04) 1px, transparent 1px),
-        radial-gradient(circle at 10% 20%, rgba(16, 185, 129, 0.15) 0%, transparent 40%),
-        radial-gradient(circle at 90% 80%, rgba(46, 204, 113, 0.08) 0%, transparent 50%);
-      background-size: 50px 50px, 50px 50px, auto, auto;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      color: var(--text);
-      min-height: 100vh;
-      padding: 60px 20px;
-    }
-    .wrap { max-width: 760px; margin: 0 auto; }
-    .back { color: var(--muted); text-decoration: none; font-size: .88rem; display: inline-block; margin-bottom: 18px; transition: color 0.2s; }
-    .back:hover { color: var(--accent); }
-    /* Индикатор статуса в заголовке (как у пинга) */
-    .dot { display: inline-block; border-radius: 50%; flex-shrink: 0; }
-    .dot.up { background: var(--ok); box-shadow: 0 0 10px var(--ok); }
-    .dot.down { background: var(--fail); box-shadow: 0 0 10px var(--fail); }
-    .dot.warn { background: #f1c40f; box-shadow: 0 0 10px #f1c40f; }
-    .banner-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: -1px; margin-right: 6px; background: var(--ok); box-shadow: 0 0 10px var(--ok); }
-    .banner-dot.fail { background: var(--fail); box-shadow: 0 0 10px var(--fail); }
-    .banner-dot.warn { background: #f1c40f; box-shadow: 0 0 10px #f1c40f; }
-    h1 {
-      font-size: 2rem; font-weight: 800; margin-bottom: 6px;
-      background: linear-gradient(135deg, #ffffff 40%, #2ecc71 100%);
-      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-    }
-    .banner {
-      border-radius: 14px; padding: 14px 20px; margin-bottom: 8px;
-      background: var(--card); border: 1px solid var(--border);
-      font-weight: 600; font-size: .95rem;
-    }
-    .banner.ok { border-color: rgba(46, 204, 113, .4); }
-    .banner.fail { border-color: var(--fail); }
-    .updated { text-align: left; color: var(--muted); font-size: .78rem; margin-bottom: 24px; }
+    /* Уникальные стили страницы сервиса */
+    .updated { margin-bottom: 24px; }
     .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 22px; }
     .stat {
       background: var(--card); border: 1px solid var(--border); border-radius: 12px;
@@ -81,27 +34,6 @@
     }
     .tabs button.active { border-color: var(--accent); color: var(--text); background: rgba(46, 204, 113, 0.15); }
     canvas { width: 100%; height: 160px; }
-    .inc-title { margin: 18px 0 10px; font-weight: 700; font-size: .95rem; }
-    .incident {
-      display: block; text-decoration: none; color: var(--text);
-      background: var(--card); border: 1px solid var(--border); border-radius: 10px;
-      padding: 12px 16px; margin-bottom: 8px; font-size: .88rem;
-      transition: border-color .25s, transform .15s;
-    }
-    .incident:hover { border-color: rgba(46, 204, 113, .5); transform: translateX(2px); }
-    .incident a { color: #52f099; text-decoration: none; }
-    /* Цветные кромки событий */
-    .incident { border-left-width: 3px; }
-    .incident.incident { border-left-color: var(--fail); }
-    .incident.maintenance { border-left-color: #f1c40f; }
-    .incident.annulled { opacity: .6; border-style: dashed; }
-    .incident.annulled b { color: var(--muted); text-decoration: line-through; }
-    .incident.annulled, .incident.hidden { border-left-color: #8a9b8f; }
-    footer {
-      text-align: center; margin-top: 50px; padding-top: 24px;
-      border-top: 1px solid rgba(255,255,255,.05);
-      color: var(--muted); font-size: .82rem;
-    }
   </style>
 </head>
 <body>
@@ -127,6 +59,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
-  <script src="assets/site.js?v=8"></script>
+  <script src="assets/js/common.js?v=1"></script>
+  <script src="assets/js/site.js?v=9"></script>
 </body>
 </html>
