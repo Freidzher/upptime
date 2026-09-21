@@ -3,7 +3,8 @@ window.Runicore = (function () {
   const EMOJI_RE = /^[\u{1F1E6}-\u{1F1FF}]{2}|[\u{1F000}-\u{1FAFF}]|[\u2600-\u27BF]\uFE0F?/u;
 
   function esc(s) {
-    return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&', '<': '<', '>': '>', '"': '"', "'": '&#39;' }[c]));
+    const map = { 38: 'amp', 60: 'lt', 62: 'gt', 34: 'quot', 39: '#39' };
+    return String(s).replace(/[&<>"']/g, (c) => '&' + map[c.charCodeAt(0)] + ';');
   }
 
   function fmtTs(ts) {
