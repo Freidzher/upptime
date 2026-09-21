@@ -209,10 +209,6 @@ def fetch_favicon(url: str, api_dir: Path, timeout: int = 10) -> str:
     return ""
 
 
-def _open(req: urllib.request.Request, timeout: int):
-    return urllib.request.urlopen(req, timeout=timeout, context=ctx)
-
-
 # Браузерные заголовки: некоторые reverse-proxy (например, Caddy перед Remnawave)
 # отдают 502 на запросы с не-браузерным Accept/User-Agent.
 BROWSER_HEADERS = {
@@ -333,14 +329,10 @@ def open_incident(key: str, name: str, result: dict, incidents: dict, repo: str,
     title = f"{name} — техработы" if is_maint else f"{name} — недоступен"
     labels = ["maintenance"] if is_maint else ["incident"]
     body = (
-        f"{name} — плановые работы.\n\n- Начато: {result['ts']}\n\n"
-        "Завершается закрытием issue."
+        f"{name} — плановые работы.\n\nЗавершается закрытием issue."
     ) if is_maint else (
-        f"{name} недоступен.\n\n"
-        f"- Начато: {result['ts']}\n"
-        f"- Code: {result['code']}\n"
-        f"- Response time: {result['ms']} ms\n\n"
-        f"Комментарии: репорты инцидента. Закроется автоматически при восстановлении."
+        f"- Код ошибки: {result['code']}\n"
+        f"- Время отклика: {result['ms']} мс"
     )
     issue = gh_api(f"/repos/{repo}/issues", "POST", {"title": title, "body": body, "labels": labels})
     if issue:
@@ -352,11 +344,14 @@ def open_incident(key: str, name: str, result: dict, incidents: dict, repo: str,
             "mode": "maintenance" if is_maint else "incident",
             "title": title,
             "desc": body,
+            "code": result.get("code", 0),
+            "ms": result.get("ms", 0),
         }
         print(f"Incident issue #{issue['number']} opened for {name} (mode={'maintenance' if is_maint else 'incident'})")
 
 
-def close_incident(key: str, incidents: dict, last_ok_ts: str, repo: str) -> None:
+def close_incident(key: str, incidents: dict, result: dict, repo: str) -> None:
+    last_ok_ts = result["ts"]
     info = incidents.pop(key, None)
     if not info:
         return
@@ -378,6 +373,8 @@ def close_incident(key: str, incidents: dict, last_ok_ts: str, repo: str) -> Non
         "opened": info["opened"],
         "resolved": last_ok_ts,
         "minutes": minutes,
+        "code": info.get("code", result.get("code", 0)),
+        "ms": info.get("ms", result.get("ms", 0)),
         "maintenance": is_maint,
         "mode": info.get("mode", "maintenance" if is_maint else "incident"),
         "annulled": info.get("mode") == "annulled",
@@ -412,7 +409,6 @@ def _rewrite_points_interval(slug: str, opened_ts: str, mode: str) -> None:
       hidden -> ok=True (и maint/annulled сняты); incident -> снять все флаги."""
     if mode not in ("hidden", "annulled", "maintenance"):
         return
-    path = API_DIR / slugify(slug) if slug else None
     path = API_DIR / slug
     points = load_json(path / "points.json", [])
     try:
@@ -530,6 +526,8 @@ def sync_incidents(incidents: dict, repo: str, sites: dict = None) -> None:
                 "opened": info["opened"],
                 "resolved": now,
                 "minutes": minutes,
+                "code": info.get("code", 0),
+                "ms": info.get("ms", 0),
                 "maintenance": info.get("maintenance", False),
                 "mode": info.get("mode", "incident"),
                 "annulled": info.get("mode") == "annulled",
@@ -770,7 +768,7 @@ def main() -> None:
             open_incident(key, clean_name or name, result, incidents, repo)
         elif result["ok"] and key in incidents and not is_maint_now:
             # Техработы завершаются только вручную (закрытием issue или снятием лейбла)
-            close_incident(key, incidents, result["ts"], repo)
+            close_incident(key, incidents, result, repo)
 
     # Итоговый summary по всем сайтам
     history_points = {s["slug"]: load_json(API_DIR / s["slug"] / "points.json", []) for s in sites.values()}

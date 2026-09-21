@@ -33,6 +33,8 @@
     const parts = ['Начато: ' + started + ' МСК'];
     if (resolved) parts.push('Закрыто: ' + resolved + ' МСК');
     if (info.minutes) parts.push('Длительность: ' + pluralMin(info.minutes));
+    if (info.code !== undefined) parts.push('Код ошибки: ' + info.code);
+    if (info.ms !== undefined) parts.push('Время отклика: ' + (info.ms || 0) + ' мс');
     metaEl.innerHTML = parts.map((p) => '<span>' + p + '</span>').join('');
     // Ссылка на страницу сервиса (без GitHub): «Страница сервиса → {название}»
     if (info.slug) {
