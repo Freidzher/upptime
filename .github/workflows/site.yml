@@ -30,9 +30,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
+
+      - name: Prune unnecessary files
+        run: |
+          rm -rf .git .github scripts .env .env.example .gitignore README.md monitor.py
 
       - name: Upload site
         uses: actions/upload-pages-artifact@v3
