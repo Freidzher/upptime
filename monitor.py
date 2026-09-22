@@ -107,11 +107,17 @@ def discover_sites(config: dict, secrets: dict) -> dict:
       '1.1|https://site'               — вложенный сервис группы '1'.
     """
     custom = config.get("names", {})
+    if not custom:
+        raise SystemExit("В config.json не заполнен список names — актуальный список сервисов берётся из него.")
     sites = {}
     for key, value in secrets.items():
         if key in SERVICE_KEYS or key.startswith(("GITHUB_", "RUNNER_", "CI")):
             continue
         if not value:
+            continue
+        # Сервис должен быть объявлен в config.json -> names (защита от опечаток в секретах)
+        if key not in custom:
+            print(f"Пропущен секрет '{key}': нет в config.json -> names (опечатка или лишний секрет)")
             continue
         parts = [p.strip() for p in value.split("|") if p.strip()]
         if not parts:
