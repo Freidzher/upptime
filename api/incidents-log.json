@@ -1,21 +1,5 @@
 [
  {
-  "name": "Подписка",
-  "slug": "server3",
-  "issue_number": 1,
-  "opened": "2026-09-20T21:30:40+00:00",
-  "resolved": "2026-09-20T22:25:20+00:00",
-  "minutes": 55,
-  "code": 0,
-  "ms": 2044,
-  "maintenance": false,
-  "mode": "incident",
-  "annulled": false,
-  "hidden": false,
-  "title": "Подписка — недоступен",
-  "desc": "- Код ошибки: 0\n- Время отклика: 2044 мс"
- },
- {
   "name": "База знаний",
   "slug": "server2",
   "issue_number": 157,
