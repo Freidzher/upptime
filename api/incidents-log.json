@@ -14,5 +14,53 @@
   "hidden": false,
   "title": "Подписка — недоступен",
   "desc": "- Код ошибки: 0\n- Время отклика: 2044 мс"
+ },
+ {
+  "name": "База знаний",
+  "slug": "server2",
+  "issue_number": 157,
+  "opened": "2026-09-22T12:57:46+00:00",
+  "resolved": "2026-09-22T13:00:55+00:00",
+  "minutes": 3,
+  "code": 0,
+  "ms": 90251,
+  "maintenance": false,
+  "mode": "incident",
+  "annulled": false,
+  "hidden": false,
+  "title": "База знаний — недоступен",
+  "desc": "- Код ошибки: 0\n- Время отклика: 90251 мс"
+ },
+ {
+  "name": "Подписка",
+  "slug": "server3",
+  "issue_number": 158,
+  "opened": "2026-09-22T12:59:03+00:00",
+  "resolved": "2026-09-22T13:00:59+00:00",
+  "minutes": 2,
+  "code": 0,
+  "ms": 1340,
+  "maintenance": false,
+  "mode": "incident",
+  "annulled": false,
+  "hidden": false,
+  "title": "Подписка — недоступен",
+  "desc": "- Код ошибки: 0\n- Время отклика: 1340 мс"
+ },
+ {
+  "name": "Служба поддержки",
+  "slug": "server6",
+  "issue_number": 159,
+  "opened": "2026-09-22T12:59:09+00:00",
+  "resolved": "2026-09-22T13:01:06+00:00",
+  "minutes": 2,
+  "code": 0,
+  "ms": 1367,
+  "maintenance": false,
+  "mode": "incident",
+  "annulled": false,
+  "hidden": false,
+  "title": "Служба поддержки — недоступен",
+  "desc": "- Код ошибки: 0\n- Время отклика: 1367 мс"
  }
 ]
