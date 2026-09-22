@@ -8,7 +8,8 @@
     "SERVER4": "\uD83C\uDDF8\uD83C\uDDEA 1. Стокгольм",
     "SERVER5": "\uD83C\uDDF8\uD83C\uDDEA 2. Стокгольм",
     "SERVER6": "Служба поддержки",
-    "SERVER7": "\uD83C\uDDF7\uD83C\uDDFA Москва"
+    "SERVER7": "\uD83C\uDDF7\uD83C\uDDFA Москва",
+    "SERVER8": "\uD83C\uDDF8\uD83C\uDDEA 1.1 Стокгольм"
   },
   "interval_minutes": 5,
   "history_days": 365,
