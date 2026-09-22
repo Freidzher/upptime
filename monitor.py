@@ -291,7 +291,8 @@ def check_ssh(name: str, host: str, timeout: int = 10) -> dict:
 
 
 def gh_api(path: str, method: str = "GET", payload=None):
-    token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
+    token = (os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
+             or os.environ.get("FINE_GRAINED_TOKEN"))
     if not token:
         return None
     data = json.dumps(payload).encode() if payload is not None else None
@@ -325,6 +326,23 @@ def load_log() -> list:
     return load_json(API_DIR / "incidents-log.json", [])
 
 
+def find_open_incident_issue(repo: str, title: str) -> int:
+    """Ищет среди открытых issues уже существующий инцидент с таким же заголовком.
+    Защита от дубликатов: если прошлый прогон создал issue, но не успел закоммитить
+    incidents.json (например, из-за отмены concurrency), issue переиспользуется."""
+    page = 1
+    while True:
+        issues = gh_api(f"/repos/{repo}/issues?state=open&per_page=100&page={page}")
+        if not issues:
+            return 0
+        for i in issues:
+            if "pull_request" not in i and i.get("title", "").strip() == title:
+                return i["number"]
+        if len(issues) < 100:
+            return 0
+        page += 1
+
+
 def open_incident(key: str, name: str, result: dict, incidents: dict, repo: str, is_maint: bool = False) -> None:
     title = f"{name} — техработы" if is_maint else f"{name} — недоступен"
     labels = ["maintenance"] if is_maint else ["incident"]
@@ -334,7 +352,13 @@ def open_incident(key: str, name: str, result: dict, incidents: dict, repo: str,
         f"- Код ошибки: {result['code']}\n"
         f"- Время отклика: {result['ms']} мс"
     )
-    issue = gh_api(f"/repos/{repo}/issues", "POST", {"title": title, "body": body, "labels": labels})
+    # Дедупликация: переиспользуем уже открытый issue с тем же заголовком
+    existing_num = find_open_incident_issue(repo, title)
+    if existing_num:
+        issue = {"number": existing_num}
+        print(f"Incident issue #{existing_num} reused for {name} (дубликат предотвращён)")
+    else:
+        issue = gh_api(f"/repos/{repo}/issues", "POST", {"title": title, "body": body, "labels": labels})
     if issue:
         incidents[key] = {
             "issue_number": issue["number"],
@@ -437,7 +461,7 @@ def _rewrite_points_interval(slug: str, opened_ts: str, mode: str) -> None:
 
 def ensure_labels(repo: str) -> None:
     """Создаёт служебные лейблы (если их нет), чтобы их можно было выбрать в UI Issues:
-      incident    — падение сервиса (ставится автоматически);
+      incident    — падение сервиса (ставится автоматически монитором);
       maintenance — техработы; annulled — аннулировано (серым); hidden — скрыто полностью."""
     wanted = {
         "incident": ("FF4F6D", "Падение сервиса (ставится автоматически монитором)"),
@@ -481,7 +505,15 @@ def sync_incidents(incidents: dict, repo: str, sites: dict = None) -> None:
         ('SERVER1 - Обновление', 'SERVER1,SERVER3 Обновление') -> техработы
         на этих сервисах (статус жёлтый, maint-точки на графике), без падения.
       При закрытии issue в журнал идут реальные opened/resolved."""
-    issues = gh_api(f"/repos/{repo}/issues?state=open&per_page=100") or []
+    # Все открытые issues (пагинация): без этого сверка работает только для первых 100
+    issues = []
+    page = 1
+    while True:
+        batch = gh_api(f"/repos/{repo}/issues?state=open&per_page=100&page={page}") or []
+        issues.extend(batch)
+        if len(batch) < 100:
+            break
+        page += 1
     by_num = {i["number"]: i for i in issues if "pull_request" not in i}
     changed = False
 
@@ -745,13 +777,16 @@ def main() -> None:
         api = API_DIR / slug
         api.mkdir(parents=True, exist_ok=True)
         # Иконка: явная ссылка из секрета; для HTTP — дополнительно favicon сайта
+        # Favicon не запрашиваем при падении сервиса: не удлиняет прогон и не убивает
+        # воркфлоу из-за concurrency-таймаута
         icon_done = ""
-        if site.get("icon_url"):
-            icon_done = fetch_favicon(site["icon_url"], api, site["timeout"])
-        if not icon_done and site["kind"] == "http":
-            icon_done = fetch_favicon(site["url"], api, site["timeout"])
-        if icon_done:
-            site["icon"] = icon_done
+        if result["ok"]:
+            if site.get("icon_url"):
+                icon_done = fetch_favicon(site["icon_url"], api, site["timeout"])
+            if not icon_done and site["kind"] == "http":
+                icon_done = fetch_favicon(site["url"], api, site["timeout"])
+            if icon_done:
+                site["icon"] = icon_done
 
         points = load_json(api / "points.json", [])
         points.append(result)
