@@ -78,5 +78,53 @@
   "hidden": false,
   "title": "2.1 Стокгольм — недоступен",
   "desc": "- Код ошибки: 0\n- Время отклика: 532 мс"
+ },
+ {
+  "name": "1. Стокгольм",
+  "slug": "server4",
+  "issue_number": 162,
+  "opened": "2026-09-27T12:17:01+00:00",
+  "resolved": "2026-09-27T12:45:23+00:00",
+  "minutes": 28,
+  "code": 0,
+  "ms": 90037,
+  "maintenance": true,
+  "mode": "maintenance",
+  "annulled": false,
+  "hidden": false,
+  "title": "1. Стокгольм — недоступен",
+  "desc": "- Код ошибки: 0\n- Время отклика: 90037 мс"
+ },
+ {
+  "name": "1.2 Стокгольм",
+  "slug": "server9",
+  "issue_number": 163,
+  "opened": "2026-09-27T12:18:32+00:00",
+  "resolved": "2026-09-27T12:45:23+00:00",
+  "minutes": 27,
+  "code": 0,
+  "ms": 90081,
+  "maintenance": true,
+  "mode": "maintenance",
+  "annulled": false,
+  "hidden": false,
+  "title": "1.2 Стокгольм — недоступен",
+  "desc": "- Код ошибки: 0\n- Время отклика: 90081 мс"
+ },
+ {
+  "name": "1.1 Стокгольм",
+  "slug": "server8",
+  "issue_number": 164,
+  "opened": "2026-09-27T12:20:11+00:00",
+  "resolved": "2026-09-27T12:45:23+00:00",
+  "minutes": 25,
+  "code": 0,
+  "ms": 90048,
+  "maintenance": true,
+  "mode": "maintenance",
+  "annulled": false,
+  "hidden": false,
+  "title": "1.1 Стокгольм — недоступен",
+  "desc": "- Код ошибки: 0\n- Время отклика: 90048 мс"
  }
 ]
