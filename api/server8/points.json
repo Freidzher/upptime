@@ -8593,14 +8593,25 @@
  },
  {
   "ts": "2026-09-27T12:20:11+00:00",
-  "ok": false,
+  "ok": true,
   "code": 0,
-  "ms": 90048
+  "ms": 90048,
+  "maint": true,
+  "annulled": false
  },
  {
   "ts": "2026-09-27T12:25:03+00:00",
+  "ok": true,
+  "code": 0,
+  "ms": 90075,
+  "maint": true,
+  "annulled": false
+ },
+ {
+  "ts": "2026-09-27T12:30:01+00:00",
   "ok": false,
   "code": 0,
-  "ms": 90075
+  "ms": 90084,
+  "maint": true
  }
 ]
