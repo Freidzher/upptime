@@ -142,5 +142,53 @@
   "hidden": false,
   "title": "Сайт-визитка — недоступен",
   "desc": "- Код ошибки: 200\n- Время отклика: 1869 мс"
+ },
+ {
+  "name": "База знаний",
+  "slug": "server2",
+  "issue_number": 165,
+  "opened": "2026-10-06T20:55:17+00:00",
+  "resolved": "2026-10-06T21:20:22+00:00",
+  "minutes": 25,
+  "code": 0,
+  "ms": 1252,
+  "maintenance": false,
+  "mode": "incident",
+  "annulled": false,
+  "hidden": false,
+  "title": "База знаний — недоступен",
+  "desc": "- Код ошибки: 0\n- Время отклика: 1252 мс"
+ },
+ {
+  "name": "Подписка",
+  "slug": "server3",
+  "issue_number": 167,
+  "opened": "2026-10-06T21:00:55+00:00",
+  "resolved": "2026-10-06T21:20:29+00:00",
+  "minutes": 20,
+  "code": 0,
+  "ms": 1060,
+  "maintenance": false,
+  "mode": "incident",
+  "annulled": false,
+  "hidden": false,
+  "title": "Подписка — недоступен",
+  "desc": "- Код ошибки: 0\n- Время отклика: 1060 мс"
+ },
+ {
+  "name": "Сайт-визитка",
+  "slug": "server1",
+  "issue_number": 168,
+  "opened": "2026-10-06T21:10:32+00:00",
+  "resolved": "2026-10-06T21:20:34+00:00",
+  "minutes": 10,
+  "code": 200,
+  "ms": 2703,
+  "maintenance": false,
+  "mode": "incident",
+  "annulled": false,
+  "hidden": false,
+  "title": "Сайт-визитка — недоступен",
+  "desc": "- Код ошибки: 200\n- Время отклика: 2703 мс"
  }
 ]
