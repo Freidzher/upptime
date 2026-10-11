@@ -190,5 +190,21 @@
   "hidden": false,
   "title": "Сайт-визитка — недоступен",
   "desc": "- Код ошибки: 200\n- Время отклика: 2703 мс"
+ },
+ {
+  "name": "1.1 Стокгольм",
+  "slug": "server8",
+  "issue_number": 169,
+  "opened": "2026-10-11T11:50:37+00:00",
+  "resolved": "2026-10-11T11:55:44+00:00",
+  "minutes": 5,
+  "code": 400,
+  "ms": 1055,
+  "maintenance": false,
+  "mode": "incident",
+  "annulled": false,
+  "hidden": false,
+  "title": "1.1 Стокгольм — недоступен",
+  "desc": "- Код ошибки: 400\n- Время отклика: 1055 мс"
  }
 ]
