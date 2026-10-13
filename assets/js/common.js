@@ -30,7 +30,9 @@ window.Runicore = (function () {
   }
 
   // Единая карточка события: <b>Имя</b> — статус · Начато: … [· Закрыто: … · Длительность: …]
-  function incidentCard(info, active, slug) {
+  // commentsByIssue — карта { "<issue>": [...] }; если у issue есть комментарии,
+  // справа показываем индикатор «💬 N» (как на GitHub).
+  function incidentCard(info, active, slug, commentsByIssue) {
     const mode = modeOf(info, info.maintenance);
     if (mode === 'hidden') return null;
     const d = document.createElement('a');
@@ -45,7 +47,12 @@ window.Runicore = (function () {
     if (info.minutes) meta.push('Длительность: ' + pluralMin(info.minutes));
     const metaHtml = '<span class="t">· ' + meta.join(' · ') + '</span>';
     const name = info.name || (info.title || 'Сервис').replace(/ — недоступен$/, '').replace(/ — техработы$/, '');
-    d.innerHTML = '<b></b>' + esc(' — ' + statusText(mode, active, resolved) + ' ') + metaHtml;
+    const cCount = (commentsByIssue && info.issue_number)
+      ? ((commentsByIssue[String(info.issue_number)] || []).length) : 0;
+    const badge = cCount > 0
+      ? '<span class="comment-badge" title="' + esc('Комментариев: ' + cCount) + '">💬 ' + cCount + '</span>'
+      : '';
+    d.innerHTML = '<b></b>' + esc(' — ' + statusText(mode, active, resolved) + ' ') + metaHtml + badge;
     d.querySelector('b').textContent = name;
     return d;
   }
@@ -55,11 +62,33 @@ window.Runicore = (function () {
     if (y) y.textContent = new Date().getFullYear();
   }
 
+  // Пагинация: кнопки ‹ 1 2 3 … N ›. onGo(page) вызывается при клике.
+  function renderPager(el, totalPages, current, onGo) {
+    if (!el) return;
+    el.innerHTML = '';
+    if (totalPages <= 1) { el.style.display = 'none'; return; }
+    el.style.display = '';
+    const btn = (label, page, opts) => {
+      opts = opts || {};
+      const b = document.createElement('button');
+      b.textContent = label;
+      if (opts.disabled) b.disabled = true;
+      if (page === current && !opts.arrow) b.classList.add('active');
+      if (!opts.disabled) b.addEventListener('click', () => onGo(page));
+      return b;
+    };
+    el.appendChild(btn('‹', current - 1, { disabled: current <= 1, arrow: true }));
+    for (let p = 1; p <= totalPages; p++) {
+      el.appendChild(btn(String(p), p));
+    }
+    el.appendChild(btn('›', current + 1, { disabled: current >= totalPages, arrow: true }));
+  }
+
   async function fetchJson(url) {
     const r = await fetch(url + '?t=' + Date.now(), { cache: 'no-store' });
     if (!r.ok) throw new Error(url);
     return r.json();
   }
 
-  return { EMOJI_RE, esc, fmtTs, pluralMin, modeOf, statusText, incidentCard, setFooterYear, fetchJson };
+  return { EMOJI_RE, esc, fmtTs, pluralMin, modeOf, statusText, incidentCard, setFooterYear, fetchJson, renderPager };
 })();

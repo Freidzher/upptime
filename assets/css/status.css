@@ -65,6 +65,11 @@ h1 {
 .incident.annulled { opacity: .6; border-style: dashed; border-left-color: var(--gray); }
 .incident.annulled b { color: var(--muted); text-decoration: line-through; }
 .incident.hidden { border-left-color: var(--gray); }
+.incident .comment-badge {
+  float: right; color: var(--muted); font-size: .8rem; font-weight: 600;
+  margin-left: 12px; white-space: nowrap; user-select: none; transition: color .2s;
+}
+.incident:hover .comment-badge { color: var(--accent); }
 footer {
   text-align: center; margin-top: 50px; padding-top: 24px;
   border-top: 1px solid rgba(255,255,255,.05);

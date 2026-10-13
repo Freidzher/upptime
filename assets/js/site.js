@@ -5,8 +5,9 @@
   const nameEl = document.getElementById('siteName');
   const statsEl = document.getElementById('stats');
   const pastEl = document.getElementById('past');
+  const pastPagerEl = document.getElementById('pastPager');
   const tabs = document.getElementById('rangeTabs');
-  const { EMOJI_RE, incidentCard, setFooterYear, fetchJson } = window.Runicore;
+  const { EMOJI_RE, incidentCard, setFooterYear, fetchJson, renderPager } = window.Runicore;
 
   setFooterYear();
 
@@ -15,6 +16,10 @@
   let chart = null;
   let range = 24;
   let cachedPoints = [];
+  const PAST_PAGE_SIZE = 10;
+  let allPast = [];
+  let pastPage = 1;
+  let commentsByIssue = {};
 
   function renderChart(entries) {
     const cutoff = Date.now() - range * 3600 * 1000;
@@ -59,12 +64,14 @@
 
   async function load() {
     try {
-      const [summary, points, log] = await Promise.all([
+      const [summary, points, log, comments] = await Promise.all([
         fetchJson('history/summary.json'),
         fetchJson('api/' + slug + '/points.json').catch(() => []),
         fetchJson('api/incidents-log.json').catch(() => []),
+        fetchJson('api/issue-comments.json').catch(() => ({})),
       ]);
       cachedPoints = points || [];
+      commentsByIssue = comments || {};
       const s = summary.find((x) => x.slug === slug);
       if (!s) { banner.className = 'banner fail'; banner.textContent = 'Сайт не найден'; return; }
       const clean = s.name.replace(EMOJI_RE, '').trim();
@@ -119,20 +126,29 @@
 
       renderChart(cachedPoints);
 
-      const siteLog = (log || []).filter((i) => i.slug === slug && !i.hidden)
-        .sort((a, b) => new Date(b.resolved || b.opened) - new Date(a.resolved || a.opened))
-        .slice(0, 10);
-      pastEl.innerHTML = '';
+      allPast = (log || []).filter((i) => i.slug === slug && !i.hidden)
+        .sort((a, b) => new Date(b.resolved || b.opened) - new Date(a.resolved || a.opened));
       const pastTitle = document.getElementById('pastTitle');
-      if (pastTitle) pastTitle.style.display = siteLog.length ? '' : 'none';
-      for (const info of siteLog) {
-        const card = incidentCard(info, !info.resolved);
-        if (card) pastEl.appendChild(card);
-      }
+      if (pastTitle) pastTitle.style.display = allPast.length ? '' : 'none';
+      renderPast();
     } catch (e) {
       banner.className = 'banner fail';
       banner.textContent = '⚠ Не удалось загрузить данные';
     }
+  }
+
+  // Отрисовка текущей страницы «Прошлых событий» + переключатель страниц
+  function renderPast() {
+    const total = Math.max(1, Math.ceil(allPast.length / PAST_PAGE_SIZE));
+    if (pastPage > total) pastPage = total;
+    if (pastPage < 1) pastPage = 1;
+    const start = (pastPage - 1) * PAST_PAGE_SIZE;
+    pastEl.innerHTML = '';
+    for (const info of allPast.slice(start, start + PAST_PAGE_SIZE)) {
+      const card = incidentCard(info, !info.resolved, null, commentsByIssue);
+      if (card) pastEl.appendChild(card);
+    }
+    renderPager(pastPagerEl, total, pastPage, (p) => { pastPage = p; renderPast(); });
   }
 
   if (tabs) {

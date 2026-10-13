@@ -5,18 +5,25 @@
   const rowsEl = document.getElementById('rows');
   const incEl = document.getElementById('incidents');
   const pastEl = document.getElementById('past');
-  const { EMOJI_RE, incidentCard, setFooterYear, fetchJson } = window.Runicore;
+  const pastPagerEl = document.getElementById('pastPager');
+  const { EMOJI_RE, incidentCard, setFooterYear, fetchJson, renderPager } = window.Runicore;
+
+  const PAST_PAGE_SIZE = 10;
+  let allPast = [];
+  let pastPage = 1;
+  let commentsByIssue = {};
 
   setFooterYear();
 
   async function loadAll() {
     try {
-      const [summary, cur, log] = await Promise.all([
+      const [summary, cur, log, comments] = await Promise.all([
         fetchJson('history/summary.json'),
         fetchJson('api/incidents.json').catch(() => ({})),
         fetchJson('api/incidents-log.json').catch(() => []),
+        fetchJson('api/issue-comments.json').catch(() => ({})),
       ]);
-      render(summary, cur, log);
+      render(summary, cur, log, comments || {});
       if (updatedEl) {
         const ts = summary.length && summary[0].updatedAt ? summary[0].updatedAt : null;
         const when = ts
@@ -30,8 +37,9 @@
     }
   }
 
-  function render(summary, incidents, log) {
+  function render(summary, incidents, log, byIssue) {
     if (!summary.length) { banner.textContent = 'Нет данных — монитор ещё не запускался'; return; }
+    commentsByIssue = byIssue || {};
 
     const allUp = summary.every((s) => s.status === 'up');
     banner.className = 'banner ' + (allUp ? 'ok' : 'fail');
@@ -89,20 +97,29 @@
     incEl.innerHTML = '';
     document.getElementById('incTitle').style.display = openInc.length ? '' : 'none';
     for (const [key, info] of openInc) {
-      const card = incidentCard(info, true, key.toLowerCase().replace(/_/g, '-'));
+      const card = incidentCard(info, true, key.toLowerCase().replace(/_/g, '-'), byIssue);
       if (card) incEl.appendChild(card);
     }
 
-    // Прошлые события — единая хронология (новые сверху), hidden скрыты, последние 10
-    const past = (log || []).filter((i) => !i.hidden)
-      .sort((a, b) => new Date(b.resolved || b.opened) - new Date(a.resolved || b.opened))
-      .slice(0, 10);
+    // Прошлые события — единая хронология (новые сверху), hidden скрыты, с пагинацией
+    allPast = (log || []).filter((i) => !i.hidden)
+      .sort((a, b) => new Date(b.resolved || b.opened) - new Date(a.resolved || a.opened));
+    document.getElementById('pastTitle').style.display = allPast.length ? '' : 'none';
+    renderPast();
+  }
+
+  // Отрисовка текущей страницы «Прошлых событий» + переключатель страниц
+  function renderPast() {
+    const total = Math.max(1, Math.ceil(allPast.length / PAST_PAGE_SIZE));
+    if (pastPage > total) pastPage = total;
+    if (pastPage < 1) pastPage = 1;
+    const start = (pastPage - 1) * PAST_PAGE_SIZE;
     pastEl.innerHTML = '';
-    document.getElementById('pastTitle').style.display = past.length ? '' : 'none';
-    for (const info of past) {
-      const card = incidentCard(info, false);
+    for (const info of allPast.slice(start, start + PAST_PAGE_SIZE)) {
+      const card = incidentCard(info, false, null, commentsByIssue);
       if (card) pastEl.appendChild(card);
     }
+    renderPager(pastPagerEl, total, pastPage, (p) => { pastPage = p; renderPast(); });
   }
 
   await loadAll();
