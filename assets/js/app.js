@@ -101,9 +101,15 @@
       if (card) incEl.appendChild(card);
     }
 
-    // Прошлые события — единая хронология (новые сверху), hidden скрыты, с пагинацией
+    // Прошлые события — строго по времени НАЧАЛА (opened), новые сверху.
+    // Тайбрейк по номеру Issue: пачка серверов, упавших одновременно, всегда
+    // идёт единым блоком и в детерминированном порядке (не «разлетается»).
     allPast = (log || []).filter((i) => !i.hidden)
-      .sort((a, b) => new Date(b.resolved || b.opened) - new Date(a.resolved || a.opened));
+      .sort((a, b) => {
+        const d = new Date(b.opened) - new Date(a.opened);
+        if (d !== 0) return d;
+        return (a.issue_number || 0) - (b.issue_number || 0);
+      });
     const pastTitleEl = document.getElementById('pastTitle');
     pastTitleEl.textContent = 'Прошлые события' + (allPast.length ? ' (' + allPast.length + ')' : '');
     pastTitleEl.style.display = allPast.length ? '' : 'none';
