@@ -10,13 +10,15 @@
   <link rel="icon" sizes="96x96" type="image/png" href="assets/icons/favicon-96x96.png">
   <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
   <link rel="manifest" href="assets/manifest.json">
-  <link rel="stylesheet" href="assets/css/status.css?v=6">
+  <link rel="stylesheet" href="assets/css/status.css?v=7">
   <title>Событие — Runicore</title>
   <style>
     /* Уникальные стили страницы события */
-    h1 { font-size: 1.6rem; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 12px; }
-    h1 .logo { width: 28px; height: 28px; -webkit-text-fill-color: initial; }
-    h1 .logo-emoji { font-size: 26px; line-height: 1; -webkit-text-fill-color: initial; }
+    h1 { font-size: 1.6rem; font-weight: 800; margin-bottom: 14px; }
+    #evtTitle { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 2px 12px; }
+    #evtTitle .ev-fav { width: 26px; height: 26px; border-radius: 6px; }
+    #evtTitle .ev-fav.emoji { width: auto; height: auto; font-size: 24px; -webkit-text-fill-color: initial; }
+    #evtTitle .title-sep { color: var(--muted); -webkit-text-fill-color: initial; }
     .evt {
       background: var(--card); border: 1px solid var(--border); border-left-width: 4px;
       border-radius: 12px; padding: 18px 20px; margin-bottom: 18px;
@@ -35,7 +37,7 @@
     .evt .desc b { color: var(--text); }
 
     /* Комментарии администратора (из GitHub Issues) */
-    .comments { margin-top: 18px; display: flex; flex-direction: column; gap: 12px; }
+    .comments { margin-top: 0; margin-bottom: 16px; display: flex; flex-direction: column; gap: 12px; }
     .comment {
       background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--accent);
       border-radius: 10px; padding: 12px 16px; backdrop-filter: blur(8px);
@@ -44,30 +46,33 @@
     .comment-head b { color: #52f099; font-size: .9rem; }
     .comment-time { color: var(--muted); font-size: .78rem; }
     .comment-body { font-size: .92rem; line-height: 1.5; white-space: pre-line; word-break: break-word; }
-    .service-link {
-      display: inline-block; background: rgba(46, 204, 113, 0.1); border: 1px solid var(--border);
-      color: #52f099 !important; text-decoration: none; border-radius: 10px;
-      padding: 9px 16px; font-size: .88rem; font-weight: 600; transition: background .2s, border-color .2s;
-      margin-top: 0; margin-bottom: 18px;
+    .service-links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .service-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(46, 204, 113, 0.1); border: 1px solid var(--border);
+      color: #52f099; text-decoration: none; border-radius: 10px;
+      padding: 8px 14px; font-size: .85rem; font-weight: 600; transition: background .2s, border-color .2s;
     }
-    .service-link:hover { background: rgba(46, 204, 113, 0.2); border-color: rgba(46, 204, 113, .5); }
+    .service-btn:hover { background: rgba(46, 204, 113, 0.2); border-color: rgba(46, 204, 113, .5); }
+    .service-btn .ev-fav { width: 18px; height: 18px; border-radius: 4px; }
+    .service-btn .ev-fav.emoji { width: auto; height: auto; font-size: 16px; -webkit-text-fill-color: initial; }
   </style>
 </head>
 <body>
   <div class="wrap">
     <a class="back" href="index.html">← К списку сервисов</a>
-    <h1><img class="logo" id="evtFavicon" src="" alt="" style="display:none"><span id="evtTitle">Загрузка…</span></h1>
-    <a class="service-link" id="serviceLink" style="display:none" href="#">Страница сервиса →</a>
+    <h1><span id="evtTitle">Загрузка…</span></h1>
     <div class="comments" id="evtComments" style="display:none"></div>
     <div class="evt incident" id="evtCard">
       <div class="status" id="evtStatus">…</div>
       <div class="meta" id="evtMeta"></div>
       <div class="desc" id="evtDesc"></div>
     </div>
+    <div class="service-links" id="serviceLinks" style="display:none"></div>
     <footer>© 2024–<span id="year"></span> Runicore. Все права защищены.</footer>
   </div>
 
-  <script src="assets/js/common.js?v=6"></script>
-  <script src="assets/js/incident.js?v=8"></script>
+  <script src="assets/js/common.js?v=7"></script>
+  <script src="assets/js/incident.js?v=9"></script>
 </body>
 </html>

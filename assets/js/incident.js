@@ -5,8 +5,8 @@
   const statusEl = document.getElementById('evtStatus');
   const metaEl = document.getElementById('evtMeta');
   const descEl = document.getElementById('evtDesc');
-  const linkEl = document.getElementById('serviceLink');
   const commentsEl = document.getElementById('evtComments');
+  const linksEl = document.getElementById('serviceLinks');
   const { fmtTs, pluralMin, modeOf, setFooterYear, fetchJson, esc, EMOJI_RE } = window.Runicore;
 
   setFooterYear();
@@ -14,25 +14,45 @@
   const params = new URLSearchParams(location.search);
   const issueNum = Number(params.get('issue') || 0);
 
-  function render(info, active) {
+  // Фавикон/эмодзи сервиса из summary.json (как в списке на главной)
+  function svcIconHtml(entry, sumBySlug) {
+    const svc = sumBySlug[entry.slug];
+    if (svc && svc.icon) {
+      return '<img class="ev-fav" src="api/' + entry.slug + '/' + svc.icon + '" alt="" onerror="this.style.display=\'none\'">';
+    }
+    const src = svc ? svc.name : (entry.name || '');
+    const m = src.match(EMOJI_RE);
+    return (m && m[0]) ? '<span class="ev-fav emoji">' + m[0] + '</span>' : '';
+  }
+
+  // Имя сервиса без ведущего эмодзи (он уже в фавиконе)
+  function cleanName(entry, sumBySlug) {
+    const svc = sumBySlug[entry.slug];
+    const nm = (svc ? svc.name : entry.name) || entry.name || 'Сервис';
+    return nm.replace(EMOJI_RE, '').trim() || nm;
+  }
+
+  // Заголовок: названия ГЛАВНЫХ сервисов (isGroup); если их нет — все затронутые
+  function renderTitle(affected, sumBySlug) {
+    const heads = affected.filter((e) => sumBySlug[e.slug] && sumBySlug[e.slug].isGroup);
+    const titleEntries = heads.length ? heads : affected;
+    titleEl.innerHTML = titleEntries
+      .map((e) => svcIconHtml(e, sumBySlug) + '<span class="svc-name">' + esc(cleanName(e, sumBySlug)) + '</span>')
+      .join('<span class="title-sep">, </span>');
+    document.title = titleEntries.map((e) => cleanName(e, sumBySlug)).join(', ') + ' — Событие — Runicore';
+  }
+
+  function renderCard(info, active) {
     const mode = modeOf(info, info.maintenance);
     cardEl.className = 'evt ' + mode;
     const started = fmtTs(info.opened);
     const resolved = fmtTs(info.resolved);
-
     const label = { incident: 'Инцидент', maintenance: 'Техработы', annulled: 'Аннулировано', hidden: 'Скрыто' }[mode];
     let status;
     if (mode === 'maintenance') status = active ? 'Идут плановые работы' : 'Плановые работы завершены';
     else if (mode === 'annulled') status = active ? 'Событие аннулировано (идёт)' : 'Событие аннулировано';
     else status = active ? 'Сервис недоступен' : 'Восстановлено';
-    // Лейбл типа события переносим в статус: «Инцидент · Восстановлено»
     status = label + ' · ' + status;
-
-    const rawName = info.name || (info.title || 'Сервис').replace(/ — недоступен$/, '').replace(/ — техработы$/, '');
-    // Ведущий эмодзи (флаг) уже показан фавиконом — не дублируем в заголовке
-    const name = rawName.replace(EMOJI_RE, '').trim() || rawName;
-    titleEl.textContent = name;
-    document.title = rawName + ' — Событие — Runicore';
 
     statusEl.textContent = status;
     const parts = ['Начато: ' + started + ' МСК'];
@@ -40,47 +60,34 @@
     if (info.minutes) parts.push('Длительность: ' + pluralMin(info.minutes));
     metaEl.innerHTML = parts.map((p) => '<span>' + p + '</span>').join('');
 
-    // Описание показываем только если оно добавляет что-то сверх шапки
-    // (иначе «Код ошибки / Время отклика» дублируются дважды)
     const desc = (info.desc || '').trim();
     const metaText = parts.join('\n');
     const duplicatesMeta = !desc || metaText.includes(desc.replace(/^- /gm, '').trim());
     descEl.textContent = duplicatesMeta ? '' : desc;
     descEl.style.display = duplicatesMeta ? 'none' : '';
-
-    // Ссылка на страницу сервиса (без GitHub): «Страница сервиса → {название}»
-    if (info.slug) {
-      linkEl.href = 'site.html?site=' + encodeURIComponent(info.slug);
-      linkEl.style.display = '';
-      linkEl.textContent = 'Страница сервиса → ' + (info.name || name);
-    }
   }
 
-  // Фавикон самого сервиса (как на index/site): api/{slug}/{icon}, иначе эмодзи из имени
-  function applyFavicon(info, summary) {
-    const el = document.getElementById('evtFavicon');
-    if (!el || !info.slug) return;
-    const svc = (summary || []).find((x) => x.slug === info.slug);
-    if (svc && svc.icon) {
-      el.src = 'api/' + info.slug + '/' + svc.icon;
-      el.style.display = '';
-      el.onerror = () => { el.style.display = 'none'; };
-    } else {
-      const src = svc ? svc.name : (info.name || '');
-      const m = src.match(EMOJI_RE);
-      if (m && m[0]) {
-        el.outerHTML = '<span id="evtFavicon" class="logo-emoji">' + m[0] + '</span>';
-      } else {
-        el.style.display = 'none';
-      }
+  // Кнопки всех затронутых сервисов (включая подгруппы) — в самый низ
+  function renderServiceLinks(affected, sumBySlug) {
+    if (!linksEl) return;
+    linksEl.innerHTML = '';
+    const seen = new Set();
+    for (const e of affected) {
+      if (!e.slug || seen.has(e.slug)) continue;
+      seen.add(e.slug);
+      const a = document.createElement('a');
+      a.className = 'service-btn';
+      a.href = 'site.html?site=' + encodeURIComponent(e.slug);
+      a.innerHTML = svcIconHtml(e, sumBySlug) + '<span>' + esc(cleanName(e, sumBySlug)) + '</span>';
+      linksEl.appendChild(a);
     }
+    linksEl.style.display = seen.size ? '' : 'none';
   }
 
-  // Комментарии администратора из GitHub Issues (api/issue-comments.json)
+  // Комментарии администратора из GitHub Issues (api/issue-comments.json), свежие сверху
   function renderComments(list) {
     if (!commentsEl) return;
     commentsEl.innerHTML = '';
-    // Свежие комментарии — выше (API отдаёт по возрастанию, переворачиваем)
     const items = (list || []).filter((c) => c && (c.body || '').trim()).slice().reverse();
     if (!items.length) { commentsEl.style.display = 'none'; return; }
     commentsEl.style.display = '';
@@ -94,7 +101,7 @@
         (when ? '<span class="comment-time">' + esc(when + ' МСК') + '</span>' : '');
       const body = document.createElement('div');
       body.className = 'comment-body';
-      body.textContent = c.body;  // textContent безопасно экранирует
+      body.textContent = c.body;
       item.appendChild(head);
       item.appendChild(body);
       commentsEl.appendChild(item);
@@ -109,12 +116,26 @@
       fetchJson('history/summary.json').catch(() => []),
     ]);
     const byIssue = comments || {};
-    const active = Object.values(incidents || {}).find((i) => i.issue_number === issueNum);
-    if (active) { render(active, true); applyFavicon(active, summary); renderComments(byIssue[String(issueNum)]); return; }
-    const past = (log || []).find((i) => i.issue_number === issueNum);
-    if (past) { render(past, false); applyFavicon(past, summary); renderComments(byIssue[String(issueNum)]); return; }
-    titleEl.textContent = 'Событие не найдено';
-    statusEl.textContent = 'Возможно, оно скрыто или ещё не синхронизировано.';
+    const sumBySlug = {};
+    for (const s of summary) sumBySlug[s.slug] = s;
+
+    // Все затронутые сервисы этого Issue (активные или из журнала)
+    const act = Object.values(incidents || {}).filter((i) => i.issue_number === issueNum);
+    const affected = act.length ? act : (log || []).filter((i) => i.issue_number === issueNum);
+    if (!affected.length) {
+      titleEl.textContent = 'Событие не найдено';
+      statusEl.textContent = 'Возможно, оно скрыто или ещё не синхронизировано.';
+      return;
+    }
+    const active = !!act.length;
+    // Представитель для карточки: голова группы, иначе первый
+    const heads = affected.filter((e) => sumBySlug[e.slug] && sumBySlug[e.slug].isGroup);
+    const rep = heads.length ? heads[0] : affected[0];
+
+    renderTitle(affected, sumBySlug);
+    renderCard(rep, active);
+    renderComments(byIssue[String(issueNum)]);
+    renderServiceLinks(affected, sumBySlug);
   } catch (e) {
     titleEl.textContent = 'Не удалось загрузить событие';
   }

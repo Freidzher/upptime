@@ -85,11 +85,11 @@ window.Runicore = (function () {
     }
     return order.map((k) => {
       const arr = map.get(k).slice();
+      // Стабильно: «головы» групп вперёд, порядок остальных сохранён (как в журнале)
       arr.sort((a, b) => {
         const ag = (sumBySlug[a.slug] && sumBySlug[a.slug].isGroup) ? 0 : 1;
         const bg = (sumBySlug[b.slug] && sumBySlug[b.slug].isGroup) ? 0 : 1;
-        if (ag !== bg) return ag - bg;
-        return (a.slug || '').localeCompare(b.slug || '');
+        return ag - bg;
       });
       return { key: k, main: arr[0], others: arr.slice(1) };
     });
@@ -124,7 +124,8 @@ window.Runicore = (function () {
     subs.className = 'evt-subs';
     subs.style.display = 'none';
     for (const o of group.others) {
-      const c = incidentCard(o, active, o.slug, commentsByIssue, eventIconHtml(o, sumBySlug), true);
+      // ведём на страницу инцидента (как и главная карточка), а не на сервис
+      const c = incidentCard(o, active, o.slug, commentsByIssue, eventIconHtml(o, sumBySlug), false);
       if (c) { c.classList.add('evt-sub'); subs.appendChild(c); }
     }
     notch.addEventListener('click', () => {
