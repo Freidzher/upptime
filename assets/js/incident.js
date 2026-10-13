@@ -7,7 +7,7 @@
   const descEl = document.getElementById('evtDesc');
   const linkEl = document.getElementById('serviceLink');
   const commentsEl = document.getElementById('evtComments');
-  const { fmtTs, pluralMin, modeOf, setFooterYear, fetchJson, esc } = window.Runicore;
+  const { fmtTs, pluralMin, modeOf, setFooterYear, fetchJson, esc, EMOJI_RE } = window.Runicore;
 
   setFooterYear();
 
@@ -54,6 +54,26 @@
     }
   }
 
+  // Фавикон самого сервиса (как на index/site): api/{slug}/{icon}, иначе эмодзи из имени
+  function applyFavicon(info, summary) {
+    const el = document.getElementById('evtFavicon');
+    if (!el || !info.slug) return;
+    const svc = (summary || []).find((x) => x.slug === info.slug);
+    if (svc && svc.icon) {
+      el.src = 'api/' + info.slug + '/' + svc.icon;
+      el.style.display = '';
+      el.onerror = () => { el.style.display = 'none'; };
+    } else {
+      const src = svc ? svc.name : (info.name || '');
+      const m = src.match(EMOJI_RE);
+      if (m && m[0]) {
+        el.outerHTML = '<span id="evtFavicon" class="logo-emoji">' + m[0] + '</span>';
+      } else {
+        el.style.display = 'none';
+      }
+    }
+  }
+
   // Комментарии администратора из GitHub Issues (api/issue-comments.json)
   function renderComments(list) {
     if (!commentsEl) return;
@@ -79,16 +99,17 @@
   }
 
   try {
-    const [incidents, log, comments] = await Promise.all([
+    const [incidents, log, comments, summary] = await Promise.all([
       fetchJson('api/incidents.json').catch(() => ({})),
       fetchJson('api/incidents-log.json').catch(() => []),
       fetchJson('api/issue-comments.json').catch(() => ({})),
+      fetchJson('history/summary.json').catch(() => []),
     ]);
     const byIssue = comments || {};
     const active = Object.values(incidents || {}).find((i) => i.issue_number === issueNum);
-    if (active) { render(active, true); renderComments(byIssue[String(issueNum)]); return; }
+    if (active) { render(active, true); applyFavicon(active, summary); renderComments(byIssue[String(issueNum)]); return; }
     const past = (log || []).find((i) => i.issue_number === issueNum);
-    if (past) { render(past, false); renderComments(byIssue[String(issueNum)]); return; }
+    if (past) { render(past, false); applyFavicon(past, summary); renderComments(byIssue[String(issueNum)]); return; }
     titleEl.textContent = 'Событие не найдено';
     statusEl.textContent = 'Возможно, оно скрыто или ещё не синхронизировано.';
   } catch (e) {
