@@ -15,6 +15,7 @@
   <style>
     /* Уникальные стили страницы события */
     h1 { font-size: 1.6rem; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 12px; }
+    h1 .logo { width: 28px; height: 28px; -webkit-text-fill-color: initial; }
     .evt {
       background: var(--card); border: 1px solid var(--border); border-left-width: 4px;
       border-radius: 12px; padding: 18px 20px; margin-bottom: 18px;
@@ -54,7 +55,7 @@
 <body>
   <div class="wrap">
     <a class="back" href="index.html">← К списку сервисов</a>
-    <h1 id="evtTitle">Загрузка…</h1>
+    <h1><img class="logo" src="assets/icons/favicon.svg" alt="Runicore"><span id="evtTitle">Загрузка…</span></h1>
     <div class="evt incident" id="evtCard">
       <div class="status" id="evtStatus">…</div>
       <div class="meta" id="evtMeta"></div>
