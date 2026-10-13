@@ -31,6 +31,17 @@
     .evt .meta b { color: var(--text); }
     .evt .desc { font-size: .92rem; line-height: 1.55; white-space: pre-line; }
     .evt .desc b { color: var(--text); }
+
+    /* Комментарии администратора (из GitHub Issues) */
+    .comments { margin-top: 18px; display: flex; flex-direction: column; gap: 12px; }
+    .comment {
+      background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--accent);
+      border-radius: 10px; padding: 12px 16px; backdrop-filter: blur(8px);
+    }
+    .comment-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px; }
+    .comment-head b { color: #52f099; font-size: .9rem; }
+    .comment-time { color: var(--muted); font-size: .78rem; }
+    .comment-body { font-size: .92rem; line-height: 1.5; white-space: pre-line; word-break: break-word; }
     .service-link {
       display: inline-block; background: rgba(46, 204, 113, 0.1); border: 1px solid var(--border);
       color: #52f099 !important; text-decoration: none; border-radius: 10px;
@@ -48,11 +59,12 @@
       <div class="meta" id="evtMeta"></div>
       <div class="desc" id="evtDesc"></div>
     </div>
+    <div class="comments" id="evtComments" style="display:none"></div>
     <a class="service-link" id="serviceLink" style="display:none" href="#">Страница сервиса →</a>
     <footer>© 2024–<span id="year"></span> Runicore. Все права защищены.</footer>
   </div>
 
-  <script src="assets/js/common.js?v=1"></script>
-  <script src="assets/js/incident.js?v=4"></script>
+  <script src="assets/js/common.js?v=2"></script>
+  <script src="assets/js/incident.js?v=5"></script>
 </body>
 </html>

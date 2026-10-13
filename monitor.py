@@ -503,6 +503,28 @@ def _resolve_maint_keys(title: str, sites: dict) -> list:
     return keys
 
 
+def _expand_group_keys(keys: list, sites: dict) -> list:
+    """Наследование статуса группой: если среди ключей есть «голова» группы
+    (is_group=true, напр. SERVER7 с ID=10), автоматически добавляет все вложенные
+    сервисы этой группы (group='10.x'). Явно указанные ключи идут первыми."""
+    result = list(keys)
+    seen = set(result)
+    for key in list(result):
+        site = (sites or {}).get(key)
+        if not site or not site.get("is_group"):
+            continue
+        head = site.get("group", "")
+        if not head:
+            continue
+        prefix = head + "."
+        for k, s in (sites or {}).items():
+            g = s.get("group", "")
+            if g.startswith(prefix) and k not in seen:
+                result.append(k)
+                seen.add(k)
+    return result
+
+
 def sync_incidents(incidents: dict, repo: str, sites: dict = None) -> None:
     """Сверяет incidents.json с реальными открытыми issues:
       - issue закрыт вручную -> инцидент/техработы завершены (в журнал);
@@ -531,7 +553,7 @@ def sync_incidents(incidents: dict, repo: str, sites: dict = None) -> None:
         mode = _event_mode(labels)
         if mode == "incident":
             continue
-        keys = _resolve_maint_keys(issue.get("title", ""), sites or {})
+        keys = _expand_group_keys(_resolve_maint_keys(issue.get("title", ""), sites or {}), sites or {})
         for key in keys:
             if key not in incidents:
                 incidents[key] = {
@@ -545,6 +567,8 @@ def sync_incidents(incidents: dict, repo: str, sites: dict = None) -> None:
                 }
                 changed = True
                 print(f"{key}: {mode} по issue #{issue['number']} ({issue.get('title', '')})")
+                # Ретроактивно красим точки интервала [создание issue .. сейчас]
+                _rewrite_points_interval(slugify(key), issue["created_at"], mode)
 
     # 2. Существующие записи: закрытие issue вручную, переквалификация по лейблу
     for key in list(incidents.keys()):
@@ -593,6 +617,195 @@ def sync_incidents(incidents: dict, repo: str, sites: dict = None) -> None:
                 changed = True
     if changed:
         write_json(API_DIR / "incidents.json", incidents)
+
+
+# ---------- Закрытые Issues и комментарии ----------
+
+BOT_COMMENT_PREFIXES = ("✅", "⏱", "🔄")
+
+
+def _slug_by_name(name: str, sites: dict) -> str:
+    """Ищет slug сервиса по человекочитаемому имени (без эмодзи, регистронезависимо)."""
+    target = EMOJI_RE.sub("", name or "").strip().lower()
+    if not target:
+        return ""
+    for s in (sites or {}).values():
+        nm = EMOJI_RE.sub("", s.get("name", "")).strip().lower()
+        if nm and nm == target:
+            return s.get("slug", "")
+    return ""
+
+
+def sync_closed_incidents(repo: str, sites: dict = None) -> None:
+    """Обход закрытых issues с пагинацией и сверка с журналом:
+      - добавляет записи для релевантных закрытых issues, отсутствующих в журнале;
+      - обновляет mode/maintenance/annulled/hidden/title у существующих
+        (позволяет влиять на закрытые инциденты: повесить annulled/hidden на issue).
+    Релевантный issue: есть служебный лейбл (incident/maintenance/annulled/hidden),
+    или в заголовке ключ сервиса, или номер уже есть в журнале.
+    Журнал дедуплицируется по (issue_number, slug, opened) и сортируется по opened;
+    хранится последние 100 записей (>= отслеживаемых 50 инцидентов)."""
+    sites = sites or {}
+    our_labels = {"incident", "maintenance", "annulled", "hidden"}
+
+    # Пагинация закрытых issues (с запасом на последние 50+ инцидентов)
+    issues = []
+    page = 1
+    max_pages = 4
+    while page <= max_pages:
+        batch = gh_api(f"/repos/{repo}/issues?state=closed&per_page=100&page={page}") or []
+        issues.extend(batch)
+        if len(batch) < 100:
+            break
+        page += 1
+
+    log = load_log()
+    log_by_num = {}
+    for e in log:
+        log_by_num.setdefault(e.get("issue_number"), []).append(e)
+
+    changed = False
+    for issue in issues:
+        if "pull_request" in issue:
+            continue
+        num = issue.get("number")
+        labels = {l["name"] for l in issue.get("labels", [])}
+        mode = _event_mode(labels)
+        raw_title = issue.get("title", "")
+        keys = _expand_group_keys(_resolve_maint_keys(raw_title, sites), sites)
+        existing = log_by_num.get(num, [])
+        if not (labels & our_labels or keys or existing):
+            continue
+
+        created = issue.get("created_at") or ""
+        closed = issue.get("closed_at") or issue.get("updated_at") or ""
+
+        if existing:
+            # Обновляем режим/заголовок существующих записей (влияние на закрытые)
+            new_title = _humanize_title(raw_title, sites) if keys else None
+            for e in existing:
+                if (e.get("mode") != mode
+                        or e.get("maintenance") != (mode == "maintenance")
+                        or e.get("annulled") != (mode == "annulled")
+                        or e.get("hidden") != (mode == "hidden")
+                        or (new_title and e.get("title") != new_title)):
+                    e["mode"] = mode
+                    e["maintenance"] = mode == "maintenance"
+                    e["annulled"] = mode == "annulled"
+                    e["hidden"] = mode == "hidden"
+                    if new_title:
+                        e["title"] = new_title
+                    changed = True
+                    print(f"closed #{num}: обновлён режим -> {mode}")
+            continue
+
+        # Новая запись для закрытого issue, отсутствующего в журнале
+        if keys:
+            targets = [(slugify(k), (sites.get(k, {}) or {}).get("name", k)) for k in keys]
+            title = _humanize_title(raw_title, sites)
+        else:
+            name = raw_title.split(" — ")[0].strip() or "Сервис"
+            targets = [(_slug_by_name(name, sites), name)]
+            title = raw_title
+
+        try:
+            o = datetime.fromisoformat(created).replace(tzinfo=timezone.utc)
+            c = datetime.fromisoformat(closed).replace(tzinfo=timezone.utc)
+            minutes = max(1, round((c - o).total_seconds() / 60))
+        except Exception:
+            minutes = 0
+
+        for slug, name in targets:
+            entry = {
+                "name": name,
+                "slug": slug,
+                "issue_number": num,
+                "opened": created,
+                "resolved": closed,
+                "minutes": minutes,
+                "code": 0,
+                "ms": 0,
+                "maintenance": mode == "maintenance",
+                "mode": mode,
+                "annulled": mode == "annulled",
+                "hidden": mode == "hidden",
+                "title": title,
+                "desc": f"Событие из issue #{num} (лейбл: {mode}).",
+            }
+            log.append(entry)
+            log_by_num.setdefault(num, []).append(entry)
+            changed = True
+            print(f"closed #{num}: добавлена запись ({name}, mode={mode})")
+
+    if changed:
+        # Дедупликация и сортировка по opened; храним последние 100
+        seen = set()
+        deduped = []
+        for e in log:
+            k = (e.get("issue_number"), e.get("slug"), e.get("opened"))
+            if k in seen:
+                continue
+            seen.add(k)
+            deduped.append(e)
+        deduped.sort(key=lambda e: e.get("opened") or "")
+        write_json(API_DIR / "incidents-log.json", deduped[-100:])
+
+
+def fetch_issue_comments(repo: str, num: int) -> list:
+    """Комментарии issue (с пагинацией, до 2 страниц)."""
+    comments = []
+    page = 1
+    while page <= 2:
+        batch = gh_api(f"/repos/{repo}/issues/{num}/comments?per_page=100&page={page}") or []
+        comments.extend(batch)
+        if len(batch) < 100:
+            break
+        page += 1
+    return comments
+
+
+def _is_user_comment(c: dict) -> bool:
+    """Отсекаем служебные комментарии: от ботов и авто-подтверждения (✅/⏱)."""
+    login = ((c.get("user") or {}).get("login") or "")
+    if login.endswith("[bot]"):
+        return False
+    body = (c.get("body") or "").lstrip()
+    if not body:
+        return False
+    if body.startswith(BOT_COMMENT_PREFIXES):
+        return False
+    return True
+
+
+def sync_issue_comments(repo: str, incidents: dict) -> None:
+    """Собирает пользовательские комментарии Issues в api/issue-comments.json
+    для активных инцидентов и последних 50 записей журнала.
+    Формат: { "<issue_number>": [ {author, login, body, created_at, updated_at}, ... ] }.
+    Полностью перезаписывается каждый прогон -> добавление/удаление комментария
+    на GitHub сразу отражается на сайте."""
+    nums = set()
+    for info in (incidents or {}).values():
+        n = info.get("issue_number")
+        if n:
+            nums.add(int(n))
+    for e in load_log()[-50:]:
+        n = e.get("issue_number")
+        if n:
+            nums.add(int(n))
+
+    out = {}
+    for num in sorted(nums):
+        cleaned = [{
+            "author": "Администратор",
+            "login": (c.get("user") or {}).get("login", ""),
+            "body": (c.get("body") or "").strip(),
+            "created_at": c.get("created_at", ""),
+            "updated_at": c.get("updated_at", ""),
+        } for c in fetch_issue_comments(repo, num) if _is_user_comment(c)]
+        if cleaned:
+            out[str(num)] = cleaned
+    write_json(API_DIR / "issue-comments.json", out)
+    print(f"issue-comments.json: пользовательские комментарии для {len(out)} issues")
 
 
 # ---------- Хранение в стиле Upptime ----------
@@ -766,6 +979,7 @@ def main() -> None:
     # issue 'SERVER1 - Обновление' с maintenance-лейблом включает ТО на сервисе
     ensure_labels(repo)
     sync_incidents(incidents, repo, sites)
+    sync_closed_incidents(repo, sites)
 
     HISTORY_DIR.mkdir(exist_ok=True)
 
@@ -818,6 +1032,7 @@ def main() -> None:
     write_json(API_DIR / "incidents.json", incidents)
     if not load_log():
         write_json(API_DIR / "incidents-log.json", [])
+    sync_issue_comments(repo, incidents)
     print("Saved:", HISTORY_DIR / "summary.json")
 
 

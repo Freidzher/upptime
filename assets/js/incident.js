@@ -6,7 +6,8 @@
   const metaEl = document.getElementById('evtMeta');
   const descEl = document.getElementById('evtDesc');
   const linkEl = document.getElementById('serviceLink');
-  const { fmtTs, pluralMin, modeOf, setFooterYear, fetchJson } = window.Runicore;
+  const commentsEl = document.getElementById('evtComments');
+  const { fmtTs, pluralMin, modeOf, setFooterYear, fetchJson, esc } = window.Runicore;
 
   setFooterYear();
 
@@ -53,15 +54,41 @@
     }
   }
 
+  // Комментарии администратора из GitHub Issues (api/issue-comments.json)
+  function renderComments(list) {
+    if (!commentsEl) return;
+    commentsEl.innerHTML = '';
+    const items = (list || []).filter((c) => c && (c.body || '').trim());
+    if (!items.length) { commentsEl.style.display = 'none'; return; }
+    commentsEl.style.display = '';
+    for (const c of items) {
+      const item = document.createElement('div');
+      item.className = 'comment';
+      const when = fmtTs(c.created_at);
+      const head = document.createElement('div');
+      head.className = 'comment-head';
+      head.innerHTML = '<b>' + esc('Администратор:') + '</b>' +
+        (when ? '<span class="comment-time">' + esc(when + ' МСК') + '</span>' : '');
+      const body = document.createElement('div');
+      body.className = 'comment-body';
+      body.textContent = c.body;  // textContent безопасно экранирует
+      item.appendChild(head);
+      item.appendChild(body);
+      commentsEl.appendChild(item);
+    }
+  }
+
   try {
-    const [incidents, log] = await Promise.all([
+    const [incidents, log, comments] = await Promise.all([
       fetchJson('api/incidents.json').catch(() => ({})),
       fetchJson('api/incidents-log.json').catch(() => []),
+      fetchJson('api/issue-comments.json').catch(() => ({})),
     ]);
+    const byIssue = comments || {};
     const active = Object.values(incidents || {}).find((i) => i.issue_number === issueNum);
-    if (active) { render(active, true); return; }
+    if (active) { render(active, true); renderComments(byIssue[String(issueNum)]); return; }
     const past = (log || []).find((i) => i.issue_number === issueNum);
-    if (past) { render(past, false); return; }
+    if (past) { render(past, false); renderComments(byIssue[String(issueNum)]); return; }
     titleEl.textContent = 'Событие не найдено';
     statusEl.textContent = 'Возможно, оно скрыто или ещё не синхронизировано.';
   } catch (e) {

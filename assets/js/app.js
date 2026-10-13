@@ -93,9 +93,10 @@
       if (card) incEl.appendChild(card);
     }
 
-    // Прошлые события — единая хронология (новые сверху), hidden скрыты
-    const past = (log || []).filter((i) => !i.hidden).slice(-20).reverse()
-      .sort((a, b) => new Date(b.resolved || b.opened) - new Date(a.resolved || a.opened));
+    // Прошлые события — единая хронология (новые сверху), hidden скрыты, последние 10
+    const past = (log || []).filter((i) => !i.hidden)
+      .sort((a, b) => new Date(b.resolved || b.opened) - new Date(a.resolved || b.opened))
+      .slice(0, 10);
     pastEl.innerHTML = '';
     document.getElementById('pastTitle').style.display = past.length ? '' : 'none';
     for (const info of past) {
