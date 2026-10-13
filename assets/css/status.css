@@ -72,7 +72,11 @@ h1 {
 }
 .incident:hover .comment-badge { color: var(--accent); }
 
-/* Поле быстрого перехода к странице в пагинации */
+/* Поле быстрого перехода к странице в пагинации — у правого края,
+   чтобы нумерация страниц оставалась точно по центру */
+.pager .pager-jump {
+  position: absolute; right: 0; top: 50%; transform: translateY(-50%);
+}
 .pager .pager-jump input {
   background: transparent; border: 1px solid var(--border); color: var(--text);
   width: 54px; padding: 6px 8px; border-radius: 8px; font-size: .85rem;

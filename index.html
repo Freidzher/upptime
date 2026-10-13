@@ -9,11 +9,12 @@
   <link rel="icon" sizes="96x96" type="image/png" href="assets/icons/favicon-96x96.png">
   <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
   <link rel="manifest" href="assets/manifest.json">
-  <link rel="stylesheet" href="assets/css/status.css?v=4">
+  <link rel="stylesheet" href="assets/css/status.css?v=5">
   <title>Runicore (Мониторинг)</title>
   <style>
     /* Уникальные стили главной страницы */
     h1 { font-size: 2.2rem; }
+    h1 .logo { width: 36px; height: 36px; vertical-align: -6px; margin-right: 12px; -webkit-text-fill-color: initial; }
     .sub { color: var(--muted); margin-bottom: 28px; }
     .updated { margin-bottom: 24px; }
 
@@ -57,7 +58,7 @@
     .incident.active.maintenance { box-shadow: -3px 0 12px -6px var(--warn); }
 
     /* Переключатель страниц «Прошлых событий» */
-    .pager { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin: 14px 0 6px; }
+    .pager { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin: 14px 0 6px; position: relative; }
     .pager button {
       background: transparent; border: 1px solid var(--border); color: var(--muted);
       min-width: 36px; padding: 6px 12px; border-radius: 8px; cursor: pointer;
@@ -70,7 +71,7 @@
 </head>
 <body>
   <div class="wrap">
-    <h1>Мониторинг сети Runicore</h1>
+    <h1><img class="logo" src="assets/icons/favicon.svg" alt="Runicore">Мониторинг сети Runicore</h1>
     <p class="sub">Нажмите на сервис — откроется страница со статистикой.</p>
     <div class="updated" id="updated"></div>
     <div class="banner ok" id="banner">⏳ Загрузка…</div>
