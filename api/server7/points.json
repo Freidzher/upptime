@@ -47205,12 +47205,23 @@
   "ts": "2026-10-13T22:05:29+00:00",
   "ok": true,
   "code": 22,
-  "ms": 316
+  "ms": 316,
+  "maint": true,
+  "annulled": false
  },
  {
   "ts": "2026-10-13T22:10:37+00:00",
   "ok": true,
   "code": 22,
-  "ms": 357
+  "ms": 357,
+  "maint": true,
+  "annulled": false
+ },
+ {
+  "ts": "2026-10-13T22:15:39+00:00",
+  "ok": true,
+  "code": 22,
+  "ms": 299,
+  "maint": true
  }
 ]

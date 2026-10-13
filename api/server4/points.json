@@ -51112,12 +51112,23 @@
   "ts": "2026-10-13T22:05:24+00:00",
   "ok": true,
   "code": 22,
-  "ms": 268
+  "ms": 268,
+  "maint": true,
+  "annulled": false
  },
  {
   "ts": "2026-10-13T22:10:32+00:00",
   "ok": true,
   "code": 22,
-  "ms": 302
+  "ms": 302,
+  "maint": true,
+  "annulled": false
+ },
+ {
+  "ts": "2026-10-13T22:15:34+00:00",
+  "ok": true,
+  "code": 22,
+  "ms": 242,
+  "maint": true
  }
 ]
