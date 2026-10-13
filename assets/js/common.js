@@ -29,24 +29,27 @@ window.Runicore = (function () {
     return 'восстановлено';
   }
 
-  // Единая карточка события: <b>Имя</b> — статус · Начато: … [· Закрыто: … · Длительность: …]
-  // commentsByIssue — карта { "<issue>": [...] }; если у issue есть комментарии,
-  // справа показываем индикатор «💬 N» (как на GitHub).
-  function incidentCard(info, active, slug, commentsByIssue) {
+  // Единая карточка события: [favicon] <b>Имя</b> — статус · Начато: … [· 💬 N]
+  // commentsByIssue — карта { "<issue>": [...] }; справа индикатор «💬 N».
+  // iconHtml — фавикон/эмодзи сервиса (см. eventIconHtml). forceServiceLink=true —
+  // вести на страницу сервиса (site.html?site=slug), иначе на incident.html?issue=N.
+  function incidentCard(info, active, slug, commentsByIssue, iconHtml, forceServiceLink) {
     const mode = modeOf(info, info.maintenance);
     if (mode === 'hidden') return null;
     const d = document.createElement('a');
     d.className = 'incident ' + mode;
     const target = slug || info.slug;
     if (target) d.href = 'site.html?site=' + encodeURIComponent(target);
-    if (info.issue_number) d.href = 'incident.html?issue=' + info.issue_number;
+    if (!forceServiceLink && info.issue_number) d.href = 'incident.html?issue=' + info.issue_number;
     const started = fmtTs(info.opened);
     const resolved = fmtTs(info.resolved);
     const meta = ['Начато: ' + started + ' МСК'];
     if (resolved) meta.push('Закрыто: ' + resolved + ' МСК');
     if (info.minutes) meta.push('Длительность: ' + pluralMin(info.minutes));
     const metaHtml = '<span class="t">· ' + meta.join(' · ') + '</span>';
-    const name = info.name || (info.title || 'Сервис').replace(/ — недоступен$/, '').replace(/ — техработы$/, '');
+    const rawName = info.name || (info.title || 'Сервис').replace(/ — недоступен$/, '').replace(/ — техработы$/, '');
+    // Фавикон/эмодзи уже показывает ведущий эмодзи — не дублируем его в названии
+    const name = iconHtml ? (rawName.replace(EMOJI_RE, '').trim() || rawName) : rawName;
     const cCount = (commentsByIssue && info.issue_number)
       ? ((commentsByIssue[String(info.issue_number)] || []).length) : 0;
     let badge = '';
@@ -54,9 +57,85 @@ window.Runicore = (function () {
       d.style.paddingRight = '52px';  // место под вертикально центрированный бейдж
       badge = '<span class="comment-badge" title="' + esc('Комментариев: ' + cCount) + '">💬 ' + cCount + '</span>';
     }
-    d.innerHTML = '<b></b>' + esc(' — ' + statusText(mode, active, resolved) + ' ') + metaHtml + badge;
+    d.innerHTML = (iconHtml || '') + '<b></b>' + esc(' — ' + statusText(mode, active, resolved) + ' ') + metaHtml + badge;
     d.querySelector('b').textContent = name;
     return d;
+  }
+
+  // Фавикон/эмодзи сервиса для карточки события (как в списке сервисов на главной)
+  function eventIconHtml(info, sumBySlug) {
+    const svc = (sumBySlug || {})[info.slug];
+    if (!svc) return '';
+    if (svc.icon) {
+      return '<img class="ev-fav" src="api/' + info.slug + '/' + svc.icon + '" alt="" onerror="this.style.display=\'none\'">';
+    }
+    const emoji = (svc.name.match(EMOJI_RE) || [''])[0];
+    return emoji ? '<span class="ev-fav emoji">' + emoji + '</span>' : '';
+  }
+
+  // Группировка событий по issue_number. Главный («голова» группы) — первым,
+  // остальные (others) — вложенные сервисы того же инцидента.
+  function groupByIssue(entries, sumBySlug) {
+    const map = new Map();
+    const order = [];
+    for (const e of entries) {
+      const k = (e.issue_number != null) ? ('#' + e.issue_number) : ('s:' + (e.slug || ''));
+      if (!map.has(k)) { map.set(k, []); order.push(k); }
+      map.get(k).push(e);
+    }
+    return order.map((k) => {
+      const arr = map.get(k).slice();
+      arr.sort((a, b) => {
+        const ag = (sumBySlug[a.slug] && sumBySlug[a.slug].isGroup) ? 0 : 1;
+        const bg = (sumBySlug[b.slug] && sumBySlug[b.slug].isGroup) ? 0 : 1;
+        if (ag !== bg) return ag - bg;
+        return (a.slug || '').localeCompare(b.slug || '');
+      });
+      return { key: k, main: arr[0], others: arr.slice(1) };
+    });
+  }
+
+  // Отрисовка группы событий одного Issue: главная карточка + «выемка»,
+  // раскрывающая список затронутых сервисов (каждый ведёт на свою страницу).
+  function renderEventGroup(container, group, active, sumBySlug, commentsByIssue) {
+    const iconHtml = eventIconHtml(group.main, sumBySlug);
+    if (!group.others.length) {
+      const card = incidentCard(group.main, active, null, commentsByIssue, iconHtml, false);
+      if (card) container.appendChild(card);
+      return;
+    }
+    const wrap = document.createElement('div');
+    wrap.className = 'evt-group';
+    const mainCard = incidentCard(group.main, active, null, commentsByIssue, iconHtml, false);
+    if (mainCard) wrap.appendChild(mainCard);
+
+    const notch = document.createElement('button');
+    notch.type = 'button';
+    notch.className = 'evt-notch';
+    const arrow = document.createElement('span');
+    arrow.className = 'evt-notch-arrow';
+    arrow.textContent = '▸';
+    const label = document.createElement('span');
+    label.textContent = 'Затронуто сервисов: ' + (group.others.length + 1);
+    notch.appendChild(arrow);
+    notch.appendChild(label);
+
+    const subs = document.createElement('div');
+    subs.className = 'evt-subs';
+    subs.style.display = 'none';
+    for (const o of group.others) {
+      const c = incidentCard(o, active, o.slug, commentsByIssue, eventIconHtml(o, sumBySlug), true);
+      if (c) { c.classList.add('evt-sub'); subs.appendChild(c); }
+    }
+    notch.addEventListener('click', () => {
+      const open = subs.style.display !== 'none';
+      subs.style.display = open ? 'none' : '';
+      notch.classList.toggle('open', !open);
+      arrow.textContent = open ? '▸' : '▾';
+    });
+    wrap.appendChild(notch);
+    wrap.appendChild(subs);
+    container.appendChild(wrap);
   }
 
   function setFooterYear() {
@@ -110,5 +189,5 @@ window.Runicore = (function () {
     return r.json();
   }
 
-  return { EMOJI_RE, esc, fmtTs, pluralMin, modeOf, statusText, incidentCard, setFooterYear, fetchJson, renderPager };
+  return { EMOJI_RE, esc, fmtTs, pluralMin, modeOf, statusText, incidentCard, eventIconHtml, groupByIssue, renderEventGroup, setFooterYear, fetchJson, renderPager };
 })();

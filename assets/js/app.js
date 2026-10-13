@@ -6,12 +6,13 @@
   const incEl = document.getElementById('incidents');
   const pastEl = document.getElementById('past');
   const pastPagerEl = document.getElementById('pastPager');
-  const { EMOJI_RE, incidentCard, setFooterYear, fetchJson, renderPager } = window.Runicore;
+  const { EMOJI_RE, setFooterYear, fetchJson, renderPager, groupByIssue, renderEventGroup } = window.Runicore;
 
   const PAST_PAGE_SIZE = 10;
-  let allPast = [];
+  let allPastGroups = [];
   let pastPage = 1;
   let commentsByIssue = {};
+  let sumBySlug = {};
 
   setFooterYear();
 
@@ -40,6 +41,8 @@
   function render(summary, incidents, log, byIssue) {
     if (!summary.length) { banner.textContent = 'Нет данных — монитор ещё не запускался'; return; }
     commentsByIssue = byIssue || {};
+    sumBySlug = {};
+    for (const s of summary) sumBySlug[s.slug] = s;
 
     const allUp = summary.every((s) => s.status === 'up');
     banner.className = 'banner ' + (allUp ? 'ok' : 'fail');
@@ -92,38 +95,38 @@
       rowsEl.appendChild(row);
     }
 
-    // Активные события (hidden скрыты), новые сверху по номеру Issue
-    const openInc = Object.entries(incidents || {})
-      .filter(([, i]) => (i.mode || 'incident') !== 'hidden')
-      .sort((a, b) => (b[1].issue_number || 0) - (a[1].issue_number || 0));
+    // Активные события (hidden скрыты), новые сверху, с группировкой по Issue
+    const openList = Object.values(incidents || {})
+      .filter((i) => (i.mode || 'incident') !== 'hidden')
+      .sort((a, b) => (b.issue_number || 0) - (a.issue_number || 0));
+    const openGroups = groupByIssue(openList, sumBySlug)
+      .sort((a, b) => ((b.main.issue_number || 0) - (a.main.issue_number || 0)));
     incEl.innerHTML = '';
-    document.getElementById('incTitle').style.display = openInc.length ? '' : 'none';
-    for (const [key, info] of openInc) {
-      const card = incidentCard(info, true, key.toLowerCase().replace(/_/g, '-'), byIssue);
-      if (card) incEl.appendChild(card);
-    }
+    document.getElementById('incTitle').style.display = openGroups.length ? '' : 'none';
+    for (const g of openGroups) renderEventGroup(incEl, g, true, sumBySlug, byIssue);
 
     // Прошлые события — строго по номеру Issue (номер = порядок создания = хронология).
-    // Новые сверху (страница 1 = свежие), старые уходят в конец. Номера уникальны,
-    // поэтому порядок детерминирован и Issues не «прыгают» при изменениях.
-    allPast = (log || []).filter((i) => !i.hidden)
+    // Группировка по Issue: один инцидент = одна карточка + раскрытие затронутых сервисов.
+    const pastList = (log || []).filter((i) => !i.hidden)
       .sort((a, b) => (b.issue_number || 0) - (a.issue_number || 0));
+    allPastGroups = groupByIssue(pastList, sumBySlug)
+      .sort((a, b) => ((b.main.issue_number || 0) - (a.main.issue_number || 0)));
     const pastTitleEl = document.getElementById('pastTitle');
-    pastTitleEl.textContent = 'Прошлые события' + (allPast.length ? ' (' + allPast.length + ')' : '');
-    pastTitleEl.style.display = allPast.length ? '' : 'none';
+    const incCount = pastList.length;
+    pastTitleEl.textContent = 'Прошлые события' + (incCount ? ' (' + incCount + ')' : '');
+    pastTitleEl.style.display = allPastGroups.length ? '' : 'none';
     renderPast();
   }
 
-  // Отрисовка текущей страницы «Прошлых событий» + переключатель страниц
+  // Отрисовка текущей страницы «Прошлых событий» (группы по Issue) + переключатель
   function renderPast() {
-    const total = Math.max(1, Math.ceil(allPast.length / PAST_PAGE_SIZE));
+    const total = Math.max(1, Math.ceil(allPastGroups.length / PAST_PAGE_SIZE));
     if (pastPage > total) pastPage = total;
     if (pastPage < 1) pastPage = 1;
     const start = (pastPage - 1) * PAST_PAGE_SIZE;
     pastEl.innerHTML = '';
-    for (const info of allPast.slice(start, start + PAST_PAGE_SIZE)) {
-      const card = incidentCard(info, false, null, commentsByIssue);
-      if (card) pastEl.appendChild(card);
+    for (const g of allPastGroups.slice(start, start + PAST_PAGE_SIZE)) {
+      renderEventGroup(pastEl, g, false, sumBySlug, commentsByIssue);
     }
     renderPager(pastPagerEl, total, pastPage, (p) => { pastPage = p; renderPast(); });
   }

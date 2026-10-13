@@ -62,8 +62,7 @@ h1 {
 .incident .t { color: var(--muted); font-size: .8rem; }
 .incident.incident { border-left-color: var(--fail); }
 .incident.maintenance { border-left-color: var(--warn); }
-.incident.annulled { opacity: .6; border-style: dashed; border-left-color: var(--gray); }
-.incident.annulled b { color: var(--muted); text-decoration: line-through; }
+.incident.annulled { opacity: .6; border-left-color: var(--gray); }
 .incident.hidden { border-left-color: var(--gray); }
 .incident .comment-badge {
   position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
@@ -71,6 +70,24 @@ h1 {
   white-space: nowrap; user-select: none; transition: color .2s;
 }
 .incident:hover .comment-badge { color: var(--accent); }
+
+/* Фавикон/эмодзи сервиса в карточке события */
+.incident .ev-fav { width: 16px; height: 16px; border-radius: 4px; vertical-align: -3px; margin-right: 8px; }
+.incident .ev-fav.emoji { width: auto; height: auto; font-size: 15px; vertical-align: -2px; }
+
+/* Группа событий одного Issue: главная карточка + раскрытие затронутых сервисов */
+.evt-group { margin-bottom: 10px; }
+.evt-group > .incident { margin-bottom: 0; border-radius: 10px 10px 0 0; }
+.evt-notch {
+  display: block; width: 100%; text-align: left;
+  background: rgba(4, 26, 12, 0.5); border: 1px solid var(--border); border-top: none;
+  border-radius: 0 0 10px 10px; color: var(--muted);
+  padding: 7px 16px; font-size: .8rem; cursor: pointer; transition: color .2s, background .2s;
+}
+.evt-notch:hover { color: var(--text); background: rgba(6, 36, 16, 0.7); }
+.evt-notch-arrow { display: inline-block; width: 14px; }
+.evt-subs { padding: 8px 0 4px 14px; display: flex; flex-direction: column; gap: 6px; }
+.evt-subs .evt-sub { font-size: .84rem; }
 
 /* Поле быстрого перехода к странице в пагинации — у правого края,
    чтобы нумерация страниц оставалась точно по центру */

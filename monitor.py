@@ -565,7 +565,7 @@ def sync_incidents(incidents: dict, repo: str, sites: dict = None) -> None:
                     "maintenance": mode == "maintenance",
                     "mode": mode,
                     "title": _humanize_title(issue.get("title", ""), sites or {}),
-                    "desc": f"Событие открыто вручную через issue #{issue['number']} (лейбл: {mode}).",
+                    "desc": "",
                 }
                 changed = True
                 print(f"{key}: {mode} по issue #{issue['number']} ({issue.get('title', '')})")
@@ -732,7 +732,7 @@ def sync_closed_incidents(repo: str, sites: dict = None) -> None:
                 "annulled": mode == "annulled",
                 "hidden": mode == "hidden",
                 "title": title,
-                "desc": f"Событие из issue #{num} (лейбл: {mode}).",
+                "desc": "",
             }
             log.append(entry)
             log_by_num.setdefault(num, []).append(entry)

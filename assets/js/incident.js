@@ -28,9 +28,11 @@
     // Лейбл типа события переносим в статус: «Инцидент · Восстановлено»
     status = label + ' · ' + status;
 
-    const name = info.name || (info.title || 'Сервис').replace(/ — недоступен$/, '').replace(/ — техработы$/, '');
+    const rawName = info.name || (info.title || 'Сервис').replace(/ — недоступен$/, '').replace(/ — техработы$/, '');
+    // Ведущий эмодзи (флаг) уже показан фавиконом — не дублируем в заголовке
+    const name = rawName.replace(EMOJI_RE, '').trim() || rawName;
     titleEl.textContent = name;
-    document.title = name + ' — Событие — Runicore';
+    document.title = rawName + ' — Событие — Runicore';
 
     statusEl.textContent = status;
     const parts = ['Начато: ' + started + ' МСК'];
@@ -78,7 +80,8 @@
   function renderComments(list) {
     if (!commentsEl) return;
     commentsEl.innerHTML = '';
-    const items = (list || []).filter((c) => c && (c.body || '').trim());
+    // Свежие комментарии — выше (API отдаёт по возрастанию, переворачиваем)
+    const items = (list || []).filter((c) => c && (c.body || '').trim()).slice().reverse();
     if (!items.length) { commentsEl.style.display = 'none'; return; }
     commentsEl.style.display = '';
     for (const c of items) {

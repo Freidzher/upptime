@@ -7,7 +7,7 @@
   const pastEl = document.getElementById('past');
   const pastPagerEl = document.getElementById('pastPager');
   const tabs = document.getElementById('rangeTabs');
-  const { EMOJI_RE, incidentCard, setFooterYear, fetchJson, renderPager } = window.Runicore;
+  const { EMOJI_RE, setFooterYear, fetchJson, renderPager, groupByIssue, renderEventGroup } = window.Runicore;
 
   setFooterYear();
 
@@ -17,9 +17,10 @@
   let range = 24;
   let cachedPoints = [];
   const PAST_PAGE_SIZE = 10;
-  let allPast = [];
+  let allPastGroups = [];
   let pastPage = 1;
   let commentsByIssue = {};
+  let sumBySlug = {};
 
   function renderChart(entries) {
     const cutoff = Date.now() - range * 3600 * 1000;
@@ -126,12 +127,16 @@
 
       renderChart(cachedPoints);
 
-      allPast = (log || []).filter((i) => i.slug === slug && !i.hidden)
+      sumBySlug = {};
+      for (const x of summary) sumBySlug[x.slug] = x;
+      const pastList = (log || []).filter((i) => i.slug === slug && !i.hidden)
         .sort((a, b) => (b.issue_number || 0) - (a.issue_number || 0));
+      allPastGroups = groupByIssue(pastList, sumBySlug)
+        .sort((a, b) => ((b.main.issue_number || 0) - (a.main.issue_number || 0)));
       const pastTitle = document.getElementById('pastTitle');
       if (pastTitle) {
-        pastTitle.textContent = 'Прошлые события' + (allPast.length ? ' (' + allPast.length + ')' : '');
-        pastTitle.style.display = allPast.length ? '' : 'none';
+        pastTitle.textContent = 'Прошлые события' + (pastList.length ? ' (' + pastList.length + ')' : '');
+        pastTitle.style.display = allPastGroups.length ? '' : 'none';
       }
       renderPast();
     } catch (e) {
@@ -140,16 +145,15 @@
     }
   }
 
-  // Отрисовка текущей страницы «Прошлых событий» + переключатель страниц
+  // Отрисовка текущей страницы «Прошлых событий» (группы по Issue) + переключатель
   function renderPast() {
-    const total = Math.max(1, Math.ceil(allPast.length / PAST_PAGE_SIZE));
+    const total = Math.max(1, Math.ceil(allPastGroups.length / PAST_PAGE_SIZE));
     if (pastPage > total) pastPage = total;
     if (pastPage < 1) pastPage = 1;
     const start = (pastPage - 1) * PAST_PAGE_SIZE;
     pastEl.innerHTML = '';
-    for (const info of allPast.slice(start, start + PAST_PAGE_SIZE)) {
-      const card = incidentCard(info, !info.resolved, null, commentsByIssue);
-      if (card) pastEl.appendChild(card);
+    for (const g of allPastGroups.slice(start, start + PAST_PAGE_SIZE)) {
+      renderEventGroup(pastEl, g, !g.main.resolved, sumBySlug, commentsByIssue);
     }
     renderPager(pastPagerEl, total, pastPage, (p) => { pastPage = p; renderPast(); });
   }

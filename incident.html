@@ -10,7 +10,7 @@
   <link rel="icon" sizes="96x96" type="image/png" href="assets/icons/favicon-96x96.png">
   <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
   <link rel="manifest" href="assets/manifest.json">
-  <link rel="stylesheet" href="assets/css/status.css?v=5">
+  <link rel="stylesheet" href="assets/css/status.css?v=6">
   <title>Событие — Runicore</title>
   <style>
     /* Уникальные стили страницы события */
@@ -48,7 +48,7 @@
       display: inline-block; background: rgba(46, 204, 113, 0.1); border: 1px solid var(--border);
       color: #52f099 !important; text-decoration: none; border-radius: 10px;
       padding: 9px 16px; font-size: .88rem; font-weight: 600; transition: background .2s, border-color .2s;
-      margin-top: 16px;
+      margin-top: 0; margin-bottom: 18px;
     }
     .service-link:hover { background: rgba(46, 204, 113, 0.2); border-color: rgba(46, 204, 113, .5); }
   </style>
@@ -57,17 +57,17 @@
   <div class="wrap">
     <a class="back" href="index.html">← К списку сервисов</a>
     <h1><img class="logo" id="evtFavicon" src="" alt="" style="display:none"><span id="evtTitle">Загрузка…</span></h1>
+    <a class="service-link" id="serviceLink" style="display:none" href="#">Страница сервиса →</a>
+    <div class="comments" id="evtComments" style="display:none"></div>
     <div class="evt incident" id="evtCard">
       <div class="status" id="evtStatus">…</div>
       <div class="meta" id="evtMeta"></div>
       <div class="desc" id="evtDesc"></div>
     </div>
-    <div class="comments" id="evtComments" style="display:none"></div>
-    <a class="service-link" id="serviceLink" style="display:none" href="#">Страница сервиса →</a>
     <footer>© 2024–<span id="year"></span> Runicore. Все права защищены.</footer>
   </div>
 
-  <script src="assets/js/common.js?v=5"></script>
-  <script src="assets/js/incident.js?v=7"></script>
+  <script src="assets/js/common.js?v=6"></script>
+  <script src="assets/js/incident.js?v=8"></script>
 </body>
 </html>
