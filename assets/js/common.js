@@ -112,6 +112,7 @@ window.Runicore = (function () {
     const notch = document.createElement('button');
     notch.type = 'button';
     notch.className = 'evt-notch';
+    notch.dataset.mode = modeOf(group.main, group.main.maintenance);  // для цветной полосы
     const arrow = document.createElement('span');
     arrow.className = 'evt-notch-arrow';
     arrow.textContent = '▸';

@@ -75,17 +75,24 @@ h1 {
 .incident .ev-fav { width: 16px; height: 16px; border-radius: 4px; vertical-align: -3px; margin-right: 8px; }
 .incident .ev-fav.emoji { width: auto; height: auto; font-size: 15px; vertical-align: -2px; }
 
-/* Группа событий одного Issue: главная карточка + раскрытие затронутых сервисов */
-.evt-group { margin-bottom: 10px; }
+/* Группа событий одного Issue: главная карточка + раскрытие затронутых сервисов.
+   Наведение на группу сдвигает её целиком (как карточку) — анимация едина. */
+.evt-group { margin-bottom: 10px; transition: transform .15s; }
+.evt-group:hover { transform: translateX(2px); }
 .evt-group > .incident { margin-bottom: 0; border-radius: 10px 10px 0 0; }
+.evt-group > .incident:hover { transform: none; border-color: rgba(46, 204, 113, .5); }
 .evt-notch {
   display: flex; align-items: center; gap: 6px; width: 100%; text-align: left;
   background: rgba(4, 26, 12, 0.5); border: 1px solid var(--border); border-top: none;
-  border-radius: 0 0 10px 10px; color: var(--muted);
+  border-left-width: 3px; border-radius: 0 0 10px 10px; color: var(--muted);
   padding: 8px 16px; font-size: .8rem; cursor: pointer;
-  transition: color .2s, background .2s, transform .15s, border-color .25s;
+  transition: color .2s, background .2s, border-color .25s;
 }
-.evt-notch:hover { color: var(--text); background: rgba(6, 36, 16, 0.7); border-color: rgba(46, 204, 113, .5); transform: translateX(2px); }
+.evt-notch[data-mode="incident"] { border-left-color: var(--fail); }
+.evt-notch[data-mode="maintenance"] { border-left-color: var(--warn); }
+.evt-notch[data-mode="annulled"] { border-left-color: var(--gray); }
+.evt-notch[data-mode="hidden"] { border-left-color: var(--gray); }
+.evt-notch:hover { color: var(--text); background: rgba(6, 36, 16, 0.7); }
 .evt-notch-arrow { display: inline-block; width: 14px; }
 .evt-subs { padding: 8px 0 4px 14px; display: flex; flex-direction: column; gap: 6px; }
 .evt-subs .evt-sub { font-size: .84rem; }
