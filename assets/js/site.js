@@ -127,11 +127,7 @@
       renderChart(cachedPoints);
 
       allPast = (log || []).filter((i) => i.slug === slug && !i.hidden)
-        .sort((a, b) => {
-          const d = new Date(b.opened) - new Date(a.opened);
-          if (d !== 0) return d;
-          return (a.issue_number || 0) - (b.issue_number || 0);
-        });
+        .sort((a, b) => (b.issue_number || 0) - (a.issue_number || 0));
       const pastTitle = document.getElementById('pastTitle');
       if (pastTitle) {
         pastTitle.textContent = 'Прошлые события' + (allPast.length ? ' (' + allPast.length + ')' : '');

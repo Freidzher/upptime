@@ -92,8 +92,10 @@
       rowsEl.appendChild(row);
     }
 
-    // Активные события (hidden скрыты)
-    const openInc = Object.entries(incidents || {}).filter(([, i]) => (i.mode || 'incident') !== 'hidden');
+    // Активные события (hidden скрыты), новые сверху по номеру Issue
+    const openInc = Object.entries(incidents || {})
+      .filter(([, i]) => (i.mode || 'incident') !== 'hidden')
+      .sort((a, b) => (b[1].issue_number || 0) - (a[1].issue_number || 0));
     incEl.innerHTML = '';
     document.getElementById('incTitle').style.display = openInc.length ? '' : 'none';
     for (const [key, info] of openInc) {
@@ -101,15 +103,11 @@
       if (card) incEl.appendChild(card);
     }
 
-    // Прошлые события — строго по времени НАЧАЛА (opened), новые сверху.
-    // Тайбрейк по номеру Issue: пачка серверов, упавших одновременно, всегда
-    // идёт единым блоком и в детерминированном порядке (не «разлетается»).
+    // Прошлые события — строго по номеру Issue (номер = порядок создания = хронология).
+    // Новые сверху (страница 1 = свежие), старые уходят в конец. Номера уникальны,
+    // поэтому порядок детерминирован и Issues не «прыгают» при изменениях.
     allPast = (log || []).filter((i) => !i.hidden)
-      .sort((a, b) => {
-        const d = new Date(b.opened) - new Date(a.opened);
-        if (d !== 0) return d;
-        return (a.issue_number || 0) - (b.issue_number || 0);
-      });
+      .sort((a, b) => (b.issue_number || 0) - (a.issue_number || 0));
     const pastTitleEl = document.getElementById('pastTitle');
     pastTitleEl.textContent = 'Прошлые события' + (allPast.length ? ' (' + allPast.length + ')' : '');
     pastTitleEl.style.display = allPast.length ? '' : 'none';
