@@ -129,7 +129,10 @@
       allPast = (log || []).filter((i) => i.slug === slug && !i.hidden)
         .sort((a, b) => new Date(b.resolved || b.opened) - new Date(a.resolved || a.opened));
       const pastTitle = document.getElementById('pastTitle');
-      if (pastTitle) pastTitle.style.display = allPast.length ? '' : 'none';
+      if (pastTitle) {
+        pastTitle.textContent = 'Прошлые события' + (allPast.length ? ' (' + allPast.length + ')' : '');
+        pastTitle.style.display = allPast.length ? '' : 'none';
+      }
       renderPast();
     } catch (e) {
       banner.className = 'banner fail';

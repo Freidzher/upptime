@@ -104,7 +104,9 @@
     // Прошлые события — единая хронология (новые сверху), hidden скрыты, с пагинацией
     allPast = (log || []).filter((i) => !i.hidden)
       .sort((a, b) => new Date(b.resolved || b.opened) - new Date(a.resolved || a.opened));
-    document.getElementById('pastTitle').style.display = allPast.length ? '' : 'none';
+    const pastTitleEl = document.getElementById('pastTitle');
+    pastTitleEl.textContent = 'Прошлые события' + (allPast.length ? ' (' + allPast.length + ')' : '');
+    pastTitleEl.style.display = allPast.length ? '' : 'none';
     renderPast();
   }
 

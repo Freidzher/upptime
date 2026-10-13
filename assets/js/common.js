@@ -49,9 +49,11 @@ window.Runicore = (function () {
     const name = info.name || (info.title || 'Сервис').replace(/ — недоступен$/, '').replace(/ — техработы$/, '');
     const cCount = (commentsByIssue && info.issue_number)
       ? ((commentsByIssue[String(info.issue_number)] || []).length) : 0;
-    const badge = cCount > 0
-      ? '<span class="comment-badge" title="' + esc('Комментариев: ' + cCount) + '">💬 ' + cCount + '</span>'
-      : '';
+    let badge = '';
+    if (cCount > 0) {
+      d.style.paddingRight = '52px';  // место под вертикально центрированный бейдж
+      badge = '<span class="comment-badge" title="' + esc('Комментариев: ' + cCount) + '">💬 ' + cCount + '</span>';
+    }
     d.innerHTML = '<b></b>' + esc(' — ' + statusText(mode, active, resolved) + ' ') + metaHtml + badge;
     d.querySelector('b').textContent = name;
     return d;
@@ -62,7 +64,7 @@ window.Runicore = (function () {
     if (y) y.textContent = new Date().getFullYear();
   }
 
-  // Пагинация: кнопки ‹ 1 2 3 … N ›. onGo(page) вызывается при клике.
+  // Пагинация: кнопки ‹ 1 2 3 … N › + поле «перейти к странице». onGo(page) при клике/вводе.
   function renderPager(el, totalPages, current, onGo) {
     if (!el) return;
     el.innerHTML = '';
@@ -82,6 +84,24 @@ window.Runicore = (function () {
       el.appendChild(btn(String(p), p));
     }
     el.appendChild(btn('›', current + 1, { disabled: current >= totalPages, arrow: true }));
+
+    // Поле быстрого перехода к нужной странице (ввод цифры + Enter)
+    const jump = document.createElement('span');
+    jump.className = 'pager-jump';
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.inputMode = 'numeric';
+    input.setAttribute('aria-label', 'Перейти к странице');
+    input.title = 'Перейти к странице (1–' + totalPages + ')';
+    input.placeholder = String(current);
+    const go = () => {
+      const p = parseInt(input.value, 10);
+      if (!isNaN(p)) onGo(Math.min(Math.max(1, p), totalPages));
+    };
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); go(); } });
+    input.addEventListener('change', go);
+    jump.appendChild(input);
+    el.appendChild(jump);
   }
 
   async function fetchJson(url) {
