@@ -80,7 +80,9 @@ h1 {
 .evt-group { margin-bottom: 10px; transition: transform .15s; }
 .evt-group:hover { transform: translateX(2px); }
 .evt-group > .incident { margin-bottom: 0; border-radius: 10px 10px 0 0; }
-.evt-group > .incident:hover { transform: none; border-color: rgba(46, 204, 113, .5); }
+/* Не перекрываем цветную статус-полоску слева: наведение сдвигает всю группу,
+   а бордюр карточки keeping режим-цвет (transition по рамке отключён здесь) */
+.evt-group > .incident:hover { transform: none; }
 .evt-notch {
   display: flex; align-items: center; gap: 6px; width: 100%; text-align: left;
   background: rgba(4, 26, 12, 0.5); border: 1px solid var(--border); border-top: none;
