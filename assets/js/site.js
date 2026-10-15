@@ -41,12 +41,17 @@
         labels: pts.map((e) => new Date(e.ts).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })),
         datasets: [{
           data: pts.map((e) => e.ms),
-          borderColor: (ctx) => pointColor(pts[ctx.dataIndex]),
+          borderColor: (ctx) => {
+            const p = pts[ctx.dataIndex];
+            return p && p.ok ? '#2ecc71' : '#ff4f6d';
+          },
           backgroundColor: (ctx) => {
             const p = pts[ctx.dataIndex];
             return p && p.ok ? 'rgba(46,204,113,.15)' : 'rgba(255,79,109,.15)';
           },
-          pointBackgroundColor: pts.map(pointColor),
+          // Внутри точки — строго фактический статус (up зелёный / down красный);
+          // окантовка — независимо, по приоритетному лейблу (annulled/ТО/РКН)
+          pointBackgroundColor: pts.map((p) => (p && p.ok ? '#2ecc71' : '#ff4f6d')),
           pointBorderColor: pts.map(pointColor),
           pointRadius: (ctx) => {
             const p = pts[ctx.dataIndex];
@@ -58,13 +63,7 @@
             borderColor: (ctx) => {
               const p0 = pts[ctx.p0DataIndex];
               const p1 = pts[ctx.p1DataIndex];
-              const c0 = pointColor(p0), c1 = pointColor(p1);
-              if (c0 === c1) return c0;
-              // Приоритет «режимной» точки: annulled > maintenance > rkn > статус
-              const rank = (c) => (c === '#8a9b8f' ? 3 : c === '#f1c40f' ? 2 : c === '#37b6ff' ? 1 : 0);
-              const r0 = rank(c0), r1 = rank(c1);
-              if (r0 || r1) return r0 >= r1 ? c0 : c1;
-              return (p0 && !p0.ok) || (p1 && !p1.ok) ? '#ff4f6d' : '#2ecc71';
+              return (p0 && p0.ok && p1 && p1.ok) ? '#2ecc71' : '#ff4f6d';
             }
           },
         }],
