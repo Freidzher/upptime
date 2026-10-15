@@ -19,6 +19,22 @@
     #evtTitle .ev-fav { width: 26px; height: 26px; border-radius: 6px; }
     #evtTitle .ev-fav.emoji { width: auto; height: auto; font-size: 24px; -webkit-text-fill-color: initial; }
     #evtTitle .title-sep { color: var(--muted); -webkit-text-fill-color: initial; }
+    /* Неразрывность: флаг/иконка вместе с названием не переносятся по частям */
+    #evtTitle .svc-name-wrap { display: inline-flex; align-items: center; gap: 10px; white-space: nowrap; }
+    #evtTitle .svc-name { white-space: nowrap; }
+    /* Бейджи лейблов под заголовком */
+    .evt-labels { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
+    .evt-lb {
+      display: inline-flex; align-items: center;
+      border-radius: 999px; padding: 3px 12px;
+      font-size: .75rem; font-weight: 700; letter-spacing: .02em;
+      border: 1px solid; background: rgba(255,255,255,0.04);
+    }
+    .evt-lb-incident { color: var(--fail); border-color: rgba(255,79,109,.45); background: rgba(255,79,109,.1); }
+    .evt-lb-maintenance { color: var(--warn); border-color: rgba(241,196,15,.45); background: rgba(241,196,15,.1); }
+    .evt-lb-annulled { color: var(--gray); border-color: rgba(138,155,143,.45); background: rgba(138,155,143,.1); }
+    .evt-lb-hidden { color: var(--gray); border-color: rgba(74,85,77,.5); background: rgba(74,85,77,.12); }
+    .evt-lb-rkn { color: var(--rkn); border-color: rgba(55,182,255,.45); background: rgba(55,182,255,.1); }
     .evt {
       background: var(--card); border: 1px solid var(--border); border-left-width: 4px;
       border-radius: 12px; padding: 18px 20px; margin-bottom: 18px;
@@ -34,6 +50,8 @@
     .evt.annulled .status, .evt.hidden .status { color: var(--gray); }
     .evt.rkn .status { color: var(--rkn); }
     .evt .meta { color: var(--muted); font-size: .85rem; display: flex; flex-wrap: wrap; gap: 16px; }
+    /* «Начато/Закрыто/(🕑 …)» переносятся целиком, а не по кусочкам */
+    .evt .meta .nb { white-space: nowrap; }
     .evt .meta b { color: var(--text); }
     .evt .desc { font-size: .92rem; line-height: 1.55; white-space: pre-line; margin-top: 14px; }
     .evt .desc b { color: var(--text); }
@@ -66,6 +84,7 @@
   <div class="wrap">
     <a class="back" href="index.html">← К списку сервисов</a>
     <h1><span id="evtTitle">Загрузка…</span></h1>
+    <div class="evt-labels" id="evtLabels" style="display:none"></div>
     <div class="comments" id="evtComments" style="display:none"></div>
     <div class="evt incident" id="evtCard">
       <div class="status" id="evtStatus">…</div>
@@ -77,6 +96,6 @@
   </div>
 
   <script src="assets/js/common.js?v=13"></script>
-  <script src="assets/js/incident.js?v=12"></script>
+  <script src="assets/js/incident.js?v=13"></script>
 </body>
 </html>

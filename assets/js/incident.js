@@ -7,6 +7,7 @@
   const descEl = document.getElementById('evtDesc');
   const commentsEl = document.getElementById('evtComments');
   const linksEl = document.getElementById('serviceLinks');
+  const labelsEl = document.getElementById('evtLabels');
   const { fmtTs, fmtDuration, modeOf, setFooterYear, fetchJson, esc, EMOJI_RE } = window.Runicore;
 
   setFooterYear();
@@ -36,10 +37,24 @@
   function renderTitle(affected, sumBySlug) {
     const heads = affected.filter((e) => sumBySlug[e.slug] && sumBySlug[e.slug].isGroup);
     const titleEntries = heads.length ? heads : affected;
+    // Имя сервиса неразрывно: флаг/эмодзи + текст не отрываются от названия на мобильном
     titleEl.innerHTML = titleEntries
-      .map((e) => svcIconHtml(e, sumBySlug) + '<span class="svc-name">' + esc(cleanName(e, sumBySlug)) + '</span>')
+      .map((e) =>
+        '<span class="svc-name-wrap">' + svcIconHtml(e, sumBySlug) +
+        '<span class="svc-name">' + esc(cleanName(e, sumBySlug)) + '</span></span>')
       .join('<span class="title-sep">, </span>');
     document.title = titleEntries.map((e) => cleanName(e, sumBySlug)).join(', ') + ' — Событие — Runicore';
+  }
+
+  // Бейджи лейблов под заголовком (по приоритету: Сбой > Техработы > Аннулировано > РКН)
+  const LABEL_TEXT = { incident: 'Сбой', maintenance: 'Техработы', annulled: 'Аннулировано', hidden: 'Скрыто', rkn: 'РКН' };
+  function renderLabelBadges(labels) {
+    if (!labelsEl) return;
+    const list = (labels || []).filter((l) => LABEL_TEXT[l]);
+    if (!list.length) { labelsEl.style.display = 'none'; labelsEl.innerHTML = ''; return; }
+    labelsEl.innerHTML = list.map((l) =>
+      '<span class="evt-lb evt-lb-' + l + '">' + esc(LABEL_TEXT[l] || l) + '</span>').join('');
+    labelsEl.style.display = '';
   }
 
   function renderCard(info, active) {
@@ -56,10 +71,12 @@
     status = label + ' · ' + status;
 
     statusEl.textContent = status;
+    renderLabelBadges(info.labels);
     const parts = ['Начато: ' + started + ' МСК'];
     if (resolved) parts.push('Закрыто: ' + resolved + ' МСК');
     if (info.minutes) parts.push('(🕑 ' + fmtDuration(info.minutes) + ')');
-    metaEl.innerHTML = parts.map((p) => '<span>' + p + '</span>').join('');
+    // Неразрывные блоки: «(🕑 …)» и даты переносятся целиком, а не по кусочкам
+    metaEl.innerHTML = parts.map((p) => '<span class="nb">' + p + '</span>').join('');
 
     const desc = (info.desc || '').trim();
     const metaText = parts.join('\n');

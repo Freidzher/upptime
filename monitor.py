@@ -410,6 +410,7 @@ def close_incident(key: str, incidents: dict, result: dict, repo: str) -> None:
         "mode": info.get("mode", "maintenance" if is_maint else "incident"),
         "annulled": info.get("mode") == "annulled",
         "hidden": info.get("mode") == "hidden",
+        "labels": info.get("labels") or _event_labels({info.get("mode", "incident")}),
         "title": info.get("title", ""),
         "desc": info.get("desc", ""),
     })
@@ -435,6 +436,15 @@ def _event_mode(labels: set) -> str:
     if "rkn" in labels:
         return "rkn"
     return "incident"
+
+
+# Все служебные лейблы событий (в порядке приоритета для показа в интерфейсе)
+EVENT_LABELS = ("incident", "maintenance", "annulled", "hidden", "rkn")
+
+
+def _event_labels(labels: set) -> list:
+    """Служебные лейблы issue в порядке приоритета (то, что реально навешано)."""
+    return [l for l in EVENT_LABELS if l in (labels or set())]
 
 
 def _rewrite_points_interval(slug: str, opened_ts: str, mode: str) -> None:
@@ -574,6 +584,7 @@ def sync_incidents(incidents: dict, repo: str, sites: dict = None) -> None:
                     "maintenance": mode == "maintenance",
                     "mode": mode,
                     "title": _humanize_title(issue.get("title", ""), sites or {}),
+                    "labels": _event_labels(labels),
                     "desc": "",
                 }
                 changed = True
@@ -598,6 +609,7 @@ def sync_incidents(incidents: dict, repo: str, sites: dict = None) -> None:
                 "issue_number": info.get("issue_number"),
                 "opened": info["opened"],
                 "resolved": now,
+                "labels": info.get("labels") or _event_labels({info.get("mode", "incident")}),
                 "minutes": minutes,
                 "code": info.get("code", 0),
                 "ms": info.get("ms", 0),
@@ -614,11 +626,13 @@ def sync_incidents(incidents: dict, repo: str, sites: dict = None) -> None:
         else:
             labels = {l["name"] for l in issue.get("labels", [])}
             mode = _event_mode(labels)
-            if mode != info.get("mode"):
+            new_labels = _event_labels(labels)
+            if mode != info.get("mode") or info.get("labels") != new_labels:
                 info["mode"] = mode
                 info["maintenance"] = mode == "maintenance"
+                info["labels"] = new_labels
                 changed = True
-                print(f"{key}: режим события -> {mode} (по лейблу issue)")
+                print(f"{key}: режим события -> {mode} по лейблам {new_labels}")
                 # Ретроактивный пересчёт точек интервала issue
                 _rewrite_points_interval(slugify(key), info["opened"], mode)
             raw_title = issue.get("title", "")
@@ -699,11 +713,13 @@ def sync_closed_incidents(repo: str, sites: dict = None) -> None:
                         or e.get("maintenance") != (mode == "maintenance")
                         or e.get("annulled") != (mode == "annulled")
                         or e.get("hidden") != (mode == "hidden")
+                        or e.get("labels") != _event_labels(labels)
                         or (new_title and e.get("title") != new_title)):
                     e["mode"] = mode
                     e["maintenance"] = mode == "maintenance"
                     e["annulled"] = mode == "annulled"
                     e["hidden"] = mode == "hidden"
+                    e["labels"] = _event_labels(labels)
                     if new_title:
                         e["title"] = new_title
                     changed = True
@@ -740,6 +756,7 @@ def sync_closed_incidents(repo: str, sites: dict = None) -> None:
                 "mode": mode,
                 "annulled": mode == "annulled",
                 "hidden": mode == "hidden",
+                "labels": _event_labels(labels),
                 "title": title,
                 "desc": "",
             }
