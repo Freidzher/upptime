@@ -67,6 +67,7 @@ h1 {
 }
 .incident:hover { border-color: rgba(46, 204, 113, .5); transform: translateX(2px); }
 .incident .t { color: var(--muted); font-size: .8rem; }
+.incident .t.dur { color: var(--text); font-weight: 600; }
 .incident.incident { border-left-color: var(--fail); }
 .incident.maintenance { border-left-color: var(--warn); }
 .incident.annulled { opacity: .6; border-left-color: var(--gray); }

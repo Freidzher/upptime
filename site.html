@@ -10,7 +10,7 @@
   <link rel="icon" sizes="96x96" type="image/png" href="assets/icons/favicon-96x96.png">
   <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
   <link rel="manifest" href="assets/manifest.json">
-  <link rel="stylesheet" href="assets/css/status.css?v=11">
+  <link rel="stylesheet" href="assets/css/status.css?v=12">
   <title>Статистика — Runicore</title>
   <style>
     /* Уникальные стили страницы сервиса */
@@ -53,6 +53,8 @@
     <h1><span class="dot up" id="siteDot" style="display:none; width:14px; height:14px; vertical-align:middle; margin-right:10px;"></span><img class="favicon" id="siteFavicon" src="" alt="" style="display:none; width:32px; height:32px; border-radius:8px; vertical-align:middle; margin-right:10px;"><span id="siteName">Загрузка…</span></h1>
     <div class="banner ok" id="banner" style="display:none">⏳ Загрузка…</div>
     <div class="updated" id="updated"></div>
+    <div class="inc-title" id="activeTitle" style="display:none">Активные события</div>
+    <div id="activeIncidents"></div>
     <div class="stats" id="stats"></div>
     <div class="chart-card">
       <div class="chart-title">Время отклика</div>
@@ -64,8 +66,6 @@
       </div>
       <canvas id="chart"></canvas>
     </div>
-    <div class="inc-title" id="activeTitle" style="display:none">Активные события</div>
-    <div id="activeIncidents"></div>
     <div class="inc-title" id="pastTitle" style="display:none">Прошлые события</div>
     <div id="past"></div>
     <div class="pager" id="pastPager" style="display:none"></div>
@@ -73,7 +73,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
-  <script src="assets/js/common.js?v=9"></script>
+  <script src="assets/js/common.js?v=10"></script>
   <script src="assets/js/site.js?v=18"></script>
 </body>
 </html>
