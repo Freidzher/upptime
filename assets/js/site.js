@@ -132,6 +132,24 @@
 
       sumBySlug = {};
       for (const x of summary) sumBySlug[x.slug] = x;
+
+      // Активные события этого сервиса (из incidents.json), новые сверху
+      const activeList = Object.values(incidents || {})
+        .filter((i) => i.slug === slug && (i.mode || 'incident') !== 'hidden')
+        .sort((a, b) => (b.issue_number || 0) - (a.issue_number || 0));
+      const activeGroups = groupByIssue(activeList, sumBySlug)
+        .sort((a, b) => ((b.main.issue_number || 0) - (a.main.issue_number || 0)));
+      const activeEl = document.getElementById('activeIncidents');
+      if (activeEl) {
+        activeEl.innerHTML = '';
+        for (const g of activeGroups) renderEventGroup(activeEl, g, true, sumBySlug, commentsByIssue);
+      }
+      const activeTitle = document.getElementById('activeTitle');
+      if (activeTitle) {
+        activeTitle.textContent = 'Активные события' + (activeList.length ? ' (' + activeList.length + ')' : '');
+        activeTitle.style.display = activeGroups.length ? '' : 'none';
+      }
+
       const pastList = (log || []).filter((i) => i.slug === slug && !i.hidden)
         .sort((a, b) => (b.issue_number || 0) - (a.issue_number || 0));
       allPastGroups = groupByIssue(pastList, sumBySlug)

@@ -43,10 +43,13 @@ window.Runicore = (function () {
     if (!forceServiceLink && info.issue_number) d.href = 'incident.html?issue=' + info.issue_number;
     const started = fmtTs(info.opened);
     const resolved = fmtTs(info.resolved);
-    const meta = ['Начато: ' + started + ' МСК'];
-    if (resolved) meta.push('Закрыто: ' + resolved + ' МСК');
-    if (info.minutes) meta.push('Длительность: ' + pluralMin(info.minutes));
-    const metaHtml = '<span class="t">· ' + meta.join(' · ') + '</span>';
+    // 1-я строка: Длительность; 2-я строка: Начато · Закрыто
+    const when = ['Начато: ' + started + ' МСК'];
+    if (resolved) when.push('Закрыто: ' + resolved + ' МСК');
+    let metaHtml = '<span class="t">· ' + when.join(' · ') + '</span>';
+    if (info.minutes) {
+      metaHtml = '<span class="t">· Длительность: ' + pluralMin(info.minutes) + '</span><br>' + metaHtml;
+    }
     const rawName = info.name || (info.title || 'Сервис').replace(/ — недоступен$/, '').replace(/ — техработы$/, '');
     // Фавикон/эмодзи уже показывает ведущий эмодзи — не дублируем его в названии
     const name = iconHtml ? (rawName.replace(EMOJI_RE, '').trim() || rawName) : rawName;

@@ -50,9 +50,9 @@
     const allUp = summary.every((s) => s.status === 'up');
     banner.className = 'banner ' + (allUp ? 'ok' : 'fail');
     const hasMaint = Object.values(incidents || {}).some((i) => i.maintenance);
-    banner.innerHTML = allUp
-      ? '<span class="banner-dot' + (hasMaint ? ' warn' : '') + '"></span> Все сервисы работают'
-      : '<span class="banner-dot fail"></span> Сервисы нестабильны';
+    // Кружок баннера: слева статус (зелёный/красный), справа жёлтый при техработах
+    const dotCls = 'banner-dot' + (allUp ? '' : ' fail') + (hasMaint ? ' maint' : '');
+    banner.innerHTML = '<span class="' + dotCls + '"></span> ' + (allUp ? 'Все сервисы работают' : 'Сервисы нестабильны');
 
     rowsEl.innerHTML = '';
     const childDown = {};
@@ -80,7 +80,7 @@
           (emoji && !s.icon ? '<span class="favicon emoji">' + emoji + '</span>' : '') +
           (s.icon ? '<img class="favicon" src="api/' + s.slug + '/' + s.icon + '" alt="" onerror="this.style.display=\'none\'">' : '') +
           '<span class="name"></span>' +
-          '<span class="group-status"><b>' + s.uptimeDay + '</b> · ' + (s.curMs || 0) + ' мс</span>';
+          '<span class="group-status"><b>' + s.uptimeDay + '</b><span class="ms">' + (s.curMs || 0) + ' мс</span></span>';
         head.querySelector('.name').textContent = cleanName;
         rowsEl.appendChild(head);
         continue;
@@ -95,8 +95,7 @@
         '<span class="dot ' + (up ? 'up' : 'down') + (maintSlugs.has(s.slug) ? ' maint' : '') + '"></span>' +
         iconHtml +
         '<span class="name"></span>' +
-        '<span class="uptime"><b>' + s.uptimeDay + '</b> · ' + (s.curMs || 0) + ' мс</span>' +
-        '<span class="chevron">→</span>';
+        '<span class="uptime"><b>' + s.uptimeDay + '</b><span class="ms">' + (s.curMs || 0) + ' мс</span></span>';
       row.querySelector('.name').textContent = cleanName;
       rowsEl.appendChild(row);
     }
@@ -108,7 +107,9 @@
     const openGroups = groupByIssue(openList, sumBySlug)
       .sort((a, b) => ((b.main.issue_number || 0) - (a.main.issue_number || 0)));
     incEl.innerHTML = '';
-    document.getElementById('incTitle').style.display = openGroups.length ? '' : 'none';
+    const incTitleEl = document.getElementById('incTitle');
+    incTitleEl.textContent = 'Активные события' + (openList.length ? ' (' + openList.length + ')' : '');
+    incTitleEl.style.display = openGroups.length ? '' : 'none';
     for (const g of openGroups) renderEventGroup(incEl, g, true, sumBySlug, byIssue);
 
     // Прошлые события — строго по номеру Issue (номер = порядок создания = хронология).

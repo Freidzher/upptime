@@ -45,14 +45,17 @@ h1 {
 .banner-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: -1px; margin-right: 6px; background: var(--ok); box-shadow: 0 0 10px var(--ok); }
 .banner-dot.fail { background: var(--fail); box-shadow: 0 0 10px var(--fail); }
 .banner-dot.warn { background: var(--warn); box-shadow: 0 0 10px var(--warn); }
+/* Баннер при техработах: слева статус (зелёный/красный), справа жёлтый */
+.banner-dot.maint { background: linear-gradient(to right, var(--ok) 0 50%, var(--warn) 50% 100%); box-shadow: 0 0 10px var(--ok); }
+.banner-dot.fail.maint { background: linear-gradient(to right, var(--fail) 0 50%, var(--warn) 50% 100%); box-shadow: 0 0 10px var(--fail); }
 .dot { display: inline-block; border-radius: 50%; flex-shrink: 0; }
 .dot.up { background: var(--ok); box-shadow: 0 0 10px var(--ok); }
 .dot.down { background: var(--fail); box-shadow: 0 0 10px var(--fail); }
 .dot.warn { background: var(--warn); box-shadow: 0 0 10px var(--warn); }
 /* Плановые техработы: кружок делим пополам — слева фактический статус (зелёный/красный),
    справа жёлтый. Если техработ нет — кружок целиком одного цвета (как обычно). */
-.dot.up.maint { background: linear-gradient(to right, var(--ok) 0 50%, var(--warn) 50% 100%); box-shadow: none; }
-.dot.down.maint { background: linear-gradient(to right, var(--fail) 0 50%, var(--warn) 50% 100%); box-shadow: none; }
+.dot.up.maint { background: linear-gradient(to right, var(--ok) 0 50%, var(--warn) 50% 100%); box-shadow: 0 0 10px var(--ok); }
+.dot.down.maint { background: linear-gradient(to right, var(--fail) 0 50%, var(--warn) 50% 100%); box-shadow: 0 0 10px var(--fail); }
 .updated { text-align: left; color: var(--muted); font-size: .78rem; margin-bottom: 12px; }
 .inc-title { margin: 18px 0 10px; font-weight: 700; font-size: .95rem; }
 .incident {

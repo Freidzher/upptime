@@ -9,7 +9,7 @@
   <link rel="icon" sizes="96x96" type="image/png" href="assets/icons/favicon-96x96.png">
   <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
   <link rel="manifest" href="assets/manifest.json">
-  <link rel="stylesheet" href="assets/css/status.css?v=10">
+  <link rel="stylesheet" href="assets/css/status.css?v=11">
   <title>Runicore (Мониторинг)</title>
   <style>
     /* Уникальные стили главной страницы */
@@ -32,7 +32,9 @@
     .group-head .favicon.emoji { font-size: 18px; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
     .group-head .dot { width: 10px; height: 10px; }
     .group-head .name { flex: 1; color: var(--text); }
-    .group-head .group-status { font-size: .82rem; color: var(--muted); font-weight: 500; }
+    .group-head .group-status { display: flex; flex-direction: column; align-items: flex-end; font-size: .8rem; color: var(--muted); font-weight: 500; line-height: 1.3; }
+    .group-head .group-status b { color: var(--text); font-weight: 600; }
+    .group-head .group-status .ms { color: var(--muted); font-size: .74rem; }
 
     /* Компактные строки сервисов */
     .row {
@@ -50,9 +52,9 @@
     .row .favicon.emoji { font-size: 18px; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
     .row .dot { width: 10px; height: 10px; }
     .row .name { font-weight: 600; flex: 1; color: var(--text); }
-    .row .uptime { color: var(--muted); font-size: .88rem; }
-    .row .uptime b { color: var(--text); }
-    .row .chevron { color: var(--muted); transition: transform .25s; }
+    .row .uptime { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.3; font-size: .82rem; color: var(--muted); }
+    .row .uptime b { color: var(--text); font-weight: 600; }
+    .row .uptime .ms { color: var(--muted); font-size: .74rem; }
     /* Активные инциденты: свечение кромки */
     .incident.active { box-shadow: -3px 0 12px -6px var(--fail); }
     .incident.active.maintenance { box-shadow: -3px 0 12px -6px var(--warn); }
@@ -84,7 +86,7 @@
     <footer>© 2024–<span id="year"></span> Runicore. Все права защищены.</footer>
   </div>
 
-  <script src="assets/js/common.js?v=8"></script>
-  <script src="assets/js/app.js?v=17"></script>
+  <script src="assets/js/common.js?v=9"></script>
+  <script src="assets/js/app.js?v=18"></script>
 </body>
 </html>
