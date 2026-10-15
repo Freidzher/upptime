@@ -4,9 +4,11 @@
   "opened": "2026-10-15T13:16:47Z",
   "name": "🇸🇪 1.1 Стокгольм",
   "slug": "server8",
-   "maintenance": false,
-   "mode": "rkn",
-  "labels": ["rkn"],
+  "maintenance": false,
+  "mode": "rkn",
+  "labels": [
+   "rkn"
+  ],
   "title": "🇸🇪 1.1 Стокгольм,🇸🇪 2.1 Стокгольм — Поиск нового пути обхода в связи с недоступностью из России",
   "desc": ""
  },
@@ -15,10 +17,12 @@
   "opened": "2026-10-15T13:16:47Z",
   "name": "🇸🇪 2.1 Стокгольм",
   "slug": "server10",
-   "maintenance": false,
-   "mode": "rkn",
-  "labels": ["rkn"],
+  "maintenance": false,
+  "mode": "rkn",
+  "labels": [
+   "rkn"
+  ],
   "title": "🇸🇪 1.1 Стокгольм,🇸🇪 2.1 Стокгольм — Поиск нового пути обхода в связи с недоступностью из России",
   "desc": ""
-  }
+ }
 }
