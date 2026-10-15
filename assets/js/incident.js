@@ -7,7 +7,7 @@
   const descEl = document.getElementById('evtDesc');
   const commentsEl = document.getElementById('evtComments');
   const linksEl = document.getElementById('serviceLinks');
-  const { fmtTs, pluralMin, modeOf, setFooterYear, fetchJson, esc, EMOJI_RE } = window.Runicore;
+  const { fmtTs, fmtDuration, modeOf, setFooterYear, fetchJson, esc, EMOJI_RE } = window.Runicore;
 
   setFooterYear();
 
@@ -57,7 +57,7 @@
     statusEl.textContent = status;
     const parts = ['Начато: ' + started + ' МСК'];
     if (resolved) parts.push('Закрыто: ' + resolved + ' МСК');
-    if (info.minutes) parts.push('(🕑 ' + pluralMin(info.minutes) + ')');
+    if (info.minutes) parts.push('(🕑 ' + fmtDuration(info.minutes) + ')');
     metaEl.innerHTML = parts.map((p) => '<span>' + p + '</span>').join('');
 
     const desc = (info.desc || '').trim();

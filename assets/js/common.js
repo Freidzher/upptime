@@ -18,6 +18,24 @@ window.Runicore = (function () {
     return n + ' минут';
   }
 
+  // Прогрессивная длительность: минуты -> часы -> дни (24ч) -> месяцы (30д).
+  // Нулевые компоненты скрыты. Пример: 771 -> "12 ч. 51 мин.", 45000 -> "1 мес. 1 д. 6 ч."
+  function fmtDuration(totalMinutes) {
+    const m = Math.max(0, Math.round(totalMinutes || 0));
+    const months = Math.floor(m / 43200);   // 30 дней
+    let rem = m % 43200;
+    const days = Math.floor(rem / 1440);    // 24 часа
+    rem = rem % 1440;
+    const hours = Math.floor(rem / 60);
+    const mins = rem % 60;
+    const parts = [];
+    if (months) parts.push(months + ' мес.');
+    if (days) parts.push(days + ' д.');
+    if (hours) parts.push(hours + ' ч.');
+    if (mins) parts.push(mins + ' мин.');
+    return parts.length ? parts.join(' ') : '0 мин.';
+  }
+
   function modeOf(info, isMaint) {
     return info.mode || (info.annulled ? 'annulled' : (info.hidden ? 'hidden' : (info.maintenance || isMaint ? 'maintenance' : 'incident')));
   }
@@ -48,7 +66,7 @@ window.Runicore = (function () {
     if (resolved) when.push('Закрыто: ' + resolved + ' МСК');
     let metaHtml = '<span class="t">' + when.join(' · ') + '</span>';
     if (info.minutes) {
-      metaHtml = '<span class="t dur">(🕑 ' + pluralMin(info.minutes) + ')</span><br>' + metaHtml;
+      metaHtml = '<span class="t dur">(🕑 ' + fmtDuration(info.minutes) + ')</span><br>' + metaHtml;
     }
     const rawName = info.name || (info.title || 'Сервис').replace(/ — недоступен$/, '').replace(/ — техработы$/, '');
     // Фавикон/эмодзи уже показывает ведущий эмодзи — не дублируем его в названии
@@ -194,5 +212,5 @@ window.Runicore = (function () {
     return r.json();
   }
 
-  return { EMOJI_RE, esc, fmtTs, pluralMin, modeOf, statusText, incidentCard, eventIconHtml, groupByIssue, renderEventGroup, setFooterYear, fetchJson, renderPager };
+  return { EMOJI_RE, esc, fmtTs, pluralMin, fmtDuration, modeOf, statusText, incidentCard, eventIconHtml, groupByIssue, renderEventGroup, setFooterYear, fetchJson, renderPager };
 })();
