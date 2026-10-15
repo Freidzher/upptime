@@ -40,9 +40,8 @@
             const p = pts[ctx.dataIndex];
             return p && p.ok ? 'rgba(46,204,113,.15)' : 'rgba(255,79,109,.15)';
           },
-          // Окраска по приоритетному лейблу: annulled (серый) > maintenance (жёлтый) > rkn (голубой) > ok/fail
-          pointBackgroundColor: pts.map((e) => (e.annulled ? '#8a9b8f' : (e.maint ? '#f1c40f' : (e.rkn ? '#37b6ff' : (e.ok ? '#2ecc71' : '#ff4f6d'))))),
-          pointRadius: (ctx) => (pts[ctx.dataIndex] && (pts[ctx.dataIndex].maint || pts[ctx.dataIndex].rkn) ? 3.5 : 2),
+          pointBackgroundColor: pts.map((e) => (e.annulled ? '#8a9b8f' : (e.maint ? '#f1c40f' : (e.ok ? '#2ecc71' : '#ff4f6d')))),
+          pointRadius: (ctx) => (pts[ctx.dataIndex] && pts[ctx.dataIndex].maint ? 3.5 : 2),
           fill: true,
           tension: 0.35,
           segment: {

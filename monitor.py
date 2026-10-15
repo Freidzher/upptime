@@ -613,9 +613,6 @@ def sync_incidents(incidents: dict, repo: str, sites: dict = None) -> None:
             if mode != info.get("mode"):
                 info["mode"] = mode
                 info["maintenance"] = mode == "maintenance"
-                if mode != "incident":
-                    # «Код ошибки/Время отклика» неприменимо к ТО/РКН/аннулированию — убираем
-                    info["desc"] = ""
                 changed = True
                 print(f"{key}: режим события -> {mode} (по лейблу issue)")
                 # Ретроактивный пересчёт точек интервала issue
@@ -703,8 +700,6 @@ def sync_closed_incidents(repo: str, sites: dict = None) -> None:
                     e["maintenance"] = mode == "maintenance"
                     e["annulled"] = mode == "annulled"
                     e["hidden"] = mode == "hidden"
-                    if mode != "incident":
-                        e["desc"] = ""  # убираем «Код ошибки/Время отклика» для не-инцидентов
                     if new_title:
                         e["title"] = new_title
                     changed = True
@@ -1005,9 +1000,6 @@ def main() -> None:
         # Флаг техработ: если по сервису открыто maintenance-issue — точка на графике жёлтая
         if key in incidents and incidents[key].get("maintenance"):
             result["maint"] = True
-        # Флаг РКН: если по сервису открыт rkn-issue — точка на графике голубая
-        if key in incidents and incidents[key].get("mode") == "rkn":
-            result["rkn"] = True
 
         api = API_DIR / slug
         api.mkdir(parents=True, exist_ok=True)
