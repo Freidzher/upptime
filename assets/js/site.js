@@ -105,10 +105,12 @@
       const up = s.status === 'up';
       // Сервис под плановыми техработами? (активный maintenance-инцидент по этому slug)
       const isMaint = Object.values(incidents || {}).some((i) => i.maintenance && i.slug === slug);
+      // Сервис под «Возможными ограничениями» (РКН)? (активный rkn-инцидент по этому slug)
+      const isRkn = Object.values(incidents || {}).some((i) => (i.mode || '') === 'rkn' && i.slug === slug);
       banner.style.display = 'none';
       const dotEl = document.getElementById('siteDot');
       if (dotEl) {
-        dotEl.className = 'dot ' + (up ? 'up' : 'down') + (isMaint ? ' maint' : '');
+        dotEl.className = 'dot ' + (up ? 'up' : 'down') + (isMaint ? ' maint' : (isRkn ? ' rkn' : ''));
         dotEl.style.display = '';
       }
 

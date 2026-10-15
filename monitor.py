@@ -419,18 +419,21 @@ def close_incident(key: str, incidents: dict, result: dict, repo: str) -> None:
 
 # ---------- Лейблы и синхронизация с Issues ----------
 
-# Режимы события по лейблам issue (приоритет: hidden > annulled > maintenance > incident)
+# Режимы события по лейблам issue (приоритет: hidden > annulled > maintenance > incident > rkn)
 MAINT_LABELS = {
     "hidden": "Скрыто полностью: точки интервала — зелёные, аптайм зелёный, событие не показывается",
     "annulled": "Аннулировано: точки серые, из аптайма исключены, в истории серым",
     "maintenance": "Плановые техработы: точки жёлтые, из аптайма исключены",
+    "rkn": "Возможные ограничения (РКН): возможная блокировка/ограничение доступа со стороны РКН",
 }
 
 
 def _event_mode(labels: set) -> str:
-    for mode in ("hidden", "annulled", "maintenance"):
+    for mode in ("hidden", "annulled", "maintenance", "incident"):
         if mode in labels:
             return mode
+    if "rkn" in labels:
+        return "rkn"
     return "incident"
 
 
@@ -469,12 +472,14 @@ def _rewrite_points_interval(slug: str, opened_ts: str, mode: str) -> None:
 def ensure_labels(repo: str) -> None:
     """Создаёт служебные лейблы (если их нет), чтобы их можно было выбрать в UI Issues:
       incident    — падение сервиса (ставится автоматически монитором);
-      maintenance — техработы; annulled — аннулировано (серым); hidden — скрыто полностью."""
+      maintenance — техработы; annulled — аннулировано (серым); hidden — скрыто полностью;
+      rkn — возможные ограничения (РКН), голубой; приоритет ниже maintenance и incident."""
     wanted = {
         "incident": ("FF4F6D", "Падение сервиса (ставится автоматически монитором)"),
         "maintenance": ("F1C40F", MAINT_LABELS["maintenance"]),
         "annulled": ("8A9B8F", MAINT_LABELS["annulled"]),
         "hidden": ("4A554D", MAINT_LABELS["hidden"]),
+        "rkn": ("37B6FF", MAINT_LABELS["rkn"]),
     }
     existing = gh_api(f"/repos/{repo}/labels?per_page=100") or []
     names = {l["name"] for l in existing}
@@ -648,7 +653,7 @@ def sync_closed_incidents(repo: str, sites: dict = None) -> None:
     Журнал дедуплицируется по (issue_number, slug, opened) и сортируется по opened;
     хранится последние 100 записей (>= отслеживаемых 50 инцидентов)."""
     sites = sites or {}
-    our_labels = {"incident", "maintenance", "annulled", "hidden"}
+    our_labels = {"incident", "maintenance", "annulled", "hidden", "rkn"}
 
     # Пагинация закрытых issues (с запасом на последние 50+ инцидентов)
     issues = []
@@ -1020,11 +1025,12 @@ def main() -> None:
         write_site_files(slug, points, result)
 
         clean_name = EMOJI_RE.sub("", name).strip()
-        is_maint_now = key in incidents and incidents[key].get("maintenance")
-        if not result["ok"] and key not in incidents:
+        mode_now = incidents[key].get("mode") if key in incidents else None
+        if not result["ok"] and (key not in incidents or mode_now == "rkn"):
+            # RKN не экранирует реальный сбой: при падении всё равно открываем инцидент
             open_incident(key, clean_name or name, result, incidents, repo)
-        elif result["ok"] and key in incidents and not is_maint_now:
-            # Техработы завершаются только вручную (закрытием issue или снятием лейбла)
+        elif result["ok"] and key in incidents and mode_now not in ("maintenance", "annulled", "hidden", "rkn"):
+            # Реальные инциденты закрываются автоматически; admin-режимы (ТО/аннул/скрыто/РКН) — вручную
             close_incident(key, incidents, result, repo)
 
     # Итоговый summary по всем сайтам

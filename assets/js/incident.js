@@ -47,11 +47,12 @@
     cardEl.className = 'evt ' + mode;
     const started = fmtTs(info.opened);
     const resolved = fmtTs(info.resolved);
-    const label = { incident: 'Инцидент', maintenance: 'Техработы', annulled: 'Аннулировано', hidden: 'Скрыто' }[mode];
+    const label = { incident: 'Сбой', maintenance: 'Техработы', annulled: 'Аннулировано', hidden: 'Скрыто', rkn: 'РКН' }[mode];
     let status;
     if (mode === 'maintenance') status = active ? 'Идут плановые работы' : 'Плановые работы завершены';
     else if (mode === 'annulled') status = active ? 'Событие аннулировано (идёт)' : 'Событие аннулировано';
-    else status = active ? 'Сервис недоступен' : 'Восстановлено';
+    else if (mode === 'rkn') status = 'Возможные ограничения';
+    else status = active ? 'Сервис недоступен' : 'Исправлен';
     status = label + ' · ' + status;
 
     statusEl.textContent = status;

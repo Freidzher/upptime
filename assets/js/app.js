@@ -46,12 +46,17 @@
     // Сервисы под плановыми техработами (активные maintenance-инциденты)
     const maintSlugs = new Set(Object.values(incidents || {})
       .filter((i) => i.maintenance && i.slug).map((i) => i.slug));
+    // Сервисы под «Возможными ограничениями» (РКН) — активные rkn-инциденты
+    const rknSlugs = new Set(Object.values(incidents || {})
+      .filter((i) => (i.mode || '') === 'rkn' && i.slug).map((i) => i.slug));
 
     const allUp = summary.every((s) => s.status === 'up');
     banner.className = 'banner ' + (allUp ? 'ok' : 'fail');
     const hasMaint = Object.values(incidents || {}).some((i) => i.maintenance);
-    // Кружок баннера: слева статус (зелёный/красный), справа жёлтый при техработах
-    const dotCls = 'banner-dot' + (allUp ? '' : ' fail') + (hasMaint ? ' maint' : '');
+    const hasRkn = Object.values(incidents || {}).some((i) => (i.mode || '') === 'rkn');
+    // Кружок баннера: слева статус (зелёный/красный), справа жёлтый при техработах / голубой при РКН
+    const dotFlag = hasMaint ? ' maint' : (hasRkn ? ' rkn' : '');
+    const dotCls = 'banner-dot' + (allUp ? '' : ' fail') + dotFlag;
     banner.innerHTML = '<span class="' + dotCls + '"></span> ' + (allUp ? 'Все сервисы работают' : 'Сервисы нестабильны');
 
     rowsEl.innerHTML = '';
@@ -71,12 +76,15 @@
         // Техработы у головы группы или у любого вложенного сервиса
         const gMaint = maintSlugs.has(s.slug) ||
           summary.some((x) => x.group && x.group.startsWith(s.group + '.') && maintSlugs.has(x.slug));
+        // РКН у головы группы или у любого вложенного сервиса
+        const gRkn = rknSlugs.has(s.slug) ||
+          summary.some((x) => x.group && x.group.startsWith(s.group + '.') && rknSlugs.has(x.slug));
         // Кликабельный заголовок группы (ВМ): флаг-эмодзи, uptime и текущий отклик
         const head = document.createElement('a');
         head.className = 'group-head';
         head.href = 'site.html?site=' + encodeURIComponent(s.slug);
         head.innerHTML =
-          '<span class="dot ' + (gUp ? 'up' : 'down') + (gMaint ? ' maint' : '') + '"></span>' +
+          '<span class="dot ' + (gUp ? 'up' : 'down') + (gMaint ? ' maint' : (gRkn ? ' rkn' : '')) + '"></span>' +
           (emoji && !s.icon ? '<span class="favicon emoji">' + emoji + '</span>' : '') +
           (s.icon ? '<img class="favicon" src="api/' + s.slug + '/' + s.icon + '" alt="" onerror="this.style.display=\'none\'">' : '') +
           '<span class="name"></span>' +
@@ -92,7 +100,7 @@
         ? '<img class="favicon" src="api/' + s.slug + '/' + s.icon + '" alt="" onerror="this.style.display=\'none\'">'
         : (emoji ? '<span class="favicon emoji">' + emoji + '</span>' : '');
       row.innerHTML =
-        '<span class="dot ' + (up ? 'up' : 'down') + (maintSlugs.has(s.slug) ? ' maint' : '') + '"></span>' +
+        '<span class="dot ' + (up ? 'up' : 'down') + (maintSlugs.has(s.slug) ? ' maint' : (rknSlugs.has(s.slug) ? ' rkn' : '')) + '"></span>' +
         iconHtml +
         '<span class="name"></span>' +
         '<span class="uptime"><b>' + s.uptimeDay + '</b><span class="ms">' + (s.curMs || 0) + ' мс</span></span>';

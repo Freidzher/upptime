@@ -10,7 +10,7 @@
   <link rel="icon" sizes="96x96" type="image/png" href="assets/icons/favicon-96x96.png">
   <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
   <link rel="manifest" href="assets/manifest.json">
-  <link rel="stylesheet" href="assets/css/status.css?v=12">
+  <link rel="stylesheet" href="assets/css/status.css?v=13">
   <title>Событие — Runicore</title>
   <style>
     /* Уникальные стили страницы события */
@@ -27,10 +27,12 @@
     .evt.maintenance { border-left-color: var(--warn); }
     .evt.annulled { border-left-color: var(--gray); opacity: .75; }
     .evt.hidden { border-left-color: var(--gray); opacity: .6; }
+    .evt.rkn { border-left-color: var(--rkn); }
     .evt .status { font-weight: 700; font-size: 1.05rem; margin-bottom: 10px; }
     .evt.incident .status { color: var(--fail); }
     .evt.maintenance .status { color: var(--warn); }
     .evt.annulled .status, .evt.hidden .status { color: var(--gray); }
+    .evt.rkn .status { color: var(--rkn); }
     .evt .meta { color: var(--muted); font-size: .85rem; display: flex; flex-wrap: wrap; gap: 16px; }
     .evt .meta b { color: var(--text); }
     .evt .desc { font-size: .92rem; line-height: 1.55; white-space: pre-line; margin-top: 14px; }
@@ -74,7 +76,7 @@
     <footer>© 2024–<span id="year"></span> Runicore. Все права защищены.</footer>
   </div>
 
-  <script src="assets/js/common.js?v=12"></script>
-  <script src="assets/js/incident.js?v=11"></script>
+  <script src="assets/js/common.js?v=13"></script>
+  <script src="assets/js/incident.js?v=12"></script>
 </body>
 </html>

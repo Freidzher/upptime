@@ -41,10 +41,11 @@ window.Runicore = (function () {
   }
 
   function statusText(mode, active, resolved) {
-    if (mode === 'maintenance') return active ? 'плановые работы (идут)' : 'плановые работы завершены';
+    if (mode === 'rkn') return 'Возможные ограничения';
+    if (mode === 'maintenance') return active ? 'Идут плановые работы' : 'Плановые работы завершены';
     if (mode === 'annulled') return active ? 'аннулировано (идёт)' : 'аннулировано';
     if (active) return 'недоступен';
-    return 'восстановлено';
+    return 'Сбой исправлен';
   }
 
   // Единая карточка события: [favicon] <b>Имя</b> — статус · Начато: … [· 💬 N]
