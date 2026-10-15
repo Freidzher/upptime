@@ -57,7 +57,7 @@
     statusEl.textContent = status;
     const parts = ['Начато: ' + started + ' МСК'];
     if (resolved) parts.push('Закрыто: ' + resolved + ' МСК');
-    if (info.minutes) parts.push('Длительность: ' + pluralMin(info.minutes));
+    if (info.minutes) parts.push('(🕑 ' + pluralMin(info.minutes) + ')');
     metaEl.innerHTML = parts.map((p) => '<span>' + p + '</span>').join('');
 
     const desc = (info.desc || '').trim();

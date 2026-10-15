@@ -48,7 +48,7 @@ window.Runicore = (function () {
     if (resolved) when.push('Закрыто: ' + resolved + ' МСК');
     let metaHtml = '<span class="t">' + when.join(' · ') + '</span>';
     if (info.minutes) {
-      metaHtml = '<span class="t dur">Длительность: ' + pluralMin(info.minutes) + '</span><br>' + metaHtml;
+      metaHtml = '<span class="t dur">(🕑 ' + pluralMin(info.minutes) + ')</span><br>' + metaHtml;
     }
     const rawName = info.name || (info.title || 'Сервис').replace(/ — недоступен$/, '').replace(/ — техработы$/, '');
     // Фавикон/эмодзи уже показывает ведущий эмодзи — не дублируем его в названии
