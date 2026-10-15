@@ -440,8 +440,9 @@ def _event_mode(labels: set) -> str:
 def _rewrite_points_interval(slug: str, opened_ts: str, mode: str) -> None:
     """Ретроактивно переписывает точки в интервале [opened, сейчас] по режиму issue:
       maintenance -> ok=True, maint=True; annulled -> ok=True, annulled=True;
-      hidden -> ok=True (и maint/annulled сняты); incident -> снять все флаги."""
-    if mode not in ("hidden", "annulled", "maintenance"):
+      hidden -> ok=True (и maint/annulled сняты); incident -> снять все флаги;
+      rkn -> ok НЕ меняется (реальный сбой остаётся сбоем), точки помечаются rkn=True."""
+    if mode not in ("hidden", "annulled", "maintenance", "rkn"):
         return
     path = API_DIR / slug
     points = load_json(path / "points.json", [])
@@ -454,11 +455,14 @@ def _rewrite_points_interval(slug: str, opened_ts: str, mode: str) -> None:
         try:
             if _ts(p) >= cutoff:
                 if mode == "maintenance":
-                    p["ok"], p["maint"], p["annulled"] = True, True, False
+                    p["ok"], p["maint"], p["annulled"], p["rkn"] = True, True, False, False
                 elif mode == "annulled":
-                    p["ok"], p["maint"], p["annulled"] = True, False, True
+                    p["ok"], p["maint"], p["annulled"], p["rkn"] = True, False, True, False
+                elif mode == "rkn":
+                    # РКН не «лечит» реальные падения — только метит период голубым
+                    p["maint"], p["annulled"], p["rkn"] = False, False, True
                 else:  # hidden
-                    p["ok"], p["maint"], p["annulled"] = True, False, False
+                    p["ok"], p["maint"], p["annulled"], p["rkn"] = True, False, False, False
                 changed = True
         except Exception:
             continue
@@ -997,9 +1001,12 @@ def main() -> None:
             result = check_ssh(name, site["url"], site["timeout"])
         else:
             result = check_site(name, site["url"], site["timeout"])
-        # Флаг техработ: если по сервису открыто maintenance-issue — точка на графике жёлтая
-        if key in incidents and incidents[key].get("maintenance"):
+        # Флаги режима точки графика (по приоритетному лейблу): maintenance — жёлтая, rkn — голубая
+        _info_now = incidents.get(key) if incidents else None
+        if _info_now and _info_now.get("maintenance"):
             result["maint"] = True
+        elif _info_now and _info_now.get("mode") == "rkn":
+            result["rkn"] = True
 
         api = API_DIR / slug
         api.mkdir(parents=True, exist_ok=True)

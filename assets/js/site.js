@@ -22,6 +22,15 @@
   let commentsByIssue = {};
   let sumBySlug = {};
 
+  // Цвет точки/сегмента по приоритетному лейблу: annulled > maintenance > rkn > фактический статус
+  function pointColor(p) {
+    if (!p) return '#2ecc71';
+    if (p.annulled) return '#8a9b8f';
+    if (p.maint) return '#f1c40f';
+    if (p.rkn) return '#37b6ff';
+    return p.ok ? '#2ecc71' : '#ff4f6d';
+  }
+
   function renderChart(entries) {
     const cutoff = Date.now() - range * 3600 * 1000;
     const pts = entries.filter((e) => new Date(e.ts).getTime() > cutoff);
@@ -32,23 +41,30 @@
         labels: pts.map((e) => new Date(e.ts).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })),
         datasets: [{
           data: pts.map((e) => e.ms),
-          borderColor: (ctx) => {
-            const p = pts[ctx.dataIndex];
-            return p && p.ok ? '#2ecc71' : '#ff4f6d';
-          },
+          borderColor: (ctx) => pointColor(pts[ctx.dataIndex]),
           backgroundColor: (ctx) => {
             const p = pts[ctx.dataIndex];
             return p && p.ok ? 'rgba(46,204,113,.15)' : 'rgba(255,79,109,.15)';
           },
-          pointBackgroundColor: pts.map((e) => (e.annulled ? '#8a9b8f' : (e.maint ? '#f1c40f' : (e.ok ? '#2ecc71' : '#ff4f6d')))),
-          pointRadius: (ctx) => (pts[ctx.dataIndex] && pts[ctx.dataIndex].maint ? 3.5 : 2),
+          pointBackgroundColor: pts.map(pointColor),
+          pointBorderColor: pts.map(pointColor),
+          pointRadius: (ctx) => {
+            const p = pts[ctx.dataIndex];
+            return p && (p.maint || p.rkn) ? 3.5 : 2;
+          },
           fill: true,
           tension: 0.35,
           segment: {
             borderColor: (ctx) => {
               const p0 = pts[ctx.p0DataIndex];
               const p1 = pts[ctx.p1DataIndex];
-              return (p0 && p0.ok && p1 && p1.ok) ? '#2ecc71' : '#ff4f6d';
+              const c0 = pointColor(p0), c1 = pointColor(p1);
+              if (c0 === c1) return c0;
+              // Приоритет «режимной» точки: annulled > maintenance > rkn > статус
+              const rank = (c) => (c === '#8a9b8f' ? 3 : c === '#f1c40f' ? 2 : c === '#37b6ff' ? 1 : 0);
+              const r0 = rank(c0), r1 = rank(c1);
+              if (r0 || r1) return r0 >= r1 ? c0 : c1;
+              return (p0 && !p0.ok) || (p1 && !p1.ok) ? '#ff4f6d' : '#2ecc71';
             }
           },
         }],

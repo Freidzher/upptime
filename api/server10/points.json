@@ -40217,731 +40217,816 @@
   "ok": true,
   "code": 400,
   "ms": 2061,
-  "maint": true,
-  "annulled": false
+  "maint": false,
+  "annulled": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T13:25:40+00:00",
   "ok": true,
   "code": 400,
   "ms": 1900,
-  "maint": true,
-  "annulled": false
+  "maint": false,
+  "annulled": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T13:31:02+00:00",
   "ok": true,
   "code": 400,
   "ms": 1433,
-  "maint": true,
-  "annulled": false
+  "maint": false,
+  "annulled": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T13:35:34+00:00",
   "ok": true,
   "code": 400,
   "ms": 1305,
-  "maint": true,
-  "annulled": false
+  "maint": false,
+  "annulled": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T13:40:47+00:00",
   "ok": true,
   "code": 400,
   "ms": 1760,
-  "maint": true,
-  "annulled": false
+  "maint": false,
+  "annulled": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T13:45:44+00:00",
   "ok": true,
   "code": 400,
   "ms": 1220,
-  "maint": true,
-  "annulled": false
+  "maint": false,
+  "annulled": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T13:50:44+00:00",
   "ok": true,
   "code": 400,
   "ms": 1600,
-  "maint": true,
-  "annulled": false
+  "maint": false,
+  "annulled": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T13:55:39+00:00",
   "ok": true,
   "code": 400,
   "ms": 1776,
-  "maint": true,
-  "annulled": false
+  "maint": false,
+  "annulled": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T14:01:21+00:00",
   "ok": true,
   "code": 400,
   "ms": 1803,
-  "maint": true,
-  "annulled": false
+  "maint": false,
+  "annulled": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T14:05:35+00:00",
   "ok": true,
   "code": 400,
   "ms": 1292,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T14:06:12+00:00",
   "ok": true,
   "code": 400,
   "ms": 1943,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T14:10:42+00:00",
   "ok": true,
   "code": 400,
   "ms": 1288,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T14:14:35+00:00",
   "ok": true,
   "code": 400,
   "ms": 1770,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T14:15:46+00:00",
   "ok": true,
   "code": 400,
   "ms": 1378,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T14:20:46+00:00",
   "ok": true,
   "code": 400,
   "ms": 1420,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T14:25:35+00:00",
   "ok": true,
   "code": 400,
   "ms": 1579,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T14:31:12+00:00",
   "ok": true,
   "code": 400,
   "ms": 1954,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T14:35:38+00:00",
   "ok": true,
   "code": 400,
   "ms": 1979,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T14:40:46+00:00",
   "ok": true,
   "code": 400,
   "ms": 1888,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T14:45:45+00:00",
   "ok": true,
   "code": 400,
   "ms": 1342,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T14:50:45+00:00",
   "ok": true,
   "code": 400,
   "ms": 1743,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T14:55:34+00:00",
   "ok": true,
   "code": 400,
   "ms": 1339,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T15:01:28+00:00",
   "ok": true,
   "code": 400,
   "ms": 1856,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T15:05:45+00:00",
   "ok": true,
   "code": 400,
   "ms": 1868,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T15:10:50+00:00",
   "ok": true,
   "code": 400,
   "ms": 2030,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T15:15:55+00:00",
   "ok": true,
   "code": 400,
   "ms": 1750,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T15:20:47+00:00",
   "ok": true,
   "code": 400,
   "ms": 1864,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T15:25:33+00:00",
   "ok": true,
   "code": 400,
   "ms": 1346,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T15:31:05+00:00",
   "ok": true,
   "code": 400,
   "ms": 1678,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T15:35:37+00:00",
   "ok": true,
   "code": 400,
   "ms": 1676,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T15:40:47+00:00",
   "ok": true,
   "code": 400,
   "ms": 1752,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T15:45:44+00:00",
   "ok": true,
   "code": 400,
   "ms": 1375,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T15:50:44+00:00",
   "ok": true,
   "code": 400,
   "ms": 1700,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T15:55:33+00:00",
   "ok": true,
   "code": 400,
   "ms": 1312,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T16:01:19+00:00",
   "ok": true,
   "code": 400,
   "ms": 1602,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T16:05:39+00:00",
   "ok": true,
   "code": 400,
   "ms": 1762,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T16:10:43+00:00",
   "ok": true,
   "code": 400,
   "ms": 1358,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T16:15:50+00:00",
   "ok": true,
   "code": 400,
   "ms": 1830,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T16:20:45+00:00",
   "ok": true,
   "code": 400,
   "ms": 1962,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T16:25:34+00:00",
   "ok": true,
   "code": 400,
   "ms": 1368,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T16:31:20+00:00",
   "ok": true,
   "code": 400,
   "ms": 2031,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T16:35:39+00:00",
   "ok": true,
   "code": 400,
   "ms": 1693,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T16:40:41+00:00",
   "ok": true,
   "code": 400,
   "ms": 1452,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T16:45:44+00:00",
   "ok": true,
   "code": 400,
   "ms": 1354,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T16:50:48+00:00",
   "ok": true,
   "code": 400,
   "ms": 1746,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T16:55:38+00:00",
   "ok": true,
   "code": 400,
   "ms": 2084,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T17:01:17+00:00",
   "ok": true,
   "code": 400,
   "ms": 1453,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T17:05:41+00:00",
   "ok": true,
   "code": 400,
   "ms": 2112,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T17:10:48+00:00",
   "ok": true,
   "code": 400,
   "ms": 2025,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T17:15:45+00:00",
   "ok": true,
   "code": 400,
   "ms": 1516,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T17:20:45+00:00",
   "ok": true,
   "code": 400,
   "ms": 2059,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T17:21:26+00:00",
   "ok": true,
   "code": 400,
   "ms": 2108,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T17:25:35+00:00",
   "ok": true,
   "code": 400,
   "ms": 1447,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T17:31:02+00:00",
   "ok": true,
   "code": 400,
   "ms": 1465,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T17:35:36+00:00",
   "ok": true,
   "code": 400,
   "ms": 1667,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T17:40:48+00:00",
   "ok": true,
   "code": 400,
   "ms": 2067,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T17:45:50+00:00",
   "ok": true,
   "code": 400,
   "ms": 1773,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T17:50:41+00:00",
   "ok": true,
   "code": 400,
   "ms": 1472,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T17:55:36+00:00",
   "ok": true,
   "code": 400,
   "ms": 1533,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T18:01:15+00:00",
   "ok": true,
   "code": 400,
   "ms": 1489,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T18:05:34+00:00",
   "ok": true,
   "code": 400,
   "ms": 1522,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T18:10:46+00:00",
   "ok": true,
   "code": 400,
   "ms": 1629,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T18:15:52+00:00",
   "ok": true,
   "code": 400,
   "ms": 1897,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T18:20:48+00:00",
   "ok": true,
   "code": 400,
   "ms": 2012,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T18:25:38+00:00",
   "ok": true,
   "code": 400,
   "ms": 1665,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T18:31:08+00:00",
   "ok": true,
   "code": 400,
   "ms": 1822,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T18:35:38+00:00",
   "ok": true,
   "code": 400,
   "ms": 1803,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T18:40:45+00:00",
   "ok": true,
   "code": 400,
   "ms": 1924,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T18:45:49+00:00",
   "ok": true,
   "code": 400,
   "ms": 1785,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T18:50:46+00:00",
   "ok": true,
   "code": 400,
   "ms": 1789,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T18:55:37+00:00",
   "ok": true,
   "code": 400,
   "ms": 1802,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T19:01:12+00:00",
   "ok": true,
   "code": 400,
   "ms": 1338,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T19:05:38+00:00",
   "ok": true,
   "code": 400,
   "ms": 1925,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T19:10:46+00:00",
   "ok": true,
   "code": 400,
   "ms": 1807,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T19:15:47+00:00",
   "ok": true,
   "code": 400,
   "ms": 1570,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T19:20:42+00:00",
   "ok": true,
   "code": 400,
   "ms": 1514,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T19:25:38+00:00",
   "ok": true,
   "code": 400,
   "ms": 1905,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T19:31:04+00:00",
   "ok": true,
   "code": 400,
   "ms": 1086,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T19:35:34+00:00",
   "ok": true,
   "code": 400,
   "ms": 1264,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T19:40:40+00:00",
   "ok": true,
   "code": 400,
   "ms": 1214,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T19:45:45+00:00",
   "ok": true,
   "code": 400,
   "ms": 1233,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T19:50:41+00:00",
   "ok": true,
   "code": 400,
   "ms": 1331,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T19:55:38+00:00",
   "ok": true,
   "code": 400,
   "ms": 1748,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T20:01:10+00:00",
   "ok": true,
   "code": 400,
   "ms": 1201,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T20:05:35+00:00",
   "ok": true,
   "code": 400,
   "ms": 1425,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T20:10:42+00:00",
   "ok": true,
   "code": 400,
   "ms": 1648,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T20:15:45+00:00",
   "ok": true,
   "code": 400,
   "ms": 1542,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T20:20:37+00:00",
   "ok": true,
   "code": 400,
   "ms": 1053,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T20:25:32+00:00",
   "ok": true,
   "code": 400,
   "ms": 1314,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T20:26:04+00:00",
   "ok": true,
   "code": 400,
   "ms": 1171,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T20:31:05+00:00",
   "ok": true,
   "code": 400,
   "ms": 1630,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T20:35:35+00:00",
   "ok": true,
   "code": 400,
   "ms": 1382,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T20:40:42+00:00",
   "ok": true,
   "code": 400,
   "ms": 1534,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T20:45:42+00:00",
   "ok": true,
   "code": 400,
   "ms": 1113,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T20:50:41+00:00",
   "ok": true,
   "code": 400,
   "ms": 1359,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T20:55:34+00:00",
   "ok": true,
   "code": 400,
   "ms": 1244,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T21:01:16+00:00",
   "ok": true,
   "code": 400,
   "ms": 1720,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T21:05:37+00:00",
   "ok": true,
   "code": 400,
   "ms": 1436,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T21:10:44+00:00",
   "ok": true,
   "code": 400,
   "ms": 1274,
-  "maint": true
+  "maint": false,
+  "rkn": true
  },
  {
   "ts": "2026-10-15T23:01:17+00:00",
   "ok": true,
   "code": 400,
-  "ms": 1580
+  "ms": 1580,
+  "rkn": true,
+  "maint": false
  },
  {
   "ts": "2026-10-15T23:05:37+00:00",
   "ok": true,
   "code": 400,
-  "ms": 1737
- },
- {
-  "ts": "2026-10-15T23:10:38+00:00",
-  "ok": true,
-  "code": 400,
-  "ms": 1412
- },
- {
-  "ts": "2026-10-15T23:12:21+00:00",
-  "ok": true,
-  "code": 400,
-  "ms": 1542
- },
- {
-  "ts": "2026-10-15T23:15:45+00:00",
-  "ok": true,
-  "code": 400,
-  "ms": 1604
+  "ms": 1737,
+  "rkn": true,
+  "maint": false
  }
 ]
