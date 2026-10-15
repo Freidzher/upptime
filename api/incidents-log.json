@@ -382,37 +382,5 @@
   "hidden": false,
   "title": "🇷🇺 Москва,🇸🇪 1. Стокгольм,🇸🇪 2. Стокгольм — Плановое обновление инфраструктуры",
   "desc": ""
- },
- {
-  "name": "🇸🇪 2.1 Стокгольм",
-  "slug": "server10",
-  "issue_number": 171,
-  "opened": "2026-10-15T13:16:47Z",
-  "resolved": "2026-10-15T14:01:21+00:00",
-  "minutes": 45,
-  "code": 400,
-  "ms": 1803,
-  "maintenance": false,
-  "mode": "incident",
-  "annulled": false,
-  "hidden": false,
-  "title": "🇸🇪 1.1 Стокгольм,🇸🇪 2.1 Стокгольм — Поиск нового пути обхода в связи с недоступностью из России",
-  "desc": ""
- },
- {
-  "name": "🇸🇪 1.1 Стокгольм",
-  "slug": "server8",
-  "issue_number": 171,
-  "opened": "2026-10-15T13:16:47Z",
-  "resolved": "2026-10-15T14:01:26+00:00",
-  "minutes": 45,
-  "code": 400,
-  "ms": 1857,
-  "maintenance": false,
-  "mode": "incident",
-  "annulled": false,
-  "hidden": false,
-  "title": "🇸🇪 1.1 Стокгольм,🇸🇪 2.1 Стокгольм — Поиск нового пути обхода в связи с недоступностью из России",
-  "desc": ""
  }
 ]
