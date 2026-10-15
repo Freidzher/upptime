@@ -65,11 +65,12 @@
 
   async function load() {
     try {
-      const [summary, points, log, comments] = await Promise.all([
+      const [summary, points, log, comments, incidents] = await Promise.all([
         fetchJson('history/summary.json'),
         fetchJson('api/' + slug + '/points.json').catch(() => []),
         fetchJson('api/incidents-log.json').catch(() => []),
         fetchJson('api/issue-comments.json').catch(() => ({})),
+        fetchJson('api/incidents.json').catch(() => ({})),
       ]);
       cachedPoints = points || [];
       commentsByIssue = comments || {};
@@ -102,10 +103,12 @@
       }
 
       const up = s.status === 'up';
+      // Сервис под плановыми техработами? (активный maintenance-инцидент по этому slug)
+      const isMaint = Object.values(incidents || {}).some((i) => i.maintenance && i.slug === slug);
       banner.style.display = 'none';
       const dotEl = document.getElementById('siteDot');
       if (dotEl) {
-        dotEl.className = 'dot ' + (up ? 'up' : 'down');
+        dotEl.className = 'dot ' + (up ? 'up' : 'down') + (isMaint ? ' maint' : '');
         dotEl.style.display = '';
       }
 
