@@ -9,7 +9,7 @@
   <link rel="icon" sizes="96x96" type="image/png" href="assets/icons/favicon-96x96.png">
   <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
   <link rel="manifest" href="assets/manifest.json">
-  <link rel="stylesheet" href="assets/css/status.css?v=17">
+  <link rel="stylesheet" href="assets/css/status.css?v=18">
   <title>Runicore (Мониторинг)</title>
   <style>
     /* Уникальные стили главной страницы */
@@ -55,8 +55,10 @@
     .row .uptime { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.3; font-size: .82rem; color: var(--muted); }
     .row .uptime b { color: var(--text); font-weight: 600; }
     .row .uptime .ms { color: var(--muted); font-size: .74rem; }
-    /* Активные инциденты: свечение кромки */
+    /* Активные инциденты: свечение кромки.
+       Аннулировано: окантовка серая (см. status.css), свечение ЗЕЛЁНОЕ вместо красного. */
     .incident.active { box-shadow: -3px 0 12px -6px var(--fail); }
+    .incident.active.annulled { box-shadow: -3px 0 12px -6px var(--ok); }
     .incident.active.maintenance { box-shadow: -3px 0 12px -6px var(--warn); }
     .incident.active.rkn { box-shadow: -3px 0 12px -6px var(--rkn); }
 
@@ -87,7 +89,7 @@
     <footer>© 2024–<span id="year"></span> Runicore. Все права защищены.</footer>
   </div>
 
-  <script src="assets/js/common.js?v=17"></script>
+  <script src="assets/js/common.js?v=18"></script>
   <script src="assets/js/app.js?v=23"></script>
 </body>
 </html>

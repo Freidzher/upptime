@@ -103,15 +103,15 @@
   "minutes": 28,
   "code": 0,
   "ms": 90037,
-  "maintenance": false,
-  "mode": "rkn",
+  "maintenance": true,
+  "mode": "maintenance",
   "annulled": false,
   "hidden": false,
   "title": "1. Стокгольм — недоступен",
   "desc": "",
   "labels": [
-   "rkn",
-   "maintenance"
+   "maintenance",
+   "rkn"
   ]
  },
  {
@@ -123,15 +123,15 @@
   "minutes": 27,
   "code": 0,
   "ms": 90081,
-  "maintenance": false,
-  "mode": "rkn",
+  "maintenance": true,
+  "mode": "maintenance",
   "annulled": false,
   "hidden": false,
   "title": "1.2 Стокгольм — недоступен",
   "desc": "",
   "labels": [
-   "rkn",
-   "maintenance"
+   "maintenance",
+   "rkn"
   ]
  },
  {
@@ -143,15 +143,15 @@
   "minutes": 25,
   "code": 0,
   "ms": 90048,
-  "maintenance": false,
-  "mode": "rkn",
+  "maintenance": true,
+  "mode": "maintenance",
   "annulled": false,
   "hidden": false,
   "title": "1.1 Стокгольм — недоступен",
   "desc": "",
   "labels": [
-   "rkn",
-   "maintenance"
+   "maintenance",
+   "rkn"
   ]
  },
  {
@@ -240,14 +240,14 @@
   "code": 400,
   "ms": 1055,
   "maintenance": false,
-  "mode": "incident",
-  "annulled": false,
+  "mode": "annulled",
+  "annulled": true,
   "hidden": false,
   "title": "1.1 Стокгольм — недоступен",
   "desc": "- Код ошибки: 400\n- Время отклика: 1055 мс",
   "labels": [
-   "incident",
-   "annulled"
+   "annulled",
+   "incident"
   ]
  },
  {

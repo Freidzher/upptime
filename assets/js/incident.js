@@ -46,7 +46,8 @@
     document.title = titleEntries.map((e) => cleanName(e, sumBySlug)).join(', ') + ' — Событие — Runicore';
   }
 
-  // Бейджи под заголовком: слева длительность «🕑 …», затем лейблы (РКН > Сбой > Техработы > Аннулировано)
+  // Бейджи под заголовком: слева длительность «🕑 …», затем лейблы по приоритету
+  // (от высшего к низшему: Аннулировано > Техработы > Сбой > РКН; hidden не показывается)
   const LABEL_TEXT = { incident: 'Сбой', maintenance: 'Техработы', annulled: 'Аннулировано', hidden: 'Скрыто', rkn: 'РКН' };
   // prebuilt — готовая разметка (время + лейблы); иначе собираем из массива лейблов
   function renderLabelBadges(prebuilt, list) {
@@ -69,7 +70,10 @@
     else if (mode === 'annulled') status = active ? 'Идет аннулирование' : 'Аннулировано';
     else if (mode === 'rkn') status = 'Возможные ограничения';
     else status = active ? 'Сервис недоступен' : 'Исправлен';
-    statusEl.textContent = status;
+    // Полное название: «Сбой · Исправлен» (лейбл · статус).
+    // Если статус дублирует лейбл (Аннулировано · Аннулировано) — не повторяем.
+    const lbText = LABEL_TEXT[mode] || '';
+    statusEl.textContent = (lbText && lbText !== status) ? lbText + ' · ' + status : status;
 
     // Бейджи под заголовком: слева «🕑 …», затем лейблы по приоритету
     const parts = ['Начато: ' + started + ' МСК'];

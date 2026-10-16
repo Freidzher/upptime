@@ -67,33 +67,33 @@ window.Runicore = (function () {
     const mode = modeOf(info, info.maintenance);
     if (mode === 'hidden') return null;
     const d = document.createElement('a');
-    d.className = 'incident ' + mode;
+    // Класс active включает свечение кромки активного события (см. .incident.active.*)
+    d.className = 'incident' + (active ? ' active' : '') + ' ' + mode;
     const target = slug || info.slug;
     if (target) d.href = 'site.html?site=' + encodeURIComponent(target);
     if (!forceServiceLink && info.issue_number) d.href = 'incident.html?issue=' + info.issue_number;
     const started = fmtTs(info.opened);
     const resolved = fmtTs(info.resolved);
-    // 1-я строка: Длительность (белым); 2-я строка: Начато · Закрыто (без leading «· »)
+    // Слева: «Начато · Закрыто». Длительность «🕑 …» вынесена в лейбл СПРАВА (без скобок).
     const when = ['Начато: ' + started + ' МСК'];
     if (resolved) when.push('Закрыто: ' + resolved + ' МСК');
-    let metaHtml = '<span class="t">' + when.join(' · ') + '</span>';
+    const metaHtml = '<span class="t">' + when.join(' · ') + '</span>';
     const mins = liveMinutes(info, active);
-    if (mins) {
-      metaHtml = '<span class="t dur">(🕑 ' + fmtDuration(mins) + ')</span><br>' + metaHtml;
-    }
     const rawName = info.name || (info.title || 'Сервис').replace(/ — недоступен$/, '').replace(/ — техработы$/, '');
     // Фавикон/эмодзи уже показывает ведущий эмодзи — не дублируем его в названии
     const name = iconHtml ? (rawName.replace(EMOJI_RE, '').trim() || rawName) : rawName;
     const cCount = (commentsByIssue && info.issue_number)
       ? ((commentsByIssue[String(info.issue_number)] || []).length) : 0;
-    let badge = '';
+    // Правая колонка карточки (float): лейбл длительности и счётчик комментариев
+    let rightHtml = '';
+    if (mins) rightHtml += '<span class="ev-dur">🕑 ' + esc(fmtDuration(mins)) + '</span>';
     if (cCount > 0) {
-      d.style.paddingRight = '52px';  // место под вертикально центрированный бейдж
-      badge = '<span class="comment-badge" title="' + esc('Комментариев: ' + cCount) + '">💬 ' + cCount + '</span>';
+      rightHtml += '<span class="comment-badge" title="' + esc('Комментариев: ' + cCount) + '">💬 ' + cCount + '</span>';
     }
+    if (rightHtml) rightHtml = '<span class="ev-right">' + rightHtml + '</span>';
     // Имя сервиса пишем в ПОСЛЕДНИЙ <b>: первый занят бейджем лейбла
-    d.innerHTML = '<span class="lb lb-' + mode + '">' + esc(labelPrefix(mode)) + '</span>' +
-      (iconHtml || '') + '<b></b>' + esc(' — ' + statusText(mode, active, resolved) + ' ') + metaHtml + badge;
+    d.innerHTML = rightHtml + '<span class="lb lb-' + mode + '">' + esc(labelPrefix(mode)) + '</span>' +
+      (iconHtml || '') + '<b></b>' + esc(' — ' + statusText(mode, active, resolved) + ' ') + metaHtml;
     d.querySelector('b').textContent = name;
     return d;
   }

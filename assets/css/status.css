@@ -74,15 +74,25 @@ h1 {
 }
 .incident:hover { border-color: rgba(46, 204, 113, .5); transform: translateX(2px); }
 .incident .t { color: var(--muted); font-size: .8rem; }
-.incident .t.dur { color: var(--text); font-weight: 600; }
 .incident.incident { border-left-color: var(--fail); }
 .incident.maintenance { border-left-color: var(--warn); }
 .incident.annulled { opacity: .6; border-left-color: var(--gray); }
 .incident.hidden { border-left-color: var(--gray); }
 .incident.rkn { border-left-color: var(--rkn); }
+/* Правая колонка карточки события: лейбл длительности «🕑 …» + счётчик комментариев.
+   float: текст карточки обтекает их, без абсолютного позиционирования и скобок. */
+.incident .ev-right {
+  float: right; display: inline-flex; align-items: center; gap: 8px;
+  margin: 0 0 4px 14px;
+}
+.incident .ev-dur {
+  display: inline-block; padding: 1px 8px; border-radius: 999px;
+  border: 1px solid var(--border); background: rgba(255, 255, 255, 0.05);
+  color: var(--text); font-size: .74rem; font-weight: 700; line-height: 1.5;
+  white-space: nowrap;
+}
 .incident .comment-badge {
-  position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
-  color: var(--muted); font-size: .8rem; font-weight: 600;
+  color: var(--muted); font-size: .78rem; font-weight: 600;
   white-space: nowrap; user-select: none; transition: color .2s;
 }
 .incident:hover .comment-badge { color: var(--accent); }
