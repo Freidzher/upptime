@@ -43,7 +43,7 @@ window.Runicore = (function () {
   // Статус события (без префикса: лейбл выводится отдельным бейджем перед названием сервиса).
   // annulled и hidden — разные лейблы: «Аннулировано» показываем, hidden полностью скрывает событие.
   function statusText(mode, active, resolved) {
-    if (mode === 'rkn') return 'Возможные ограничения';
+    if (mode === 'rkn') return 'Возможны ограничения';
     if (mode === 'maintenance') return active ? 'Идут плановые работы' : 'Завершены';
     if (mode === 'annulled') return active ? 'Идет аннулирование' : 'Аннулировано';
     return active ? 'Недоступен' : 'Исправлен';
