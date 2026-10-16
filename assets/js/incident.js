@@ -66,7 +66,7 @@
     const resolved = fmtTs(info.resolved);
     let status;
     if (mode === 'maintenance') status = active ? 'Идут плановые работы' : 'Завершены';
-    else if (mode === 'annulled') status = active ? 'Аннулировано (идёт)' : 'Аннулировано';
+    else if (mode === 'annulled') status = active ? 'Идет аннулирование' : 'Аннулировано';
     else if (mode === 'rkn') status = 'Возможные ограничения';
     else status = active ? 'Сервис недоступен' : 'Исправлен';
     statusEl.textContent = status;

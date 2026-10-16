@@ -45,7 +45,7 @@ window.Runicore = (function () {
   function statusText(mode, active, resolved) {
     if (mode === 'rkn') return 'Возможные ограничения';
     if (mode === 'maintenance') return active ? 'Идут плановые работы' : 'Завершены';
-    if (mode === 'annulled') return 'Аннулировано';
+    if (mode === 'annulled') return active ? 'Идет аннулирование' : 'Аннулировано';
     return active ? 'Недоступен' : 'Исправлен';
   }
 
@@ -91,7 +91,8 @@ window.Runicore = (function () {
       d.style.paddingRight = '52px';  // место под вертикально центрированный бейдж
       badge = '<span class="comment-badge" title="' + esc('Комментариев: ' + cCount) + '">💬 ' + cCount + '</span>';
     }
-    d.innerHTML = '<b class="lb lb-' + mode + '">' + esc(labelPrefix(mode)) + '</b>' +
+    // Имя сервиса пишем в ПОСЛЕДНИЙ <b>: первый занят бейджем лейбла
+    d.innerHTML = '<span class="lb lb-' + mode + '">' + esc(labelPrefix(mode)) + '</span>' +
       (iconHtml || '') + '<b></b>' + esc(' — ' + statusText(mode, active, resolved) + ' ') + metaHtml + badge;
     d.querySelector('b').textContent = name;
     return d;
