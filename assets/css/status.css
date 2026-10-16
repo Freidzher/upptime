@@ -94,11 +94,12 @@ h1 {
    Мета («Начало/Решено») идёт отдельной строкой (.ev-meta). */
 .incident .ev-body { flex: 1 1 auto; min-width: 0; line-height: 1.45; }
 .incident .ev-meta { display: block; margin-top: 2px; }
-/* Правая колонка карточки: лейбл длительности «🕑 …» сверху, счётчик
-   комментариев «💬 N» — под ним по центру. Отдельный flex-блок (не float):
-   всегда вертикально по центру карточки, текст слева ничего не перекрывает. */
+/* Правая колонка карточки: лейбл длительности «☁ …» сверху, счётчик
+   комментариев «💬 N» — под ним. Всё прижато к правому краю (align-items: flex-end).
+   Отдельный flex-блок (не float): всегда вертикально по центру карточки,
+   текст слева ничего не перекрывает. */
 .incident .ev-right {
-  flex: 0 0 auto; display: inline-flex; flex-direction: column; align-items: center;
+  flex: 0 0 auto; display: inline-flex; flex-direction: column; align-items: flex-end;
   gap: 3px; margin-left: auto;
 }
 /* Плашка-заголовок статуса активного события: маленькая, капс, плотные буквы.
