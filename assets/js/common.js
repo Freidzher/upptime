@@ -41,11 +41,21 @@ window.Runicore = (function () {
   }
 
   function statusText(mode, active, resolved) {
-    if (mode === 'rkn') return 'Возможные ограничения';
-    if (mode === 'maintenance') return active ? 'Идут плановые работы' : 'Плановые работы завершены';
-    if (mode === 'annulled') return active ? 'аннулировано (идёт)' : 'аннулировано';
-    if (active) return 'недоступен';
-    return 'Сбой исправлен';
+    // Префикс — приоритетный лейбл (РКН > Сбой > Техработы > Аннулировано); annulled — без слова
+    if (mode === 'rkn') return 'РКН · Возможные ограничения';
+    if (mode === 'maintenance') return active ? 'Техработы · Идут плановые работы' : 'Техработы · Завершены';
+    if (mode === 'annulled') return active ? 'Аннулировано · идёт' : 'Аннулировано';
+    return active ? 'Сбой · Недоступен' : 'Сбой · Исправлен';
+  }
+
+  // Длительность в минутах: для закрытых — из minutes, для активных — до текущего момента
+  function liveMinutes(info, active) {
+    if (info && info.minutes) return info.minutes;
+    if (active && info && info.opened) {
+      const m = (Date.now() - new Date(info.opened).getTime()) / 60000;
+      if (m > 0) return Math.max(1, Math.round(m));
+    }
+    return 0;
   }
 
   // Единая карточка события: [favicon] <b>Имя</b> — статус · Начато: … [· 💬 N]
@@ -66,8 +76,9 @@ window.Runicore = (function () {
     const when = ['Начато: ' + started + ' МСК'];
     if (resolved) when.push('Закрыто: ' + resolved + ' МСК');
     let metaHtml = '<span class="t">' + when.join(' · ') + '</span>';
-    if (info.minutes) {
-      metaHtml = '<span class="t dur">(🕑 ' + fmtDuration(info.minutes) + ')</span><br>' + metaHtml;
+    const mins = liveMinutes(info, active);
+    if (mins) {
+      metaHtml = '<span class="t dur">(🕑 ' + fmtDuration(mins) + ')</span><br>' + metaHtml;
     }
     const rawName = info.name || (info.title || 'Сервис').replace(/ — недоступен$/, '').replace(/ — техработы$/, '');
     // Фавикон/эмодзи уже показывает ведущий эмодзи — не дублируем его в названии
@@ -79,7 +90,8 @@ window.Runicore = (function () {
       d.style.paddingRight = '52px';  // место под вертикально центрированный бейдж
       badge = '<span class="comment-badge" title="' + esc('Комментариев: ' + cCount) + '">💬 ' + cCount + '</span>';
     }
-    d.innerHTML = (iconHtml || '') + '<b></b>' + esc(' — ' + statusText(mode, active, resolved) + ' ') + metaHtml + badge;
+    d.innerHTML = (iconHtml || '') + '<b class="lb lb-' + mode + '">' + esc(labelPrefix(mode) + ' ') + '</b>' +
+      '<b></b>' + esc(' — ' + statusText(mode, active, resolved) + ' ') + metaHtml + badge;
     d.querySelector('b').textContent = name;
     return d;
   }
@@ -213,5 +225,11 @@ window.Runicore = (function () {
     return r.json();
   }
 
-  return { EMOJI_RE, esc, fmtTs, pluralMin, fmtDuration, modeOf, statusText, incidentCard, eventIconHtml, groupByIssue, renderEventGroup, setFooterYear, fetchJson, renderPager };
+  // Приоритетный лейбл события — бейджом перед названием сервиса
+  const LABEL_SHORT = { rkn: 'РКН', incident: 'Сбой', maintenance: 'Техработы', annulled: 'Аннул.', hidden: 'Скрыто' };
+  function labelPrefix(mode) {
+    return LABEL_SHORT[mode] || (mode ? mode[0].toUpperCase() + mode.slice(1) : 'Сбой');
+  }
+
+  return { EMOJI_RE, esc, fmtTs, pluralMin, fmtDuration, modeOf, statusText, liveMinutes, labelPrefix, incidentCard, eventIconHtml, groupByIssue, renderEventGroup, setFooterYear, fetchJson, renderPager };
 })();

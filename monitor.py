@@ -429,22 +429,24 @@ MAINT_LABELS = {
 }
 
 
-def _event_mode(labels: set) -> str:
-    for mode in ("hidden", "annulled", "maintenance", "incident"):
-        if mode in labels:
-            return mode
-    if "rkn" in labels:
-        return "rkn"
-    return "incident"
-
-
-# Все служебные лейблы событий (в порядке приоритета для показа в интерфейсе)
-EVENT_LABELS = ("incident", "maintenance", "annulled", "hidden", "rkn")
+# Служебные лейблы в порядке приоритета (РКН > Сбой > Техработы > Аннулировано).
+# hidden в списке намеренно отсутствует: с ним событие полностью скрыто и не показывается.
+EVENT_LABELS = ("rkn", "incident", "maintenance", "annulled")
 
 
 def _event_labels(labels: set) -> list:
-    """Служебные лейблы issue в порядке приоритета (то, что реально навешано)."""
+    """Служебные лейблы issue в порядке приоритета для интерфейса (hidden скрыт по определению)."""
     return [l for l in EVENT_LABELS if l in (labels or set())]
+
+
+def _event_mode(labels: set) -> str:
+    # hidden — высший приоритет: событие полностью скрыто
+    if "hidden" in (labels or set()):
+        return "hidden"
+    for mode in EVENT_LABELS:
+        if mode in labels:
+            return mode
+    return "incident"
 
 
 def _rewrite_points_interval(slug: str, opened_ts: str, mode: str) -> None:

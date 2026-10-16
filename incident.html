@@ -10,7 +10,7 @@
   <link rel="icon" sizes="96x96" type="image/png" href="assets/icons/favicon-96x96.png">
   <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
   <link rel="manifest" href="assets/manifest.json">
-  <link rel="stylesheet" href="assets/css/status.css?v=13">
+  <link rel="stylesheet" href="assets/css/status.css?v=14">
   <title>Событие — Runicore</title>
   <style>
     /* Уникальные стили страницы события */
@@ -35,6 +35,8 @@
     .evt-lb-annulled { color: var(--gray); border-color: rgba(138,155,143,.45); background: rgba(138,155,143,.1); }
     .evt-lb-hidden { color: var(--gray); border-color: rgba(74,85,77,.5); background: rgba(74,85,77,.12); }
     .evt-lb-rkn { color: var(--rkn); border-color: rgba(55,182,255,.45); background: rgba(55,182,255,.1); }
+    /* Бейдж длительности «(🕑 …)» — слева от лейблов, нейтральный */
+    .evt-lb-dur { color: var(--text); border-color: var(--border); background: rgba(255,255,255,0.04); font-weight: 600; }
     .evt {
       background: var(--card); border: 1px solid var(--border); border-left-width: 4px;
       border-radius: 12px; padding: 18px 20px; margin-bottom: 18px;
@@ -95,7 +97,7 @@
     <footer>© 2024–<span id="year"></span> Runicore. Все права защищены.</footer>
   </div>
 
-  <script src="assets/js/common.js?v=13"></script>
-  <script src="assets/js/incident.js?v=13"></script>
+  <script src="assets/js/common.js?v=14"></script>
+  <script src="assets/js/incident.js?v=14"></script>
 </body>
 </html>

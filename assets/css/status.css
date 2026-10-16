@@ -91,6 +91,18 @@ h1 {
 .incident .ev-fav { width: 16px; height: 16px; border-radius: 4px; vertical-align: -3px; margin-right: 8px; }
 .incident .ev-fav.emoji { width: auto; height: auto; font-size: 15px; vertical-align: -2px; }
 
+/* Приоритетный лейбл события — бейджем перед названием сервиса */
+.incident b.lb {
+  display: inline-block; margin-right: 8px; padding: 1px 8px;
+  border-radius: 999px; font-size: .72rem; font-weight: 700; line-height: 1.5;
+  border: 1px solid; background: rgba(255,255,255,0.04); vertical-align: 1px;
+  white-space: nowrap;
+}
+.incident b.lb-incident { color: var(--fail); border-color: rgba(255,79,109,.45); background: rgba(255,79,109,.12); }
+.incident b.lb-maintenance { color: var(--warn); border-color: rgba(241,196,15,.45); background: rgba(241,196,15,.12); }
+.incident b.lb-annulled { color: var(--gray); border-color: rgba(138,155,143,.45); background: rgba(138,155,143,.12); }
+.incident b.lb-rkn { color: var(--rkn); border-color: rgba(55,182,255,.45); background: rgba(55,182,255,.12); }
+
 /* Группа событий одного Issue: главная карточка + раскрытие затронутых сервисов.
    Наведение на группу сдвигает её целиком (как карточку) — анимация едина. */
 .evt-group { margin-bottom: 10px; transition: transform .15s; }

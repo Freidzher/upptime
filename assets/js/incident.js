@@ -8,7 +8,7 @@
   const commentsEl = document.getElementById('evtComments');
   const linksEl = document.getElementById('serviceLinks');
   const labelsEl = document.getElementById('evtLabels');
-  const { fmtTs, fmtDuration, modeOf, setFooterYear, fetchJson, esc, EMOJI_RE } = window.Runicore;
+  const { fmtTs, fmtDuration, modeOf, liveMinutes, setFooterYear, fetchJson, esc, EMOJI_RE } = window.Runicore;
 
   setFooterYear();
 
@@ -48,11 +48,13 @@
 
   // Бейджи лейблов под заголовком (по приоритету: Сбой > Техработы > Аннулировано > РКН)
   const LABEL_TEXT = { incident: 'Сбой', maintenance: 'Техработы', annulled: 'Аннулировано', hidden: 'Скрыто', rkn: 'РКН' };
-  function renderLabelBadges(labels) {
+  // prebuilt — готовая разметка (время + лейблы); иначе собираем из массива лейблов
+  function renderLabelBadges(prebuilt, list) {
     if (!labelsEl) return;
-    const list = (labels || []).filter((l) => LABEL_TEXT[l]);
-    if (!list.length) { labelsEl.style.display = 'none'; labelsEl.innerHTML = ''; return; }
-    labelsEl.innerHTML = list.map((l) =>
+    if (prebuilt) { labelsEl.innerHTML = prebuilt; labelsEl.style.display = ''; return; }
+    const items = (list || []).filter((l) => LABEL_TEXT[l]);
+    if (!items.length) { labelsEl.style.display = 'none'; labelsEl.innerHTML = ''; return; }
+    labelsEl.innerHTML = items.map((l) =>
       '<span class="evt-lb evt-lb-' + l + '">' + esc(LABEL_TEXT[l] || l) + '</span>').join('');
     labelsEl.style.display = '';
   }
@@ -64,19 +66,22 @@
     const resolved = fmtTs(info.resolved);
     const label = { incident: 'Сбой', maintenance: 'Техработы', annulled: 'Аннулировано', hidden: 'Скрыто', rkn: 'РКН' }[mode];
     let status;
-    if (mode === 'maintenance') status = active ? 'Идут плановые работы' : 'Плановые работы завершены';
-    else if (mode === 'annulled') status = active ? 'Событие аннулировано (идёт)' : 'Событие аннулировано';
+    if (mode === 'maintenance') status = active ? 'Идут плановые работы' : 'Завершены';
+    else if (mode === 'annulled') status = active ? 'Событие аннулировано (идёт)' : 'Аннулировано';
     else if (mode === 'rkn') status = 'Возможные ограничения';
     else status = active ? 'Сервис недоступен' : 'Исправлен';
-    status = label + ' · ' + status;
+    statusEl.textContent = label + ' · ' + status;
 
-    statusEl.textContent = status;
-    renderLabelBadges(info.labels);
+    // Бейджи под заголовком: слева «(🕑 …)», затем лейблы по приоритету
     const parts = ['Начато: ' + started + ' МСК'];
     if (resolved) parts.push('Закрыто: ' + resolved + ' МСК');
-    if (info.minutes) parts.push('(🕑 ' + fmtDuration(info.minutes) + ')');
-    // Неразрывные блоки: «(🕑 …)» и даты переносятся целиком, а не по кусочкам
     metaEl.innerHTML = parts.map((p) => '<span class="nb">' + p + '</span>').join('');
+    const mins = liveMinutes(info, active);
+    const lbList = (info.labels || []).filter((l) => LABEL_TEXT[l]);
+    let badges = '';
+    if (mins) badges += '<span class="evt-lb evt-lb-dur">(🕑 ' + esc(fmtDuration(mins)) + ')</span>';
+    badges += lbList.map((l) => '<span class="evt-lb evt-lb-' + l + '">' + esc(LABEL_TEXT[l]) + '</span>').join('');
+    renderLabelBadges(badges, lbList);
 
     const desc = (info.desc || '').trim();
     const metaText = parts.join('\n');
