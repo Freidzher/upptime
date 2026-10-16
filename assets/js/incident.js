@@ -64,13 +64,12 @@
     cardEl.className = 'evt ' + mode;
     const started = fmtTs(info.opened);
     const resolved = fmtTs(info.resolved);
-    const label = { incident: 'Сбой', maintenance: 'Техработы', annulled: 'Аннулировано', hidden: 'Скрыто', rkn: 'РКН' }[mode];
     let status;
     if (mode === 'maintenance') status = active ? 'Идут плановые работы' : 'Завершены';
     else if (mode === 'annulled') status = active ? 'Событие аннулировано (идёт)' : 'Аннулировано';
     else if (mode === 'rkn') status = 'Возможные ограничения';
     else status = active ? 'Сервис недоступен' : 'Исправлен';
-    statusEl.textContent = label + ' · ' + status;
+    statusEl.textContent = status;
 
     // Бейджи под заголовком: слева «(🕑 …)», затем лейблы по приоритету
     const parts = ['Начато: ' + started + ' МСК'];
@@ -79,7 +78,7 @@
     const mins = liveMinutes(info, active);
     const lbList = (info.labels || []).filter((l) => LABEL_TEXT[l]);
     let badges = '';
-    if (mins) badges += '<span class="evt-lb evt-lb-dur">(🕑 ' + esc(fmtDuration(mins)) + ')</span>';
+    if (mins) badges += '<span class="evt-lb evt-lb-dur">🕑 ' + esc(fmtDuration(mins)) + '</span>';
     badges += lbList.map((l) => '<span class="evt-lb evt-lb-' + l + '">' + esc(LABEL_TEXT[l]) + '</span>').join('');
     renderLabelBadges(badges, lbList);
 

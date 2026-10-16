@@ -40,12 +40,12 @@ window.Runicore = (function () {
     return info.mode || (info.annulled ? 'annulled' : (info.hidden ? 'hidden' : (info.maintenance || isMaint ? 'maintenance' : 'incident')));
   }
 
+  // Статус без префикса лейбла (лейбл выводится отдельным бейджем перед названием)
   function statusText(mode, active, resolved) {
-    // Префикс — приоритетный лейбл (РКН > Сбой > Техработы > Аннулировано); annulled — без слова
-    if (mode === 'rkn') return 'РКН · Возможные ограничения';
-    if (mode === 'maintenance') return active ? 'Техработы · Идут плановые работы' : 'Техработы · Завершены';
-    if (mode === 'annulled') return active ? 'Аннулировано · идёт' : 'Аннулировано';
-    return active ? 'Сбой · Недоступен' : 'Сбой · Исправлен';
+    if (mode === 'rkn') return 'Возможные ограничения';
+    if (mode === 'maintenance') return active ? 'Идут плановые работы' : 'Завершены';
+    if (mode === 'annulled') return active ? 'идёт' : 'Аннулировано';
+    return active ? 'Недоступен' : 'Исправлен';
   }
 
   // Длительность в минутах: для закрытых — из minutes, для активных — до текущего момента
@@ -90,8 +90,8 @@ window.Runicore = (function () {
       d.style.paddingRight = '52px';  // место под вертикально центрированный бейдж
       badge = '<span class="comment-badge" title="' + esc('Комментариев: ' + cCount) + '">💬 ' + cCount + '</span>';
     }
-    d.innerHTML = (iconHtml || '') + '<b class="lb lb-' + mode + '">' + esc(labelPrefix(mode) + ' ') + '</b>' +
-      '<b></b>' + esc(' — ' + statusText(mode, active, resolved) + ' ') + metaHtml + badge;
+    d.innerHTML = '<b class="lb lb-' + mode + '">' + esc(labelPrefix(mode)) + '</b>' +
+      (iconHtml || '') + '<b></b>' + esc(' — ' + statusText(mode, active, resolved) + ' ') + metaHtml + badge;
     d.querySelector('b').textContent = name;
     return d;
   }
