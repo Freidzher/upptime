@@ -81,7 +81,7 @@
           summary.some((x) => x.group && x.group.startsWith(s.group + '.') && rknSlugs.has(x.slug));
         // Кликабельный заголовок группы (ВМ): флаг-эмодзи, uptime и текущий отклик
         const head = document.createElement('a');
-        head.className = 'group-head';
+        head.className = 'group-head ' + (gUp ? 'up' : 'down') + (gMaint ? ' maint' : (gRkn ? ' rkn' : ''));
         head.href = 'site.html?site=' + encodeURIComponent(s.slug);
         head.innerHTML =
           '<span class="dot ' + (gUp ? 'up' : 'down') + (gMaint ? ' maint' : (gRkn ? ' rkn' : '')) + '"></span>' +
@@ -94,7 +94,9 @@
         continue;
       }
       const row = document.createElement('a');
-      row.className = 'row' + (s.group ? ' nested' : '');
+      // Класс состояния (up/down + maint/rkn) — для цветной подсветки карточки (см. index.html)
+      row.className = 'row' + (s.group ? ' nested' : '') + ' ' + (up ? 'up' : 'down') +
+        (maintSlugs.has(s.slug) ? ' maint' : (rknSlugs.has(s.slug) ? ' rkn' : ''));
       row.href = 'site.html?site=' + encodeURIComponent(s.slug);
       const iconHtml = s.icon
         ? '<img class="favicon" src="api/' + s.slug + '/' + s.icon + '" alt="" onerror="this.style.display=\'none\'">'

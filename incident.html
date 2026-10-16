@@ -10,14 +10,14 @@
   <link rel="icon" sizes="96x96" type="image/png" href="assets/icons/favicon-96x96.png">
   <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
   <link rel="manifest" href="assets/manifest.json">
-  <link rel="stylesheet" href="assets/css/status.css?v=22">
+  <link rel="stylesheet" href="assets/css/status.css?v=23">
   <title>Событие — Runicore</title>
   <style>
     /* Уникальные стили страницы события */
     h1 { font-size: 1.6rem; font-weight: 800; margin-bottom: 14px; }
     #evtTitle { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 2px 12px; }
     #evtTitle .ev-fav { width: 26px; height: 26px; border-radius: 6px; }
-    #evtTitle .ev-fav.emoji { width: auto; height: auto; font-size: 24px; -webkit-text-fill-color: initial; }
+    #evtTitle .ev-fav.emoji { width: auto; height: auto; font-size: 24px; line-height: 1; -webkit-text-fill-color: initial; }
     #evtTitle .title-sep { color: var(--muted); -webkit-text-fill-color: initial; }
     /* Неразрывность: флаг/иконка вместе с названием не переносятся по частям */
     #evtTitle .svc-name-wrap { display: inline-flex; align-items: center; gap: 10px; white-space: nowrap; }
@@ -80,7 +80,7 @@
     }
     .service-btn:hover { background: rgba(46, 204, 113, 0.2); border-color: rgba(46, 204, 113, .5); }
     .service-btn .ev-fav { width: 18px; height: 18px; border-radius: 4px; }
-    .service-btn .ev-fav.emoji { width: auto; height: auto; font-size: 16px; -webkit-text-fill-color: initial; }
+    .service-btn .ev-fav.emoji { width: auto; height: auto; font-size: 16px; line-height: 1; -webkit-text-fill-color: initial; }
     /* На странице события кнопки уходят вниз — уменьшаем зазор до футера */
     footer { margin-top: 24px; }
   </style>
@@ -100,7 +100,7 @@
     <footer>© 2024–<span id="year"></span> Runicore. Все права защищены.</footer>
   </div>
 
-  <script src="assets/js/common.js?v=22"></script>
+  <script src="assets/js/common.js?v=23"></script>
   <script src="assets/js/incident.js?v=21"></script>
 </body>
 </html>
