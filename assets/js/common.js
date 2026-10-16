@@ -59,14 +59,14 @@ window.Runicore = (function () {
     return 0;
   }
 
-  // Единая карточка события: [favicon] <b>Имя</b> — статус · 💬 N / Начало: … · Решено: …
+  // Единая карточка события: [favicon+статус] <b>Имя</b> — статус · 💬 N / Начало: …
   // commentsByIssue — карта { "<issue>": [...] }; счётчик комментариев идёт в строку
-  // названия после статуса. iconHtml — фавикон/эмодзи сервиса (см. eventIconHtml).
-  // forceServiceLink=true — вести на страницу сервиса (site.html?site=slug),
-  // иначе на incident.html?issue=N.
-  // Раскладка: flex-строка — слева текстовый блок .ev-body (лейбл, иконка, имя,
-  // статус, «· 💬 N», ниже строкой мета «Начало/Решено»), справа .ev-right
-  // (длительность 🕑), вертикально по центру; текст ничего не перекрывает.
+  // названия после статуса. iconHtml — фавикон/эмодзи сервиса (см. eventIconHtml),
+  // выводится ВНУТРИ лейбла режима. forceServiceLink=true — вести на страницу
+  // сервиса (site.html?site=slug), иначе на incident.html?issue=N.
+  // Раскладка: flex-строка — слева текстовый блок .ev-body (лейбл с иконкой, имя,
+  // статус, «· 💬 N», ниже строкой мета «Начало: …»), справа .ev-right
+  // (длительность 🕑 с подсказкой «Решено: …»), вертикально по центру.
   function incidentCard(info, active, slug, commentsByIssue, iconHtml, forceServiceLink) {
     const mode = modeOf(info, info.maintenance);
     if (mode === 'hidden') return null;
@@ -78,30 +78,38 @@ window.Runicore = (function () {
     if (!forceServiceLink && info.issue_number) d.href = 'incident.html?issue=' + info.issue_number;
     const started = fmtTs(info.opened);
     const resolved = fmtTs(info.resolved);
-    // Мета события — отдельной строкой под названием: «Начало: …» и «Решено: …»
-    const when = ['Начало: ' + started + ' МСК'];
-    if (resolved) when.push('Решено: ' + resolved + ' МСК');
-    const metaHtml = '<span class="t ev-meta">' + when.join(' · ') + '</span>';
     const mins = liveMinutes(info, active);
+    // Мета события — отдельной строкой под названием: «Начало: …».
+    // «Решено: …» переехало в подсказку лейбла длительности «🕑 …» (экономия строки);
+    // если лейбл вдруг не отрисуется — «Решено» остаётся в мете, чтобы не потеряться.
+    const resolvedInDur = mins > 0 && !!resolved;
+    const when = ['Начало: ' + started + ' МСК'];
+    if (resolved && !resolvedInDur) when.push('Решено: ' + resolved + ' МСК');
+    const metaHtml = '<span class="t ev-meta">' + when.join(' · ') + '</span>';
     const rawName = info.name || (info.title || 'Сервис').replace(/ — недоступен$/, '').replace(/ — техработы$/, '');
     // Фавикон/эмодзи уже показывает ведущий эмодзи — не дублируем его в названии
     const name = iconHtml ? (rawName.replace(EMOJI_RE, '').trim() || rawName) : rawName;
     const cCount = (commentsByIssue && info.issue_number)
       ? ((commentsByIssue[String(info.issue_number)] || []).length) : 0;
     // Правая колонка карточки (flex): только длительность «🕑 …».
+    // Наведение на лейбл показывает время решения («Решено: … МСК»).
     // Счётчик комментариев переехал в строку названия — рядом с именем сервиса.
+    const durTitle = resolvedInDur ? ' title="' + esc('Решено: ' + resolved + ' МСК') + '"' : '';
     const rightHtml = mins
-      ? '<span class="ev-right"><span class="ev-dur">🕑 ' + esc(fmtDuration(mins)) + '</span></span>'
+      ? '<span class="ev-right"><span class="ev-dur"' + durTitle + '>🕑 ' + esc(fmtDuration(mins)) + '</span></span>'
       : '';
-    // Строка названия: лейбл режима, иконка, имя сервиса, статус (только у активных)
-    // и счётчик комментариев «· 💬 N». Имя пишем в ПОСЛЕДНИЙ <b>: первый занят лейблом.
+    // Строка названия: лейбл режима (с фавиконом/смайликом внутри), имя сервиса,
+    // статус (только у активных) и счётчик комментариев «· 💬 N».
+    // Имя пишем в ПОСЛЕДНИЙ <b>: первый занят лейблом.
     // В прошлых событиях статус после тире не показываем: режим и так несёт лейбл,
-    // а «Решено: …» однозначно говорит, что событие закрыто — экономим место.
+    // а решение видно в подсказке «🕑 …» — экономим место.
+    // Точка-разделитель «·» — своя вложенная span с белым цветом: при наведении
+    // зеленеет только «💬 N», точка остаётся белой.
     const cInline = cCount > 0
-      ? ' <span class="comment-badge" title="' + esc('Комментариев: ' + cCount) + '">· 💬 ' + cCount + '</span>'
+      ? ' <span class="comment-badge" title="' + esc('Комментариев: ' + cCount) + '"><span class="cmt-sep">·</span> 💬 ' + cCount + '</span>'
       : '';
-    const headHtml = '<span class="lb lb-' + mode + '">' + esc(labelPrefix(mode)) + '</span>' +
-      (iconHtml || '') + '<b></b>' +
+    const headHtml = '<span class="lb lb-' + mode + '">' + (iconHtml || '') + esc(labelPrefix(mode)) + '</span>' +
+      '<b></b>' +
       (active ? esc(' — ' + statusText(mode, active, resolved)) : '') + cInline;
     d.innerHTML = '<span class="ev-body">' + headHtml + metaHtml + '</span>' + rightHtml;
     d.querySelector('b').textContent = name;
