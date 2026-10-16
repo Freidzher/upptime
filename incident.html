@@ -10,11 +10,11 @@
   <link rel="icon" sizes="96x96" type="image/png" href="assets/icons/favicon-96x96.png">
   <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
   <link rel="manifest" href="assets/manifest.json">
-  <link rel="stylesheet" href="assets/css/status.css?v=24">
+  <link rel="stylesheet" href="assets/css/status.css?v=27">
   <title>Событие — Runicore</title>
   <style>
     /* Уникальные стили страницы события */
-    h1 { font-size: 1.6rem; font-weight: 800; margin-bottom: 14px; }
+    h1 { font-size: 1.6rem; font-weight: 800; margin-bottom: 18px; }
     #evtTitle { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 2px 12px; }
     #evtTitle .ev-fav { width: 26px; height: 26px; border-radius: 6px; }
     #evtTitle .ev-fav.emoji { width: auto; height: auto; font-size: 24px; line-height: 1; -webkit-text-fill-color: initial; }
@@ -23,7 +23,7 @@
     #evtTitle .svc-name-wrap { display: inline-flex; align-items: center; gap: 10px; white-space: nowrap; }
     #evtTitle .svc-name { white-space: nowrap; }
     /* Бейджи лейблов под заголовком */
-    .evt-labels { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
+    .evt-labels { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 18px; }
     .evt-lb {
       display: inline-flex; align-items: center;
       border-radius: 999px; padding: 3px 12px;
@@ -39,7 +39,7 @@
     .evt-lb-dur { color: var(--text); border-color: var(--border); background: rgba(255,255,255,0.04); font-weight: 600; }
     .evt {
       background: var(--card); border: 1px solid var(--border); border-left-width: 4px;
-      border-radius: 12px; padding: 18px 20px; margin-bottom: 18px;
+      border-radius: 12px; padding: 20px 22px; margin-bottom: 22px;
     }
     /* Цветная полоска статуса + свечение того же цвета */
     .evt.incident { border-left-color: var(--fail); box-shadow: -3px 0 12px -6px var(--fail); }
@@ -47,7 +47,7 @@
     .evt.annulled { border-left-color: var(--gray); opacity: .75; box-shadow: -3px 0 12px -6px var(--gray); }
     .evt.hidden { border-left-color: var(--gray); opacity: .6; box-shadow: -3px 0 12px -6px var(--gray); }
     .evt.rkn { border-left-color: var(--rkn); box-shadow: -3px 0 12px -6px var(--rkn); }
-    .evt .status { font-weight: 700; font-size: 1.05rem; margin-bottom: 10px; }
+    .evt .status { font-weight: 700; font-size: 1.05rem; margin-bottom: 12px; }
     .evt.incident .status { color: var(--fail); }
     .evt.maintenance .status { color: var(--warn); }
     /* Аннулировано: окантовка и статус серые (как у скрытого); hidden — серый */
@@ -64,21 +64,21 @@
     .evt .desc b { color: var(--text); }
 
     /* Комментарии администратора (из GitHub Issues) */
-    .comments { margin-top: 0; margin-bottom: 16px; display: flex; flex-direction: column; gap: 12px; }
+    .comments { margin-top: 0; margin-bottom: 20px; display: flex; flex-direction: column; gap: 14px; }
     .comment {
       background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--accent);
-      border-radius: 10px; padding: 12px 16px; backdrop-filter: blur(8px);
+      border-radius: 10px; padding: 14px 18px; backdrop-filter: blur(8px);
     }
-    .comment-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px; }
+    .comment-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 8px; }
     .comment-head b { color: #52f099; font-size: .9rem; }
     .comment-time { color: var(--muted); font-size: .78rem; }
     .comment-body { font-size: .92rem; line-height: 1.5; white-space: pre-line; word-break: break-word; }
-    .service-links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .service-links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
     .service-btn {
       display: inline-flex; align-items: center; gap: 8px;
       background: rgba(46, 204, 113, 0.1); border: 1px solid var(--border);
       color: #52f099; text-decoration: none; border-radius: 10px;
-      padding: 8px 14px; font-size: .85rem; font-weight: 600; transition: background .2s, border-color .2s;
+      padding: 10px 16px; font-size: .85rem; font-weight: 600; transition: background .2s, border-color .2s;
     }
     .service-btn:hover { background: rgba(46, 204, 113, 0.2); border-color: rgba(46, 204, 113, .5); }
     .service-btn .ev-fav { width: 18px; height: 18px; border-radius: 4px; }
@@ -102,7 +102,7 @@
     <footer>© 2024–<span id="year"></span> Runicore. Все права защищены.</footer>
   </div>
 
-  <script src="assets/js/common.js?v=23"></script>
-  <script src="assets/js/incident.js?v=22"></script>
+  <script src="assets/js/common.js?v=27"></script>
+  <script src="assets/js/incident.js?v=25"></script>
 </body>
 </html>

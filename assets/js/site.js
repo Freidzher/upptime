@@ -163,7 +163,7 @@
       }
       const activeTitle = document.getElementById('activeTitle');
       if (activeTitle) {
-        activeTitle.textContent = 'Активные события' + (activeList.length ? ' (' + activeList.length + ')' : '');
+        activeTitle.textContent = '⚡️ Активные события' + (activeList.length ? ' (' + activeList.length + ')' : '');
         activeTitle.style.display = activeGroups.length ? '' : 'none';
       }
 
@@ -173,7 +173,7 @@
         .sort((a, b) => ((b.main.issue_number || 0) - (a.main.issue_number || 0)));
       const pastTitle = document.getElementById('pastTitle');
       if (pastTitle) {
-        pastTitle.textContent = 'Прошлые события' + (pastList.length ? ' (' + pastList.length + ')' : '');
+        pastTitle.textContent = '✅ Прошлые события' + (pastList.length ? ' (' + pastList.length + ')' : '');
         pastTitle.style.display = allPastGroups.length ? '' : 'none';
       }
       renderPast();

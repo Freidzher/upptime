@@ -39,6 +39,15 @@
   }
 
   function render(summary, incidents, log, byIssue) {
+    // Заголовок списка сервисов — только когда есть что показывать.
+    // Считаем сервисы: группы-заголовки (isGroup) в счёт не идут; если сервисов
+    // нет вовсе — показываем количество серверов-групп.
+    const rowsTitleEl = document.getElementById('rowsTitle');
+    if (rowsTitleEl) {
+      rowsTitleEl.style.display = summary.length ? '' : 'none';
+      const svcCount = summary.filter((s) => !s.isGroup).length;
+      rowsTitleEl.textContent = '🦄 Все сервисы (' + (svcCount || summary.length) + ')';
+    }
     if (!summary.length) { banner.textContent = 'Нет данных — монитор ещё не запускался'; return; }
     commentsByIssue = byIssue || {};
     sumBySlug = {};
@@ -118,7 +127,7 @@
       .sort((a, b) => ((b.main.issue_number || 0) - (a.main.issue_number || 0)));
     incEl.innerHTML = '';
     const incTitleEl = document.getElementById('incTitle');
-    incTitleEl.textContent = 'Активные события' + (openList.length ? ' (' + openList.length + ')' : '');
+    incTitleEl.textContent = '⚡️ Активные события' + (openList.length ? ' (' + openList.length + ')' : '');
     incTitleEl.style.display = openGroups.length ? '' : 'none';
     for (const g of openGroups) renderEventGroup(incEl, g, true, sumBySlug, byIssue);
 
@@ -130,7 +139,7 @@
       .sort((a, b) => ((b.main.issue_number || 0) - (a.main.issue_number || 0)));
     const pastTitleEl = document.getElementById('pastTitle');
     const incCount = pastList.length;
-    pastTitleEl.textContent = 'Прошлые события' + (incCount ? ' (' + incCount + ')' : '');
+    pastTitleEl.textContent = '✅ Прошлые события' + (incCount ? ' (' + incCount + ')' : '');
     pastTitleEl.style.display = allPastGroups.length ? '' : 'none';
     renderPast();
   }

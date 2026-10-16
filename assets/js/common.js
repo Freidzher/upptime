@@ -59,14 +59,15 @@ window.Runicore = (function () {
     return 0;
   }
 
-  // Единая карточка события: [favicon+статус] <b>Имя</b> — статус / Начало: …
+  // Единая карточка события: [favicon+статус] <b>Имя</b> / Начало: …
   // commentsByIssue — карта { "<issue>": [...] }; счётчик комментариев идёт в правую
   // колонку под лейбл длительности. iconHtml — фавикон/эмодзи сервиса
   // (см. eventIconHtml), выводится ВНУТРИ лейбла режима. forceServiceLink=true —
   // вести на страницу сервиса (site.html?site=slug), иначе на incident.html?issue=N.
-  // Раскладка: flex-строка — слева текстовый блок .ev-body (лейбл с иконкой, имя,
-  // статус, ниже строкой мета «Начало: …»), справа .ev-right (длительность 🕑
-  // с подсказкой «Решено: …», под ней по центру «💬 N»), вертикально по центру.
+  // Раскладка: flex-строка — слева текстовый блок .ev-body (сверху плашка статуса
+  // активного события, ниже лейбл с иконкой + имя, затем строка меты), справа
+  // .ev-right (длительность 🕑 с подсказкой «Решено: …», под ней по центру «💬 N»),
+  // вертикально по центру.
   function incidentCard(info, active, slug, commentsByIssue, iconHtml, forceServiceLink) {
     const mode = modeOf(info, info.maintenance);
     if (mode === 'hidden') return null;
@@ -79,12 +80,12 @@ window.Runicore = (function () {
     const started = fmtTs(info.opened);
     const resolved = fmtTs(info.resolved);
     const mins = liveMinutes(info, active);
-    // Мета события — отдельной строкой под названием: «Начало: …».
-    // «Решено: …» переехало в подсказку лейбла длительности «🕑 …» (экономия строки);
-    // если лейбл вдруг не отрисуется — «Решено» остаётся в мете, чтобы не потеряться.
+    // Мета события — отдельной строкой под названием: «С <дата>» (сбой начался с…),
+    // затем «· По <дата>». Дата решения дублируется в подсказке лейбла длительности
+    // «🕑 …» (экономия строки); если лейбл вдруг не отрисуется — остаётся в мете.
     const resolvedInDur = mins > 0 && !!resolved;
-    const when = ['Начало: ' + started + ' МСК'];
-    if (resolved && !resolvedInDur) when.push('Решено: ' + resolved + ' МСК');
+    const when = ['С ' + started + ' МСК'];
+    if (resolved && !resolvedInDur) when.push('По ' + resolved + ' МСК');
     const metaHtml = '<span class="t ev-meta">' + when.join(' · ') + '</span>';
     const rawName = info.name || (info.title || 'Сервис').replace(/ — недоступен$/, '').replace(/ — техработы$/, '');
     // Фавикон/эмодзи уже показывает ведущий эмодзи — не дублируем его в названии
@@ -92,23 +93,30 @@ window.Runicore = (function () {
     const cCount = (commentsByIssue && info.issue_number)
       ? ((commentsByIssue[String(info.issue_number)] || []).length) : 0;
     // Правая колонка карточки (flex): длительность «🕑 …» сверху,
-    // под ней — счётчик комментариев «💬 N» по центру. Наведение на лейбл
-    // длительности показывает время решения («Решено: … МСК»).
-    const durTitle = resolvedInDur ? ' title="' + esc('Решено: ' + resolved + ' МСК') + '"' : '';
+    // под ней — счётчик комментариев «💬 N» по центру. Подсказка лейбла
+    // длительности: у решённых — дата решения («По … МСК»), у активных —
+    // текущая дата по МСК (событие ещё открыто, длительность тикает).
+    const durTitle = resolvedInDur
+      ? ' title="' + esc('По ' + resolved + ' МСК') + '"'
+      : (mins ? ' title="' + esc('Сейчас: ' + new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' }) + ' МСК') + '"' : '');
     let rightInner = '';
     if (mins) rightInner += '<span class="ev-dur"' + durTitle + '>🕑 ' + esc(fmtDuration(mins)) + '</span>';
     if (cCount > 0) {
       rightInner += '<span class="comment-badge" title="' + esc('Комментариев: ' + cCount) + '">💬 ' + cCount + '</span>';
     }
     const rightHtml = rightInner ? '<span class="ev-right">' + rightInner + '</span>' : '';
-    // Строка названия: лейбл режима (с фавиконом/смайликом внутри), имя сервиса
-    // и статус (только у активных). Имя пишем в ПОСЛЕДНИЙ <b>: первый занят лейблом.
-    // В прошлых событиях статус после тире не показываем: режим и так несёт лейбл,
-    // а решение видно в подсказке «🕑 …» — экономим место.
+    // Плашка-заголовок статуса активного события: маленькая, капс, плотные буквы,
+    // сидит на стыке верхней границы карточки по центру. У прошлых событий плашки нет;
+    // у вложенных сервисов группы прячем через CSS (.evt-sub) — статус один на группу.
+    const statusPill = active
+      ? '<span class="ev-status st-' + mode + '">' +
+        esc(statusText(mode, active, resolved).toUpperCase()) + '</span>'
+      : '';
+    // Строка названия: лейбл режима (с фавиконом/смайликом внутри) и имя сервиса.
+    // Имя пишем в ПОСЛЕДНИЙ <b>: первый занят лейблом.
     const headHtml = '<span class="lb lb-' + mode + '">' + (iconHtml || '') + esc(labelPrefix(mode)) + '</span>' +
-      '<b></b>' +
-      (active ? esc(' — ' + statusText(mode, active, resolved)) : '');
-    d.innerHTML = '<span class="ev-body">' + headHtml + metaHtml + '</span>' + rightHtml;
+      '<b></b>';
+    d.innerHTML = statusPill + '<span class="ev-body">' + headHtml + metaHtml + '</span>' + rightHtml;
     d.querySelector('b').textContent = name;
     return d;
   }

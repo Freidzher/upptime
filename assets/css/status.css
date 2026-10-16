@@ -37,7 +37,7 @@ h1 {
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
 }
 .banner {
-  border-radius: 14px; padding: 14px 20px; margin-bottom: 8px;
+  border-radius: 14px; padding: 16px 22px; margin-bottom: 18px;
   background: var(--card); border: 1px solid var(--border);
   font-weight: 600; font-size: .95rem;
 }
@@ -63,8 +63,9 @@ h1 {
 /* Возможные ограничения (РКН): кружок делим пополам — слева фактический статус, справа голубой */
 .dot.up.rkn { background: linear-gradient(to right, var(--ok) 0 50%, var(--rkn) 50% 100%); box-shadow: 0 0 10px var(--ok); }
 .dot.down.rkn { background: linear-gradient(to right, var(--fail) 0 50%, var(--rkn) 50% 100%); box-shadow: 0 0 10px var(--fail); }
-.updated { text-align: left; color: var(--muted); font-size: .78rem; margin-bottom: 12px; }
-.inc-title { margin: 18px 0 10px; font-weight: 700; font-size: .95rem; }
+.updated { text-align: left; color: var(--muted); font-size: .78rem; margin-bottom: 16px; }
+/* Заголовки секций: ровный ритм — сверху отступ побольше, снизу поменьше */
+.inc-title { margin: 26px 0 14px; font-weight: 700; font-size: .95rem; }
 /* Карточка события в списках (index/site). Исключаем .evt — это карточка
    события на странице incident.html (класс «incident» там означает режим),
    у неё своя блочная раскладка, flex-строка ей не нужна. */
@@ -72,7 +73,7 @@ h1 {
   display: flex; align-items: center; gap: 14px;
   text-decoration: none; color: var(--text); position: relative;
   background: var(--card); border: 1px solid var(--border); border-radius: 10px;
-  padding: 12px 16px; margin-bottom: 8px; font-size: .88rem;
+  padding: 12px 16px; margin-bottom: 12px; font-size: .88rem;
   border-left-width: 3px;
   transition: border-color .25s, transform .15s;
 }
@@ -95,6 +96,20 @@ h1 {
   flex: 0 0 auto; display: inline-flex; flex-direction: column; align-items: center;
   gap: 3px; margin-left: auto;
 }
+/* Плашка-заголовок статуса активного события: маленькая, капс, плотные буквы.
+   Сидит на стыке верхней границы карточки, по центру (position: absolute к карточке). */
+.incident .ev-status {
+  position: absolute; top: -1px; left: 50%; transform: translate(-50%, -50%); z-index: 1;
+  display: inline-block; padding: 1px 8px; border-radius: 999px;
+  font-size: .6rem; font-weight: 700; letter-spacing: 0; line-height: 1.4;
+  border: 1px solid; white-space: nowrap;
+}
+.incident .ev-status.st-incident { color: var(--fail); border-color: rgba(255,79,109,.45); background: rgba(255,79,109,.12); }
+.incident .ev-status.st-maintenance { color: var(--warn); border-color: rgba(241,196,15,.45); background: rgba(241,196,15,.12); }
+.incident .ev-status.st-annulled { color: var(--gray); border-color: rgba(138,155,143,.45); background: rgba(138,155,143,.12); }
+.incident .ev-status.st-rkn { color: var(--rkn); border-color: rgba(55,182,255,.45); background: rgba(55,182,255,.12); }
+/* Вложенные сервисы группы: плашку не дублируем — статус уже на главной карточке */
+.evt-sub .ev-status { display: none; }
 .incident .ev-dur {
   display: inline-block; padding: 1px 8px; border-radius: 999px;
   border: 1px solid var(--border); background: rgba(255, 255, 255, 0.05);
@@ -140,7 +155,7 @@ h1 {
 
 /* Группа событий одного Issue: главная карточка + раскрытие затронутых сервисов.
    Наведение на группу сдвигает её целиком (как карточку) — анимация едина. */
-.evt-group { margin-bottom: 10px; transition: transform .15s; }
+.evt-group { margin-bottom: 12px; transition: transform .15s; }
 .evt-group:hover { transform: translateX(2px); }
 .evt-group > .incident { margin-bottom: 0; border-radius: 10px 10px 0 0; }
 /* Не перекрываем цветную статус-полоску слева: наведение сдвигает всю группу,
@@ -150,7 +165,7 @@ h1 {
   display: flex; align-items: center; gap: 6px; width: 100%; text-align: left;
   background: rgba(4, 26, 12, 0.5); border: 1px solid var(--border); border-top: none;
   border-left-width: 3px; border-radius: 0 0 10px 10px; color: var(--muted);
-  padding: 8px 16px; font-size: .8rem; cursor: pointer;
+  padding: 10px 16px; font-size: .8rem; cursor: pointer;
   transition: color .2s, background .2s, border-color .25s;
 }
 .evt-notch[data-mode="incident"] { border-left-color: var(--fail); box-shadow: -3px 0 12px -6px var(--fail); }
@@ -160,7 +175,7 @@ h1 {
 .evt-notch[data-mode="rkn"] { border-left-color: var(--rkn); box-shadow: -3px 0 12px -6px var(--rkn); }
 .evt-notch:hover { color: var(--text); background: rgba(6, 36, 16, 0.7); }
 .evt-notch-arrow { display: inline-block; width: 14px; }
-.evt-subs { padding: 8px 0 4px 14px; display: flex; flex-direction: column; gap: 6px; }
+.evt-subs { padding: 10px 0 6px 14px; display: flex; flex-direction: column; gap: 8px; }
 .evt-subs .evt-sub { font-size: .84rem; }
 
 /* Поле быстрого перехода к странице в пагинации — у правого края,
