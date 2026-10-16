@@ -10,7 +10,7 @@
   <link rel="icon" sizes="96x96" type="image/png" href="assets/icons/favicon-96x96.png">
   <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
   <link rel="manifest" href="assets/manifest.json">
-  <link rel="stylesheet" href="assets/css/status.css?v=23">
+  <link rel="stylesheet" href="assets/css/status.css?v=24">
   <title>Событие — Runicore</title>
   <style>
     /* Уникальные стили страницы события */
@@ -54,7 +54,9 @@
     .evt.annulled .status { color: var(--gray); }
     .evt.hidden .status { color: var(--gray); }
     .evt.rkn .status { color: var(--rkn); }
-    .evt .meta { color: var(--muted); font-size: .85rem; display: flex; flex-wrap: wrap; gap: 16px; }
+    .evt .meta { color: var(--muted); font-size: .85rem; display: flex; flex-wrap: wrap; gap: 10px; }
+    /* Разделитель «·» между «Начало» и «Решено» */
+    .evt .meta .msep { color: var(--muted); }
     /* «Начато/Закрыто/(🕑 …)» переносятся целиком, а не по кусочкам */
     .evt .meta .nb { white-space: nowrap; }
     .evt .meta b { color: var(--text); }
@@ -101,6 +103,6 @@
   </div>
 
   <script src="assets/js/common.js?v=23"></script>
-  <script src="assets/js/incident.js?v=21"></script>
+  <script src="assets/js/incident.js?v=22"></script>
 </body>
 </html>

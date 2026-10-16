@@ -88,7 +88,7 @@
           (emoji && !s.icon ? '<span class="favicon emoji">' + emoji + '</span>' : '') +
           (s.icon ? '<img class="favicon" src="api/' + s.slug + '/' + s.icon + '" alt="" onerror="this.style.display=\'none\'">' : '') +
           '<span class="name"></span>' +
-          '<span class="group-status"><b>' + s.uptimeDay + '</b><span class="ms">' + (s.curMs || 0) + ' мс</span></span>';
+          '<span class="group-status"><b>' + s.uptimeMonth + '</b><span class="ms">' + (s.timeMonth || 0) + ' мс</span></span>';
         head.querySelector('.name').textContent = cleanName;
         rowsEl.appendChild(head);
         continue;
@@ -105,7 +105,7 @@
         '<span class="dot ' + (up ? 'up' : 'down') + (maintSlugs.has(s.slug) ? ' maint' : (rknSlugs.has(s.slug) ? ' rkn' : '')) + '"></span>' +
         iconHtml +
         '<span class="name"></span>' +
-        '<span class="uptime"><b>' + s.uptimeDay + '</b><span class="ms">' + (s.curMs || 0) + ' мс</span></span>';
+        '<span class="uptime"><b>' + s.uptimeMonth + '</b><span class="ms">' + (s.timeMonth || 0) + ' мс</span></span>';
       row.querySelector('.name').textContent = cleanName;
       rowsEl.appendChild(row);
     }
