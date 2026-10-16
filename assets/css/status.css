@@ -78,6 +78,11 @@ h1 {
   transition: border-color .25s, transform .15s;
 }
 .incident:hover { border-color: rgba(46, 204, 113, .5); transform: translateX(2px); }
+/* Карточка активного события несёт плашку статуса на верхней границе (свес ~9px).
+   Компенсируем свес в воздухе: сверху отступ 23px — до заголовка секции/предыдущей
+   карточки остаётся визуальных ~14px (как у остальных секций), внутрь — padding-top
+   16px, чтобы между плашкой и текстом было ~7px, а не «впритык». */
+.incident.active:not(.evt-sub) { margin-top: 23px; padding-top: 16px; }
 .incident .t { color: var(--muted); font-size: .8rem; }
 /* Цветная полоска статуса + свечение того же цвета (всем режимам, не только активным) */
 .incident.incident { border-left-color: var(--fail); box-shadow: -3px 0 12px -6px var(--fail); }
