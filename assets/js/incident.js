@@ -88,8 +88,8 @@
     statusEl.textContent = (lbText && lbText !== status) ? lbText + ' · ' + status : status;
 
     // Бейджи под заголовком: слева «🕑 …», затем лейблы по приоритету
-    const parts = ['Начато: ' + started + ' МСК'];
-    if (resolved) parts.push('Закрыто: ' + resolved + ' МСК');
+    const parts = ['Начало: ' + started + ' МСК'];
+    if (resolved) parts.push('Решено: ' + resolved + ' МСК');
     metaEl.innerHTML = parts.map((p) => '<span class="nb">' + p + '</span>').join('');
     const mins = liveMinutes(info, active);
     const lbList = byLabelPriority((info.labels || []).filter((l) => LABEL_TEXT[l]));

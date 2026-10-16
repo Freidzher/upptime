@@ -65,7 +65,10 @@ h1 {
 .dot.down.rkn { background: linear-gradient(to right, var(--fail) 0 50%, var(--rkn) 50% 100%); box-shadow: 0 0 10px var(--fail); }
 .updated { text-align: left; color: var(--muted); font-size: .78rem; margin-bottom: 12px; }
 .inc-title { margin: 18px 0 10px; font-weight: 700; font-size: .95rem; }
-.incident {
+/* Карточка события в списках (index/site). Исключаем .evt — это карточка
+   события на странице incident.html (класс «incident» там означает режим),
+   у неё своя блочная раскладка, flex-строка ей не нужна. */
+.incident:not(.evt) {
   display: flex; align-items: center; gap: 14px;
   text-decoration: none; color: var(--text); position: relative;
   background: var(--card); border: 1px solid var(--border); border-radius: 10px;
@@ -75,22 +78,22 @@ h1 {
 }
 .incident:hover { border-color: rgba(46, 204, 113, .5); transform: translateX(2px); }
 .incident .t { color: var(--muted); font-size: .8rem; }
-.incident.incident { border-left-color: var(--fail); }
-.incident.maintenance { border-left-color: var(--warn); }
-.incident.annulled { opacity: .6; border-left-color: var(--gray); }
-.incident.hidden { border-left-color: var(--gray); }
-.incident.rkn { border-left-color: var(--rkn); }
-/* Левая колонка карточки: лейбл режима, иконка, имя, статус и мета.
-   Занимает всю свободную ширину и переносит текст по строкам внутри себя. */
+/* Цветная полоска статуса + свечение того же цвета (всем режимам, не только активным) */
+.incident.incident { border-left-color: var(--fail); box-shadow: -3px 0 12px -6px var(--fail); }
+.incident.maintenance { border-left-color: var(--warn); box-shadow: -3px 0 12px -6px var(--warn); }
+.incident.annulled { opacity: .6; border-left-color: var(--gray); box-shadow: -3px 0 12px -6px var(--gray); }
+.incident.hidden { border-left-color: var(--gray); box-shadow: -3px 0 12px -6px var(--gray); }
+.incident.rkn { border-left-color: var(--rkn); box-shadow: -3px 0 12px -6px var(--rkn); }
+/* Левая колонка карточки: лейбл режима, иконка, имя, статус, счётчик комментариев.
+   Мета («Начало/Решено») идёт отдельной строкой (.ev-meta). */
 .incident .ev-body { flex: 1 1 auto; min-width: 0; line-height: 1.45; }
-/* Правая колонка карточки: лейбл длительности «🕑 …» + счётчик комментариев.
-   Отдельный flex-блок (не float): всегда вертикально по центру карточки,
-   текст слева никогда не обтекает его и не пересекается с ним.
-   Два этажа: длительность сверху, счётчик комментариев под ней — так колонка
-   уже в ширину и мета слева получает больше места (важно на телефоне). */
+.incident .ev-meta { display: block; margin-top: 2px; }
+/* Правая колонка карточки: лейбл длительности «🕑 …» (счётчик комментариев
+   переехал в строку названия). Отдельный flex-блок (не float): всегда
+   вертикально по центру карточки, текст слева ничего не перекрывает. */
 .incident .ev-right {
-  flex: 0 0 auto; display: inline-flex; flex-direction: column; align-items: flex-end;
-  gap: 3px; margin-left: auto;
+  flex: 0 0 auto; display: inline-flex; align-items: center;
+  margin-left: auto;
 }
 .incident .ev-dur {
   display: inline-block; padding: 1px 8px; border-radius: 999px;
@@ -104,10 +107,9 @@ h1 {
 }
 .incident:hover .comment-badge { color: var(--accent); }
 /* Узкие экраны (телефон): карточка плотнее, лейблы/счётчик чуть компактнее —
-   длинная мета и правая колонка спокойно помещаются в одну строку-две */
+   длинная мета и правая колонка спокойно помещаются */
 @media (max-width: 480px) {
-  .incident { padding: 10px 12px; gap: 10px; }
-  .incident .ev-right { gap: 2px; }
+  .incident:not(.evt) { padding: 10px 12px; gap: 10px; }
   .incident .ev-dur { font-size: .72rem; padding: 1px 7px; }
   .incident .comment-badge { font-size: .75rem; }
 }
@@ -145,11 +147,11 @@ h1 {
   padding: 8px 16px; font-size: .8rem; cursor: pointer;
   transition: color .2s, background .2s, border-color .25s;
 }
-.evt-notch[data-mode="incident"] { border-left-color: var(--fail); }
-.evt-notch[data-mode="maintenance"] { border-left-color: var(--warn); }
-.evt-notch[data-mode="annulled"] { border-left-color: var(--gray); }
-.evt-notch[data-mode="hidden"] { border-left-color: var(--gray); }
-.evt-notch[data-mode="rkn"] { border-left-color: var(--rkn); }
+.evt-notch[data-mode="incident"] { border-left-color: var(--fail); box-shadow: -3px 0 12px -6px var(--fail); }
+.evt-notch[data-mode="maintenance"] { border-left-color: var(--warn); box-shadow: -3px 0 12px -6px var(--warn); }
+.evt-notch[data-mode="annulled"] { border-left-color: var(--gray); box-shadow: -3px 0 12px -6px var(--gray); }
+.evt-notch[data-mode="hidden"] { border-left-color: var(--gray); box-shadow: -3px 0 12px -6px var(--gray); }
+.evt-notch[data-mode="rkn"] { border-left-color: var(--rkn); box-shadow: -3px 0 12px -6px var(--rkn); }
 .evt-notch:hover { color: var(--text); background: rgba(6, 36, 16, 0.7); }
 .evt-notch-arrow { display: inline-block; width: 14px; }
 .evt-subs { padding: 8px 0 4px 14px; display: flex; flex-direction: column; gap: 6px; }
