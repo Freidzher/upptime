@@ -47,13 +47,25 @@
   }
 
   // Бейджи под заголовком: слева длительность «🕑 …», затем лейблы по приоритету
-  // (от высшего к низшему: Аннулировано > Техработы > Сбой > РКН; hidden не показывается)
+  // ПРИОРИТЕТ ВЫВОДА (слева направо): РКН > Сбой > Техработы > Аннулировано;
+  // hidden не показывается. (Порядок важен только для показа: режим карточки
+  // определяется отдельно — приоритетом annulled > … > rkn, см. monitor.py)
   const LABEL_TEXT = { incident: 'Сбой', maintenance: 'Техработы', annulled: 'Аннулировано', hidden: 'Скрыто', rkn: 'РКН' };
+  const LABEL_PRIORITY = ['rkn', 'incident', 'maintenance', 'annulled'];
+  // Лейблы в порядке приоритета вывода; незнакомые (если вдруг появятся) — в конец
+  function byLabelPriority(list) {
+    const unknown = LABEL_PRIORITY.length;
+    return (list || []).slice().sort((a, b) => {
+      const ia = LABEL_PRIORITY.indexOf(a);
+      const ib = LABEL_PRIORITY.indexOf(b);
+      return (ia < 0 ? unknown : ia) - (ib < 0 ? unknown : ib);
+    });
+  }
   // prebuilt — готовая разметка (время + лейблы); иначе собираем из массива лейблов
   function renderLabelBadges(prebuilt, list) {
     if (!labelsEl) return;
     if (prebuilt) { labelsEl.innerHTML = prebuilt; labelsEl.style.display = ''; return; }
-    const items = (list || []).filter((l) => LABEL_TEXT[l]);
+    const items = byLabelPriority(list || []).filter((l) => LABEL_TEXT[l]);
     if (!items.length) { labelsEl.style.display = 'none'; labelsEl.innerHTML = ''; return; }
     labelsEl.innerHTML = items.map((l) =>
       '<span class="evt-lb evt-lb-' + l + '">' + esc(LABEL_TEXT[l] || l) + '</span>').join('');
@@ -80,7 +92,7 @@
     if (resolved) parts.push('Закрыто: ' + resolved + ' МСК');
     metaEl.innerHTML = parts.map((p) => '<span class="nb">' + p + '</span>').join('');
     const mins = liveMinutes(info, active);
-    const lbList = (info.labels || []).filter((l) => LABEL_TEXT[l]);
+    const lbList = byLabelPriority((info.labels || []).filter((l) => LABEL_TEXT[l]));
     let badges = '';
     if (mins) badges += '<span class="evt-lb evt-lb-dur">🕑 ' + esc(fmtDuration(mins)) + '</span>';
     badges += lbList.map((l) => '<span class="evt-lb evt-lb-' + l + '">' + esc(LABEL_TEXT[l]) + '</span>').join('');

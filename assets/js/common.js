@@ -63,6 +63,9 @@ window.Runicore = (function () {
   // commentsByIssue — карта { "<issue>": [...] }; справа индикатор «💬 N».
   // iconHtml — фавикон/эмодзи сервиса (см. eventIconHtml). forceServiceLink=true —
   // вести на страницу сервиса (site.html?site=slug), иначе на incident.html?issue=N.
+  // Раскладка: flex-строка — слева текстовый блок .ev-body (лейбл, иконка, имя,
+  // статус, мета), справа .ev-right (длительность 🕑 + счётчик 💬), вертикально
+  // по центру; текст переносится внутри своей колонки и ничего не перекрывает.
   function incidentCard(info, active, slug, commentsByIssue, iconHtml, forceServiceLink) {
     const mode = modeOf(info, info.maintenance);
     if (mode === 'hidden') return null;
@@ -84,16 +87,24 @@ window.Runicore = (function () {
     const name = iconHtml ? (rawName.replace(EMOJI_RE, '').trim() || rawName) : rawName;
     const cCount = (commentsByIssue && info.issue_number)
       ? ((commentsByIssue[String(info.issue_number)] || []).length) : 0;
-    // Правая колонка карточки (float): лейбл длительности и счётчик комментариев
+    // Правая колонка карточки (flex): лейбл длительности и счётчик комментариев
     let rightHtml = '';
     if (mins) rightHtml += '<span class="ev-dur">🕑 ' + esc(fmtDuration(mins)) + '</span>';
     if (cCount > 0) {
       rightHtml += '<span class="comment-badge" title="' + esc('Комментариев: ' + cCount) + '">💬 ' + cCount + '</span>';
     }
     if (rightHtml) rightHtml = '<span class="ev-right">' + rightHtml + '</span>';
-    // Имя сервиса пишем в ПОСЛЕДНИЙ <b>: первый занят бейджем лейбла
-    d.innerHTML = rightHtml + '<span class="lb lb-' + mode + '">' + esc(labelPrefix(mode)) + '</span>' +
-      (iconHtml || '') + '<b></b>' + esc(' — ' + statusText(mode, active, resolved) + ' ') + metaHtml;
+    // Левая колонка: лейбл режима, иконка, имя сервиса, статус и мета (переносится по строкам).
+    // Имя сервиса пишем в ПОСЛЕДНИЙ <b>: первый занят бейджем лейбла.
+    // В прошлых событиях статус после тире не показываем: режим и так несёт лейбл,
+    // а «Закрыто: …» однозначно говорит, что событие решено — экономим место в карточке.
+    // Разделителем между именем и метой служит «·» (как внутри меты).
+    const statusPart = active
+      ? esc(' — ' + statusText(mode, active, resolved) + ' ')
+      : esc(' · ');
+    const bodyHtml = '<span class="lb lb-' + mode + '">' + esc(labelPrefix(mode)) + '</span>' +
+      (iconHtml || '') + '<b></b>' + statusPart + metaHtml;
+    d.innerHTML = '<span class="ev-body">' + bodyHtml + '</span>' + rightHtml;
     d.querySelector('b').textContent = name;
     return d;
   }

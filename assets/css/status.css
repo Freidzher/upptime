@@ -66,7 +66,8 @@ h1 {
 .updated { text-align: left; color: var(--muted); font-size: .78rem; margin-bottom: 12px; }
 .inc-title { margin: 18px 0 10px; font-weight: 700; font-size: .95rem; }
 .incident {
-  display: block; text-decoration: none; color: var(--text); position: relative;
+  display: flex; align-items: center; gap: 14px;
+  text-decoration: none; color: var(--text); position: relative;
   background: var(--card); border: 1px solid var(--border); border-radius: 10px;
   padding: 12px 16px; margin-bottom: 8px; font-size: .88rem;
   border-left-width: 3px;
@@ -79,11 +80,17 @@ h1 {
 .incident.annulled { opacity: .6; border-left-color: var(--gray); }
 .incident.hidden { border-left-color: var(--gray); }
 .incident.rkn { border-left-color: var(--rkn); }
-/* Правая колонка карточки события: лейбл длительности «🕑 …» + счётчик комментариев.
-   float: текст карточки обтекает их, без абсолютного позиционирования и скобок. */
+/* Левая колонка карточки: лейбл режима, иконка, имя, статус и мета.
+   Занимает всю свободную ширину и переносит текст по строкам внутри себя. */
+.incident .ev-body { flex: 1 1 auto; min-width: 0; line-height: 1.45; }
+/* Правая колонка карточки: лейбл длительности «🕑 …» + счётчик комментариев.
+   Отдельный flex-блок (не float): всегда вертикально по центру карточки,
+   текст слева никогда не обтекает его и не пересекается с ним.
+   Два этажа: длительность сверху, счётчик комментариев под ней — так колонка
+   уже в ширину и мета слева получает больше места (важно на телефоне). */
 .incident .ev-right {
-  float: right; display: inline-flex; align-items: center; gap: 8px;
-  margin: 0 0 4px 14px;
+  flex: 0 0 auto; display: inline-flex; flex-direction: column; align-items: flex-end;
+  gap: 3px; margin-left: auto;
 }
 .incident .ev-dur {
   display: inline-block; padding: 1px 8px; border-radius: 999px;
@@ -96,6 +103,14 @@ h1 {
   white-space: nowrap; user-select: none; transition: color .2s;
 }
 .incident:hover .comment-badge { color: var(--accent); }
+/* Узкие экраны (телефон): карточка плотнее, лейблы/счётчик чуть компактнее —
+   длинная мета и правая колонка спокойно помещаются в одну строку-две */
+@media (max-width: 480px) {
+  .incident { padding: 10px 12px; gap: 10px; }
+  .incident .ev-right { gap: 2px; }
+  .incident .ev-dur { font-size: .72rem; padding: 1px 7px; }
+  .incident .comment-badge { font-size: .75rem; }
+}
 
 /* Фавикон/эмодзи сервиса в карточке события */
 .incident .ev-fav { width: 16px; height: 16px; border-radius: 4px; vertical-align: -3px; margin-right: 8px; }

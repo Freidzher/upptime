@@ -128,7 +128,7 @@
       .sort((a, b) => ((b.main.issue_number || 0) - (a.main.issue_number || 0)));
     const pastTitleEl = document.getElementById('pastTitle');
     const incCount = pastList.length;
-    pastTitleEl.textContent = 'Прошлые события' + (incCount ? ' (' + incCount + ')' : '');
+    pastTitleEl.textContent = 'Прошлые решённые события' + (incCount ? ' (' + incCount + ')' : '');
     pastTitleEl.style.display = allPastGroups.length ? '' : 'none';
     renderPast();
   }

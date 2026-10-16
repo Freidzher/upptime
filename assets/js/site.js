@@ -173,7 +173,7 @@
         .sort((a, b) => ((b.main.issue_number || 0) - (a.main.issue_number || 0)));
       const pastTitle = document.getElementById('pastTitle');
       if (pastTitle) {
-        pastTitle.textContent = 'Прошлые события' + (pastList.length ? ' (' + pastList.length + ')' : '');
+        pastTitle.textContent = 'Прошлые решённые события' + (pastList.length ? ' (' + pastList.length + ')' : '');
         pastTitle.style.display = allPastGroups.length ? '' : 'none';
       }
       renderPast();
