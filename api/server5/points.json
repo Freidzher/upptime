@@ -57389,7 +57389,9 @@
   "ok": true,
   "code": 22,
   "ms": 305,
-  "maint": true
+  "maint": true,
+  "annulled": false,
+  "rkn": false
  },
  {
   "ts": "2026-10-17T12:30:57+00:00",
