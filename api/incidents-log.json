@@ -458,5 +458,119 @@
   "labels": [
    "maintenance"
   ]
+ },
+ {
+  "name": "🇸🇪 1. Стокгольм",
+  "slug": "server4",
+  "issue_number": 172,
+  "opened": "2026-10-17T12:12:54Z",
+  "resolved": "2026-10-17T12:17:04Z",
+  "minutes": 4,
+  "code": 0,
+  "ms": 0,
+  "maintenance": true,
+  "mode": "maintenance",
+  "annulled": false,
+  "hidden": false,
+  "labels": [
+   "maintenance"
+  ],
+  "title": "🇸🇪 1. Стокгольм,🇸🇪 2. Стокгольм — Резервируем новый свободный порт",
+  "desc": ""
+ },
+ {
+  "name": "🇸🇪 2. Стокгольм",
+  "slug": "server5",
+  "issue_number": 172,
+  "opened": "2026-10-17T12:12:54Z",
+  "resolved": "2026-10-17T12:17:04Z",
+  "minutes": 4,
+  "code": 0,
+  "ms": 0,
+  "maintenance": true,
+  "mode": "maintenance",
+  "annulled": false,
+  "hidden": false,
+  "labels": [
+   "maintenance"
+  ],
+  "title": "🇸🇪 1. Стокгольм,🇸🇪 2. Стокгольм — Резервируем новый свободный порт",
+  "desc": ""
+ },
+ {
+  "name": "🇸🇪 1.2 Стокгольм",
+  "slug": "server9",
+  "issue_number": 172,
+  "opened": "2026-10-17T12:12:54Z",
+  "resolved": "2026-10-17T12:17:04Z",
+  "minutes": 4,
+  "code": 0,
+  "ms": 0,
+  "maintenance": true,
+  "mode": "maintenance",
+  "annulled": false,
+  "hidden": false,
+  "labels": [
+   "maintenance"
+  ],
+  "title": "🇸🇪 1. Стокгольм,🇸🇪 2. Стокгольм — Резервируем новый свободный порт",
+  "desc": ""
+ },
+ {
+  "name": "🇸🇪 1.1 Стокгольм",
+  "slug": "server8",
+  "issue_number": 172,
+  "opened": "2026-10-17T12:12:54Z",
+  "resolved": "2026-10-17T12:17:04Z",
+  "minutes": 4,
+  "code": 0,
+  "ms": 0,
+  "maintenance": true,
+  "mode": "maintenance",
+  "annulled": false,
+  "hidden": false,
+  "labels": [
+   "maintenance"
+  ],
+  "title": "🇸🇪 1. Стокгольм,🇸🇪 2. Стокгольм — Резервируем новый свободный порт",
+  "desc": ""
+ },
+ {
+  "name": "🇸🇪 2.2 Стокгольм",
+  "slug": "server11",
+  "issue_number": 172,
+  "opened": "2026-10-17T12:12:54Z",
+  "resolved": "2026-10-17T12:17:04Z",
+  "minutes": 4,
+  "code": 0,
+  "ms": 0,
+  "maintenance": true,
+  "mode": "maintenance",
+  "annulled": false,
+  "hidden": false,
+  "labels": [
+   "maintenance"
+  ],
+  "title": "🇸🇪 1. Стокгольм,🇸🇪 2. Стокгольм — Резервируем новый свободный порт",
+  "desc": ""
+ },
+ {
+  "name": "🇸🇪 2.1 Стокгольм",
+  "slug": "server10",
+  "issue_number": 172,
+  "opened": "2026-10-17T12:12:54Z",
+  "resolved": "2026-10-17T12:17:04Z",
+  "minutes": 4,
+  "code": 0,
+  "ms": 0,
+  "maintenance": true,
+  "mode": "maintenance",
+  "annulled": false,
+  "hidden": false,
+  "labels": [
+   "maintenance"
+  ],
+  "title": "🇸🇪 1. Стокгольм,🇸🇪 2. Стокгольм — Резервируем новый свободный порт",
+  "desc": ""
  }
 ]
