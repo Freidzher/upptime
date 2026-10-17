@@ -43570,12 +43570,25 @@
   "ts": "2026-10-17T12:15:36+00:00",
   "ok": true,
   "code": 400,
-  "ms": 1647
+  "ms": 1647,
+  "maint": true,
+  "annulled": false,
+  "rkn": false
  },
  {
   "ts": "2026-10-17T12:20:28+00:00",
   "ok": true,
   "code": 400,
-  "ms": 1024
+  "ms": 1024,
+  "maint": true,
+  "annulled": false,
+  "rkn": false
+ },
+ {
+  "ts": "2026-10-17T12:25:23+00:00",
+  "ok": true,
+  "code": 400,
+  "ms": 1505,
+  "maint": true
  }
 ]

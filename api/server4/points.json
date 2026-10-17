@@ -57377,12 +57377,25 @@
   "ts": "2026-10-17T12:15:37+00:00",
   "ok": true,
   "code": 22,
-  "ms": 314
+  "ms": 314,
+  "maint": true,
+  "annulled": false,
+  "rkn": false
  },
  {
   "ts": "2026-10-17T12:20:28+00:00",
   "ok": true,
   "code": 22,
-  "ms": 203
+  "ms": 203,
+  "maint": true,
+  "annulled": false,
+  "rkn": false
+ },
+ {
+  "ts": "2026-10-17T12:25:24+00:00",
+  "ok": true,
+  "code": 22,
+  "ms": 282,
+  "maint": true
  }
 ]
