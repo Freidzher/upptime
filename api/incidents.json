@@ -24,57 +24,5 @@
   ],
   "title": "🇸🇪 1.1 Стокгольм,🇸🇪 2.1 Стокгольм — Поиск нового пути обхода в связи с недоступностью из России",
   "desc": ""
- },
- "SERVER4": {
-  "issue_number": 172,
-  "opened": "2026-10-17T12:12:54Z",
-  "name": "🇸🇪 1. Стокгольм",
-  "slug": "server4",
-  "maintenance": true,
-  "mode": "maintenance",
-  "title": "🇸🇪 1. Стокгольм,🇸🇪 2. Стокгольм — Резервируем новый свободный порт",
-  "labels": [
-   "maintenance"
-  ],
-  "desc": ""
- },
- "SERVER5": {
-  "issue_number": 172,
-  "opened": "2026-10-17T12:12:54Z",
-  "name": "🇸🇪 2. Стокгольм",
-  "slug": "server5",
-  "maintenance": true,
-  "mode": "maintenance",
-  "title": "🇸🇪 1. Стокгольм,🇸🇪 2. Стокгольм — Резервируем новый свободный порт",
-  "labels": [
-   "maintenance"
-  ],
-  "desc": ""
- },
- "SERVER9": {
-  "issue_number": 172,
-  "opened": "2026-10-17T12:12:54Z",
-  "name": "🇸🇪 1.2 Стокгольм",
-  "slug": "server9",
-  "maintenance": true,
-  "mode": "maintenance",
-  "title": "🇸🇪 1. Стокгольм,🇸🇪 2. Стокгольм — Резервируем новый свободный порт",
-  "labels": [
-   "maintenance"
-  ],
-  "desc": ""
- },
- "SERVER11": {
-  "issue_number": 172,
-  "opened": "2026-10-17T12:12:54Z",
-  "name": "🇸🇪 2.2 Стокгольм",
-  "slug": "server11",
-  "maintenance": true,
-  "mode": "maintenance",
-  "title": "🇸🇪 1. Стокгольм,🇸🇪 2. Стокгольм — Резервируем новый свободный порт",
-  "labels": [
-   "maintenance"
-  ],
-  "desc": ""
  }
 }
