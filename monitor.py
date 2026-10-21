@@ -332,6 +332,41 @@ def load_log() -> list:
     return load_json(API_DIR / "incidents-log.json", [])
 
 
+def load_incidents() -> list:
+    """Активные события — СПИСОМ (на сервис может быть несколько событий сразу:
+    напр. РКН + техработы). Старый формат ({KEY: entry}) мигрируется на ходу."""
+    data = load_json(API_DIR / "incidents.json", [])
+    if isinstance(data, dict):
+        return list(data.values())
+    return data if isinstance(data, list) else []
+
+
+def inc_entries(incidents) -> list:
+    """Итерация по активным событиям независимо от формата (список/словарь)."""
+    if isinstance(incidents, dict):
+        return list(incidents.values())
+    return list(incidents or [])
+
+
+def find_inc_entry(incidents: list, slug: str, issue_number=None):
+    """Запись активного события по slug (и номеру issue, если задан)."""
+    for e in inc_entries(incidents):
+        if e.get("slug") != slug:
+            continue
+        if issue_number is not None and e.get("issue_number") != issue_number:
+            continue
+        return e
+    return None
+
+
+def remove_inc_entry(incidents: list, entry: dict) -> None:
+    """Удаляет запись из списка активных событий (по ссылке на объект)."""
+    try:
+        incidents.remove(entry)
+    except ValueError:
+        pass
+
+
 def _write_log(log: list) -> None:
     """Пишет журнал: дедупликация по (issue_number, slug), сортировка по opened,
     хранение последних 100 записей. При дублях остаётся запись с самым поздним resolved
@@ -400,7 +435,7 @@ def open_incident(key: str, name: str, result: dict, incidents: dict, repo: str,
     else:
         issue = gh_api(f"/repos/{repo}/issues", "POST", {"title": title, "body": body, "labels": labels})
     if issue:
-        incidents[key] = {
+        entry = {
             "issue_number": issue["number"],
             "opened": result["ts"],
             "name": name,
@@ -412,14 +447,21 @@ def open_incident(key: str, name: str, result: dict, incidents: dict, repo: str,
             "code": result.get("code", 0),
             "ms": result.get("ms", 0),
         }
+        # На сервис может быть несколько активных событий — добавляем, если такой
+        # пары (slug, issue) ещё нет в списке
+        if not find_inc_entry(incidents, entry["slug"], entry["issue_number"]):
+            incidents.append(entry)
         print(f"Incident issue #{issue['number']} opened for {name} (mode={'maintenance' if is_maint else 'incident'})")
 
 
 def close_incident(key: str, incidents: dict, result: dict, repo: str) -> None:
     last_ok_ts = result["ts"]
-    info = incidents.pop(key, None)
+    # Авто-закрытие только для реальных инцидентов (admin-режимы закрываются вручную)
+    info = next((e for e in inc_entries(incidents)
+                 if e.get("slug") == slugify(key) and e.get("mode") == "incident"), None)
     if not info:
         return
+    remove_inc_entry(incidents, info)
     num = info["issue_number"]
     opened = datetime.fromisoformat(info["opened"]).replace(tzinfo=timezone.utc)
     closed = datetime.fromisoformat(last_ok_ts).replace(tzinfo=timezone.utc)
@@ -619,48 +661,43 @@ def sync_incidents(incidents: dict, repo: str, sites: dict = None) -> None:
             continue
         keys = _expand_group_keys(_resolve_maint_keys(issue.get("title", ""), sites or {}), sites or {})
         for key in keys:
-            new_entry = {
+            slug = slugify(key)
+            if find_inc_entry(incidents, slug, issue["number"]):
+                continue  # это событие уже активно для сервиса
+            entry = {
                 "issue_number": issue["number"],
                 "opened": issue["created_at"],
                 "name": (sites or {}).get(key, {}).get("name", key),
-                "slug": slugify(key),
+                "slug": slug,
                 "maintenance": mode == "maintenance",
                 "mode": mode,
                 "title": _humanize_title(issue.get("title", ""), sites or {}),
                 "labels": _event_labels(labels),
                 "desc": "",
             }
-            cur = incidents.get(key)
-            if cur is None:
-                incidents[key] = new_entry
-                changed = True
-                print(f"{key}: {mode} по issue #{issue['number']} ({issue.get('title', '')})")
-                # Ретроактивно красим точки интервала [создание issue .. сейчас]
-                _rewrite_points_interval(slugify(key), issue["created_at"], mode)
-            elif MODE_RANK.get(mode, 1) > MODE_RANK.get(cur.get("mode", "incident"), 1):
-                # Более приоритетный режим (напр. ТО поверх РКН) вытесняет текущий:
-                # issue остаётся открытым в GitHub и вернётся следующим проходом
-                # после закрытия приоритетного (перекраска точек учтёт приоритеты)
-                incidents[key] = new_entry
-                changed = True
-                print(f"{key}: {mode} #{issue['number']} вытесняет {cur.get('mode')} (приоритет режимов)")
-                _rewrite_points_interval(slugify(key), issue["created_at"], mode)
+            # На сервис может быть несколько активных событий (напр. РКН + ТО):
+            # добавляем запись, приоритет режимов учитывается при покраске точек
+            incidents.append(entry)
+            changed = True
+            print(f"{key}: {mode} по issue #{issue['number']} ({issue.get('title', '')})")
+            # Ретроактивно красим точки интервала [создание issue .. сейчас]
+            _rewrite_points_interval(slug, issue["created_at"], mode)
 
     # 2. Существующие записи: закрытие issue вручную, переквалификация по лейблу
-    for key in list(incidents.keys()):
-        info = incidents[key]
+    for info in list(inc_entries(incidents)):
+        key = info.get("name") or info.get("slug")
         issue = by_num.get(info.get("issue_number"))
         if issue is None:
             # Issue закрыли вручную -> работы завершены (реальное время закрытия)
             now = datetime.now(timezone.utc).isoformat(timespec="seconds")
             opened = datetime.fromisoformat(info["opened"]).replace(tzinfo=timezone.utc)
             minutes = max(1, round((datetime.now(timezone.utc) - opened).total_seconds() / 60))
-            incidents.pop(key)
+            remove_inc_entry(incidents, info)
             # Обновляем запись журнала (если issue переоткрывали — пересчитываем,
             # а не наслаиваем новый дубль)
             upsert_log_entry({
                 "name": info.get("name", key),
-                "slug": slugify(key),
+                "slug": info.get("slug") or slugify(key),
                 "issue_number": info.get("issue_number"),
                 "opened": info["opened"],
                 "resolved": now,
@@ -676,7 +713,7 @@ def sync_incidents(incidents: dict, repo: str, sites: dict = None) -> None:
                 "desc": info.get("desc", ""),
             })
             changed = True
-            print(f"{key}: issue закрыт вручную — событие завершено ({minutes} мин, mode={info.get('mode', 'incident')})")
+            print(f"{info.get('slug', key)}: issue закрыт вручную — событие завершено ({minutes} мин, mode={info.get('mode', 'incident')})")
         else:
             labels = {l["name"] for l in issue.get("labels", [])}
             mode = _event_mode(labels)
@@ -686,9 +723,9 @@ def sync_incidents(incidents: dict, repo: str, sites: dict = None) -> None:
                 info["maintenance"] = mode == "maintenance"
                 info["labels"] = new_labels
                 changed = True
-                print(f"{key}: режим события -> {mode} по лейблам {new_labels}")
+                print(f"{info.get('slug', key)}: режим события -> {mode} по лейблам {new_labels}")
                 # Ретроактивный пересчёт точек интервала issue
-                _rewrite_points_interval(slugify(key), info["opened"], mode)
+                _rewrite_points_interval(info.get("slug", ""), info["opened"], mode)
             raw_title = issue.get("title", "")
             if raw_title != info.get("title_raw", raw_title):
                 info["title_raw"] = raw_title
@@ -876,7 +913,7 @@ def sync_issue_comments(repo: str, incidents: dict) -> None:
     Полностью перезаписывается каждый прогон -> добавление/удаление комментария
     на GitHub сразу отражается на сайте."""
     nums = set()
-    for info in (incidents or {}).values():
+    for info in inc_entries(incidents):
         n = info.get("issue_number")
         if n:
             nums.add(int(n))
@@ -1063,7 +1100,7 @@ def main() -> None:
         raise SystemExit("Не найдено ни одного сайта/сервера (секретов с URL или IP/доменом).")
 
     interval_min = int(config.get("interval_minutes", 5))
-    incidents = load_json(API_DIR / "incidents.json", {})
+    incidents = load_incidents()
     repo = repo_slug(config)
 
     # Лейблы incident/maintenance (создаются при отсутствии) + синхронизация с issues:
@@ -1082,11 +1119,18 @@ def main() -> None:
             result = check_ssh(name, site["url"], site["timeout"])
         else:
             result = check_site(name, site["url"], site["timeout"])
-        # Флаги режима точки графика (по приоритетному лейблу): maintenance — жёлтая, rkn — голубая
-        _info_now = incidents.get(key) if incidents else None
-        if _info_now and _info_now.get("maintenance"):
+        # Флаги режима точки графика: на сервис может висеть несколько событий,
+        # точка красится по САМОМУ ПРИОРИТЕТНОМУ из них (ТО > РКН и т.д.)
+        active_here = [e for e in incidents if e.get("slug") == slug]
+        top_mode = None
+        if active_here:
+            top_mode = max(active_here,
+                           key=lambda e: MODE_RANK.get(e.get("mode", "incident"), 1)).get("mode")
+        if top_mode == "maintenance":
             result["maint"] = True
-        elif _info_now and _info_now.get("mode") == "rkn":
+        elif top_mode == "annulled":
+            result["annulled"] = True
+        elif top_mode == "rkn":
             result["rkn"] = True
 
         api = API_DIR / slug
@@ -1113,11 +1157,12 @@ def main() -> None:
         write_site_files(slug, points, result)
 
         clean_name = EMOJI_RE.sub("", name).strip()
-        mode_now = incidents[key].get("mode") if key in incidents else None
-        if not result["ok"] and (key not in incidents or mode_now == "rkn"):
+        active_here = [e for e in incidents if e.get("slug") == slug]
+        modes_here = {e.get("mode") for e in active_here}
+        if not result["ok"] and (not active_here or modes_here == {"rkn"}):
             # RKN не экранирует реальный сбой: при падении всё равно открываем инцидент
             open_incident(key, clean_name or name, result, incidents, repo)
-        elif result["ok"] and key in incidents and mode_now not in ("maintenance", "annulled", "hidden", "rkn"):
+        elif result["ok"] and "incident" in modes_here:
             # Реальные инциденты закрываются автоматически; admin-режимы (ТО/аннул/скрыто/РКН) — вручную
             close_incident(key, incidents, result, repo)
 
