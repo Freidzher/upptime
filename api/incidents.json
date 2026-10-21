@@ -1,28 +1,106 @@
 {
  "SERVER8": {
-  "issue_number": 171,
-  "opened": "2026-10-15T13:16:47Z",
+  "issue_number": 173,
+  "opened": "2026-10-21T20:03:51Z",
   "name": "🇸🇪 1.1 Стокгольм",
   "slug": "server8",
-  "maintenance": false,
-  "mode": "rkn",
+  "maintenance": true,
+  "mode": "maintenance",
+  "title": "🇸🇪 1. Стокгольм,🇸🇪 2. Стокгольм — Плановое обновление маршрутизации",
   "labels": [
-   "rkn"
+   "maintenance"
   ],
-  "title": "🇸🇪 1.1 Стокгольм,🇸🇪 2.1 Стокгольм — Поиск нового пути обхода в связи с недоступностью из России",
   "desc": ""
  },
  "SERVER10": {
-  "issue_number": 171,
-  "opened": "2026-10-15T13:16:47Z",
+  "issue_number": 173,
+  "opened": "2026-10-21T20:03:51Z",
   "name": "🇸🇪 2.1 Стокгольм",
   "slug": "server10",
-  "maintenance": false,
-  "mode": "rkn",
+  "maintenance": true,
+  "mode": "maintenance",
+  "title": "🇸🇪 1. Стокгольм,🇸🇪 2. Стокгольм — Плановое обновление маршрутизации",
   "labels": [
-   "rkn"
+   "maintenance"
   ],
-  "title": "🇸🇪 1.1 Стокгольм,🇸🇪 2.1 Стокгольм — Поиск нового пути обхода в связи с недоступностью из России",
+  "desc": ""
+ },
+ "SERVER4": {
+  "issue_number": 173,
+  "opened": "2026-10-21T20:03:51Z",
+  "name": "🇸🇪 1. Стокгольм",
+  "slug": "server4",
+  "maintenance": true,
+  "mode": "maintenance",
+  "title": "🇸🇪 1. Стокгольм,🇸🇪 2. Стокгольм — Плановое обновление маршрутизации",
+  "labels": [
+   "maintenance"
+  ],
+  "desc": ""
+ },
+ "SERVER5": {
+  "issue_number": 173,
+  "opened": "2026-10-21T20:03:51Z",
+  "name": "🇸🇪 2. Стокгольм",
+  "slug": "server5",
+  "maintenance": true,
+  "mode": "maintenance",
+  "title": "🇸🇪 1. Стокгольм,🇸🇪 2. Стокгольм — Плановое обновление маршрутизации",
+  "labels": [
+   "maintenance"
+  ],
+  "desc": ""
+ },
+ "SERVER12": {
+  "issue_number": 173,
+  "opened": "2026-10-21T20:03:51Z",
+  "name": "🇸🇪 1.3 Стокгольм",
+  "slug": "server12",
+  "maintenance": true,
+  "mode": "maintenance",
+  "title": "🇸🇪 1. Стокгольм,🇸🇪 2. Стокгольм — Плановое обновление маршрутизации",
+  "labels": [
+   "maintenance"
+  ],
+  "desc": ""
+ },
+ "SERVER9": {
+  "issue_number": 173,
+  "opened": "2026-10-21T20:03:51Z",
+  "name": "🇸🇪 1.2 Стокгольм",
+  "slug": "server9",
+  "maintenance": true,
+  "mode": "maintenance",
+  "title": "🇸🇪 1. Стокгольм,🇸🇪 2. Стокгольм — Плановое обновление маршрутизации",
+  "labels": [
+   "maintenance"
+  ],
+  "desc": ""
+ },
+ "SERVER11": {
+  "issue_number": 173,
+  "opened": "2026-10-21T20:03:51Z",
+  "name": "🇸🇪 2.2 Стокгольм",
+  "slug": "server11",
+  "maintenance": true,
+  "mode": "maintenance",
+  "title": "🇸🇪 1. Стокгольм,🇸🇪 2. Стокгольм — Плановое обновление маршрутизации",
+  "labels": [
+   "maintenance"
+  ],
+  "desc": ""
+ },
+ "SERVER13": {
+  "issue_number": 173,
+  "opened": "2026-10-21T20:03:51Z",
+  "name": "🇸🇪 2.3 Стокгольм",
+  "slug": "server13",
+  "maintenance": true,
+  "mode": "maintenance",
+  "title": "🇸🇪 1. Стокгольм,🇸🇪 2. Стокгольм — Плановое обновление маршрутизации",
+  "labels": [
+   "maintenance"
+  ],
   "desc": ""
  }
 }
