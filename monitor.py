@@ -688,6 +688,15 @@ def sync_incidents(incidents: dict, repo: str, sites: dict = None) -> None:
         key = info.get("name") or info.get("slug")
         issue = by_num.get(info.get("issue_number"))
         if issue is None:
+            num = info.get("issue_number")
+            # Отсутствие в списке открытых ≠ закрытие: список мог отдать сбой API.
+            # Перед финализацией проверяем issue напрямую (bug 28.2: РКН-171
+            # ошибочно ушёл в прошлые из-за неполного списка открытых issues)
+            direct = gh_api(f"/repos/{repo}/issues/{num}", "GET")
+            if direct is None or direct.get("state") == "open":
+                print(f"{info.get('slug')}: issue #{num} не в списке открытых, "
+                      f"но закрытие не подтверждено — отложено до следующего прогона")
+                continue
             # Issue закрыли вручную -> работы завершены (реальное время закрытия)
             now = datetime.now(timezone.utc).isoformat(timespec="seconds")
             opened = datetime.fromisoformat(info["opened"]).replace(tzinfo=timezone.utc)
@@ -1109,6 +1118,16 @@ def main() -> None:
     ensure_labels(repo)
     sync_incidents(incidents, repo, sites)
     sync_closed_incidents(repo, sites)
+
+    # Самоисцеление (bug 28.2): если issue снова открыт, его запись не должна
+    # висеть в журнале прошлых — убираем. Переоткрытие пересчитается заново.
+    active_nums = {e.get("issue_number") for e in incidents}
+    log_now = load_log()
+    cleaned = [e for e in log_now if e.get("issue_number") not in active_nums]
+    if len(cleaned) != len(log_now):
+        _write_log(cleaned)
+        print(f"журнал: убраны записи повторно открытых issues "
+              f"({len(log_now) - len(cleaned)} шт.)")
 
     HISTORY_DIR.mkdir(exist_ok=True)
 

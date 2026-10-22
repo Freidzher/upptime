@@ -123,6 +123,9 @@
     const openList = Object.values(incidents || {})
       .filter((i) => (i.mode || 'incident') !== 'hidden')
       .sort((a, b) => (b.issue_number || 0) - (a.issue_number || 0));
+    // Страховка (bug 28.2): активный issue не должен попадать в «Прошлые события»,
+    // даже если запись ошибочно осталась в журнале — фильтруем на отображении
+    const activeNums = new Set(openList.map((i) => i.issue_number));
     const openGroups = groupByIssue(openList, sumBySlug)
       .sort((a, b) => ((b.main.issue_number || 0) - (a.main.issue_number || 0)));
     incEl.innerHTML = '';
@@ -133,7 +136,7 @@
 
     // Прошлые события — строго по номеру Issue (номер = порядок создания = хронология).
     // Группировка по Issue: один инцидент = одна карточка + раскрытие затронутых сервисов.
-    const pastList = (log || []).filter((i) => !i.hidden)
+    const pastList = (log || []).filter((i) => !i.hidden && !activeNums.has(i.issue_number))
       .sort((a, b) => (b.issue_number || 0) - (a.issue_number || 0));
     allPastGroups = groupByIssue(pastList, sumBySlug)
       .sort((a, b) => ((b.main.issue_number || 0) - (a.main.issue_number || 0)));

@@ -154,6 +154,8 @@
       const activeList = Object.values(incidents || {})
         .filter((i) => i.slug === slug && (i.mode || 'incident') !== 'hidden')
         .sort((a, b) => (b.issue_number || 0) - (a.issue_number || 0));
+      // Страховка (bug 28.2): активный issue не должен попадать в «Прошлые события»
+      const activeNums = new Set(activeList.map((i) => i.issue_number));
       const activeGroups = groupByIssue(activeList, sumBySlug)
         .sort((a, b) => ((b.main.issue_number || 0) - (a.main.issue_number || 0)));
       const activeEl = document.getElementById('activeIncidents');
@@ -167,7 +169,7 @@
         activeTitle.style.display = activeGroups.length ? '' : 'none';
       }
 
-      const pastList = (log || []).filter((i) => i.slug === slug && !i.hidden)
+      const pastList = (log || []).filter((i) => i.slug === slug && !i.hidden && !activeNums.has(i.issue_number))
         .sort((a, b) => (b.issue_number || 0) - (a.issue_number || 0));
       allPastGroups = groupByIssue(pastList, sumBySlug)
         .sort((a, b) => ((b.main.issue_number || 0) - (a.main.issue_number || 0)));
