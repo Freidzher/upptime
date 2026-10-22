@@ -464,11 +464,11 @@
   "slug": "server8",
   "issue_number": 171,
   "opened": "2026-10-15T13:16:47Z",
-  "resolved": "2026-10-22T15:35:19+00:00",
+  "resolved": "2026-10-22T15:45:34+00:00",
   "labels": [
    "rkn"
   ],
-  "minutes": 10219,
+  "minutes": 10229,
   "code": 0,
   "ms": 0,
   "maintenance": false,
@@ -483,11 +483,11 @@
   "slug": "server10",
   "issue_number": 171,
   "opened": "2026-10-15T13:16:47Z",
-  "resolved": "2026-10-22T15:35:19+00:00",
+  "resolved": "2026-10-22T15:45:34+00:00",
   "labels": [
    "rkn"
   ],
-  "minutes": 10219,
+  "minutes": 10229,
   "code": 0,
   "ms": 0,
   "maintenance": false,
