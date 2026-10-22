@@ -460,6 +460,44 @@
   ]
  },
  {
+  "name": "🇸🇪 1.1 Стокгольм",
+  "slug": "server8",
+  "issue_number": 171,
+  "opened": "2026-10-15T13:16:47Z",
+  "resolved": "2026-10-22T14:55:22+00:00",
+  "labels": [
+   "rkn"
+  ],
+  "minutes": 10179,
+  "code": 0,
+  "ms": 0,
+  "maintenance": false,
+  "mode": "rkn",
+  "annulled": false,
+  "hidden": false,
+  "title": "🇸🇪 1.1 Стокгольм,🇸🇪 2.1 Стокгольм — Поиск нового пути обхода в связи с недоступностью из России",
+  "desc": ""
+ },
+ {
+  "name": "🇸🇪 2.1 Стокгольм",
+  "slug": "server10",
+  "issue_number": 171,
+  "opened": "2026-10-15T13:16:47Z",
+  "resolved": "2026-10-22T14:55:22+00:00",
+  "labels": [
+   "rkn"
+  ],
+  "minutes": 10179,
+  "code": 0,
+  "ms": 0,
+  "maintenance": false,
+  "mode": "rkn",
+  "annulled": false,
+  "hidden": false,
+  "title": "🇸🇪 1.1 Стокгольм,🇸🇪 2.1 Стокгольм — Поиск нового пути обхода в связи с недоступностью из России",
+  "desc": ""
+ },
+ {
   "name": "🇸🇪 1. Стокгольм",
   "slug": "server4",
   "issue_number": 172,
