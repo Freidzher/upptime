@@ -24,5 +24,174 @@
    "rkn"
   ],
   "desc": ""
+ },
+ {
+  "issue_number": 174,
+  "opened": "2026-10-25T19:52:29Z",
+  "name": "🇸🇪 2. Стокгольм",
+  "slug": "server5",
+  "maintenance": true,
+  "mode": "maintenance",
+  "title": "🇸🇪 2. Стокгольм,🇸🇪 1. Стокгольм,🇷🇺 Москва — Плановое обновление инфраструктуры",
+  "labels": [
+   "maintenance"
+  ],
+  "desc": ""
+ },
+ {
+  "issue_number": 174,
+  "opened": "2026-10-25T19:52:29Z",
+  "name": "🇸🇪 1. Стокгольм",
+  "slug": "server4",
+  "maintenance": true,
+  "mode": "maintenance",
+  "title": "🇸🇪 2. Стокгольм,🇸🇪 1. Стокгольм,🇷🇺 Москва — Плановое обновление инфраструктуры",
+  "labels": [
+   "maintenance"
+  ],
+  "desc": ""
+ },
+ {
+  "issue_number": 174,
+  "opened": "2026-10-25T19:52:29Z",
+  "name": "🇷🇺 Москва",
+  "slug": "server7",
+  "maintenance": true,
+  "mode": "maintenance",
+  "title": "🇸🇪 2. Стокгольм,🇸🇪 1. Стокгольм,🇷🇺 Москва — Плановое обновление инфраструктуры",
+  "labels": [
+   "maintenance"
+  ],
+  "desc": ""
+ },
+ {
+  "issue_number": 174,
+  "opened": "2026-10-25T19:52:29Z",
+  "name": "🇸🇪 2.2 Стокгольм",
+  "slug": "server11",
+  "maintenance": true,
+  "mode": "maintenance",
+  "title": "🇸🇪 2. Стокгольм,🇸🇪 1. Стокгольм,🇷🇺 Москва — Плановое обновление инфраструктуры",
+  "labels": [
+   "maintenance"
+  ],
+  "desc": ""
+ },
+ {
+  "issue_number": 174,
+  "opened": "2026-10-25T19:52:29Z",
+  "name": "🇸🇪 2.3 Стокгольм",
+  "slug": "server13",
+  "maintenance": true,
+  "mode": "maintenance",
+  "title": "🇸🇪 2. Стокгольм,🇸🇪 1. Стокгольм,🇷🇺 Москва — Плановое обновление инфраструктуры",
+  "labels": [
+   "maintenance"
+  ],
+  "desc": ""
+ },
+ {
+  "issue_number": 174,
+  "opened": "2026-10-25T19:52:29Z",
+  "name": "🇸🇪 2.1 Стокгольм",
+  "slug": "server10",
+  "maintenance": true,
+  "mode": "maintenance",
+  "title": "🇸🇪 2. Стокгольм,🇸🇪 1. Стокгольм,🇷🇺 Москва — Плановое обновление инфраструктуры",
+  "labels": [
+   "maintenance"
+  ],
+  "desc": ""
+ },
+ {
+  "issue_number": 174,
+  "opened": "2026-10-25T19:52:29Z",
+  "name": "🇸🇪 1.3 Стокгольм",
+  "slug": "server12",
+  "maintenance": true,
+  "mode": "maintenance",
+  "title": "🇸🇪 2. Стокгольм,🇸🇪 1. Стокгольм,🇷🇺 Москва — Плановое обновление инфраструктуры",
+  "labels": [
+   "maintenance"
+  ],
+  "desc": ""
+ },
+ {
+  "issue_number": 174,
+  "opened": "2026-10-25T19:52:29Z",
+  "name": "🇸🇪 1.2 Стокгольм",
+  "slug": "server9",
+  "maintenance": true,
+  "mode": "maintenance",
+  "title": "🇸🇪 2. Стокгольм,🇸🇪 1. Стокгольм,🇷🇺 Москва — Плановое обновление инфраструктуры",
+  "labels": [
+   "maintenance"
+  ],
+  "desc": ""
+ },
+ {
+  "issue_number": 174,
+  "opened": "2026-10-25T19:52:29Z",
+  "name": "🇸🇪 1.1 Стокгольм",
+  "slug": "server8",
+  "maintenance": true,
+  "mode": "maintenance",
+  "title": "🇸🇪 2. Стокгольм,🇸🇪 1. Стокгольм,🇷🇺 Москва — Плановое обновление инфраструктуры",
+  "labels": [
+   "maintenance"
+  ],
+  "desc": ""
+ },
+ {
+  "issue_number": 174,
+  "opened": "2026-10-25T19:52:29Z",
+  "name": "База знаний",
+  "slug": "server2",
+  "maintenance": true,
+  "mode": "maintenance",
+  "title": "🇸🇪 2. Стокгольм,🇸🇪 1. Стокгольм,🇷🇺 Москва — Плановое обновление инфраструктуры",
+  "labels": [
+   "maintenance"
+  ],
+  "desc": ""
+ },
+ {
+  "issue_number": 174,
+  "opened": "2026-10-25T19:52:29Z",
+  "name": "Подписка",
+  "slug": "server3",
+  "maintenance": true,
+  "mode": "maintenance",
+  "title": "🇸🇪 2. Стокгольм,🇸🇪 1. Стокгольм,🇷🇺 Москва — Плановое обновление инфраструктуры",
+  "labels": [
+   "maintenance"
+  ],
+  "desc": ""
+ },
+ {
+  "issue_number": 174,
+  "opened": "2026-10-25T19:52:29Z",
+  "name": "Сайт-визитка",
+  "slug": "server1",
+  "maintenance": true,
+  "mode": "maintenance",
+  "title": "🇸🇪 2. Стокгольм,🇸🇪 1. Стокгольм,🇷🇺 Москва — Плановое обновление инфраструктуры",
+  "labels": [
+   "maintenance"
+  ],
+  "desc": ""
+ },
+ {
+  "issue_number": 174,
+  "opened": "2026-10-25T19:52:29Z",
+  "name": "Служба поддержки",
+  "slug": "server6",
+  "maintenance": true,
+  "mode": "maintenance",
+  "title": "🇸🇪 2. Стокгольм,🇸🇪 1. Стокгольм,🇷🇺 Москва — Плановое обновление инфраструктуры",
+  "labels": [
+   "maintenance"
+  ],
+  "desc": ""
  }
 ]
