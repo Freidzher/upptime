@@ -67,34 +67,57 @@
     return h;
   }
 
-  // Наведение: ищем ближайшую точку и показываем подсказку у курсора
+  // Наведение/свайп: точка выбирается по горизонтали (у каждого x она одна),
+  // вертикаль не важна — «окошко состояния» не теряется при движении вверх/вниз.
+  // На телефоне подсказка привязана к самой точке (палец её не закрывает).
   function attachChartTip(chart, pts) {
     const canvas = chart.canvas;
     const tip = ensureChartTip();
-    canvas.addEventListener('mousemove', (ev) => {
+    const card = tip.parentElement;
+
+    function showAt(clientX) {
       const meta = chart.getDatasetMeta(0);
-      if (!meta || !meta.data) return;
+      if (!meta || !meta.data || !meta.data.length) { tip.style.display = 'none'; return; }
       const rect = canvas.getBoundingClientRect();
-      const mx = ev.clientX - rect.left;
-      const my = ev.clientY - rect.top;
-      let best = -1;
-      let bestD = 26; // радиус захвата, px
+      const mx = clientX - rect.left;
+      if (mx < 0 || mx > rect.width) { tip.style.display = 'none'; return; }
+      let best = 0;
+      let bestDx = Infinity;
       meta.data.forEach((el, i) => {
-        const d = Math.hypot(el.x - mx, el.y - my);
-        if (d < bestD) { bestD = d; best = i; }
+        const dx = Math.abs(el.x - mx);
+        if (dx < bestDx) { bestDx = dx; best = i; }
       });
-      if (best < 0 || !pts[best]) { tip.style.display = 'none'; return; }
-      tip.innerHTML = tipHtml(pts[best]);
+      const p = pts[best];
+      if (!p) { tip.style.display = 'none'; return; }
+      tip.innerHTML = tipHtml(p);
       tip.style.display = '';
-      const card = tip.parentElement.getBoundingClientRect();
-      let x = ev.clientX - card.left + 14;
-      let y = ev.clientY - card.top + 14;
-      if (x + tip.offsetWidth > card.width - 8) x = ev.clientX - card.left - tip.offsetWidth - 14;
-      if (y + tip.offsetHeight > card.height - 8) y = card.height - tip.offsetHeight - 8;
-      tip.style.left = Math.max(8, x) + 'px';
-      tip.style.top = Math.max(8, y) + 'px';
-    });
-    canvas.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
+      const el = meta.data[best];
+      const cardRect = card.getBoundingClientRect();
+      const px = rect.left - cardRect.left + el.x;
+      const py = rect.top - cardRect.top + el.y;
+      let x = px - tip.offsetWidth / 2;
+      let y = py - tip.offsetHeight - 12;
+      if (y < 6) y = py + 14; // не влезло над точкой — показываем под ней
+      x = Math.max(6, Math.min(x, cardRect.width - tip.offsetWidth - 6));
+      y = Math.max(6, Math.min(y, cardRect.height - tip.offsetHeight - 6));
+      tip.style.left = x + 'px';
+      tip.style.top = y + 'px';
+    }
+
+    const hide = () => { tip.style.display = 'none'; };
+
+    canvas.addEventListener('mousemove', (ev) => showAt(ev.clientX));
+    canvas.addEventListener('mouseleave', hide);
+    // Телефон: ведём пальцем влево-вправо — подсказка следует по точкам.
+    // touch-action: pan-y (CSS) оставляет вертикальный скролл страницы рабочим.
+    canvas.addEventListener('touchstart', (ev) => {
+      if (ev.touches && ev.touches.length) showAt(ev.touches[0].clientX);
+    }, { passive: true });
+    canvas.addEventListener('touchmove', (ev) => {
+      if (ev.touches && ev.touches.length) showAt(ev.touches[0].clientX);
+    }, { passive: true });
+    canvas.addEventListener('touchend', hide);
+    canvas.addEventListener('touchcancel', hide);
   }
 
   function renderChart(entries) {

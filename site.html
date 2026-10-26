@@ -42,6 +42,8 @@
     .chart-tip .ct-dot { width: 7px; height: 7px; border-radius: 50%; display: block; }
     .chart-tip .ct-txt { color: var(--text); white-space: nowrap; }
     .chart-title { font-weight: 700; margin-bottom: 14px; font-size: 1rem; }
+    /* График: горизонтальный свайп — подсказке, вертикальный — скроллу страницы */
+    #chart { touch-action: pan-y; }
     .tabs { display: flex; gap: 6px; margin-bottom: 14px; }
     .tabs button {
       background: transparent; border: 1px solid var(--border); color: var(--muted);
@@ -89,6 +91,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
   <script src="assets/js/common.js?v=28"></script>
-  <script src="assets/js/site.js?v=30"></script>
+  <script src="assets/js/site.js?v=31"></script>
 </body>
 </html>
