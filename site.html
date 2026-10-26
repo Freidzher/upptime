@@ -25,7 +25,22 @@
     .chart-card {
       background: var(--card); border: 1px solid var(--border); border-radius: 12px;
       padding: 20px; margin-bottom: 28px; backdrop-filter: blur(8px);
+      position: relative;
     }
+    /* Подсказка графика: тёмная панель, цветные подписи, ровные колонки */
+    .chart-tip {
+      position: absolute; z-index: 5; pointer-events: none;
+      background: rgba(4, 26, 12, 0.96); border: 1px solid var(--border);
+      border-radius: 10px; padding: 8px 12px; min-width: 120px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+      font-size: .8rem; line-height: 1.35;
+    }
+    .chart-tip .ct-time { color: var(--muted); font-size: .74rem; margin-bottom: 4px; }
+    .chart-tip .ct-row { display: flex; align-items: center; gap: 7px; }
+    .chart-tip .ct-ind { width: 8px; display: inline-flex; justify-content: center; flex: 0 0 8px; }
+    .chart-tip .ct-sq { width: 8px; height: 8px; border-radius: 2px; display: block; }
+    .chart-tip .ct-dot { width: 7px; height: 7px; border-radius: 50%; display: block; }
+    .chart-tip .ct-txt { color: var(--text); white-space: nowrap; }
     .chart-title { font-weight: 700; margin-bottom: 14px; font-size: 1rem; }
     .tabs { display: flex; gap: 6px; margin-bottom: 14px; }
     .tabs button {
@@ -74,6 +89,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
   <script src="assets/js/common.js?v=28"></script>
-  <script src="assets/js/site.js?v=28"></script>
+  <script src="assets/js/site.js?v=30"></script>
 </body>
 </html>

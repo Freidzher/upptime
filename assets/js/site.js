@@ -7,7 +7,7 @@
   const pastEl = document.getElementById('past');
   const pastPagerEl = document.getElementById('pastPager');
   const tabs = document.getElementById('rangeTabs');
-  const { EMOJI_RE, setFooterYear, fetchJson, renderPager, groupByIssue, renderEventGroup } = window.Runicore;
+  const { EMOJI_RE, setFooterYear, fetchJson, renderPager, groupByIssue, renderEventGroup, esc } = window.Runicore;
 
   setFooterYear();
 
@@ -29,6 +29,72 @@
     if (p.maint) return '#f1c40f';
     if (p.rkn) return '#37b6ff';
     return p.ok ? '#2ecc71' : '#ff4f6d';
+  }
+
+  // ---------- HTML-тултип графика (цветные подписи, ровные колонки) ----------
+  let chartTip = null;
+  function ensureChartTip() {
+    if (chartTip) return chartTip;
+    const card = document.querySelector('.chart-card');
+    chartTip = document.createElement('div');
+    chartTip.className = 'chart-tip';
+    chartTip.style.display = 'none';
+    if (card) card.appendChild(chartTip);
+    return chartTip;
+  }
+
+  // Разметка подсказки: время, пинг (квадрат статуса), режим события (если есть),
+  // фактический статус. Индикаторы в фиксированной колонке — тексты выровнены.
+  function tipHtml(p) {
+    const ok = !!p.ok;
+    const stColor = ok ? '#2ecc71' : '#ff4f6d';
+    const modes = [];
+    if (p.maint) modes.push(['Техработы', '#f1c40f']);
+    if (p.rkn) modes.push(['Ограничено РКН', '#37b6ff']);
+    if (p.annulled) modes.push(['Аннулировано', '#8a9b8f']);
+    const time = new Date(p.ts).toLocaleString('ru-RU', {
+      timeZone: 'Europe/Moscow', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit',
+    });
+    let h = '<div class="ct-time">' + esc(time) + '</div>';
+    h += '<div class="ct-row"><span class="ct-ind"><span class="ct-sq" style="background:' + stColor + '"></span></span>' +
+         '<span class="ct-txt">' + esc(String(p.ms || 0)) + ' мс</span></div>';
+    for (const [label, color] of modes) {
+      h += '<div class="ct-row"><span class="ct-ind"><span class="ct-dot" style="background:' + color + '"></span></span>' +
+           '<span class="ct-txt" style="color:' + color + '">' + esc(label) + '</span></div>';
+    }
+    h += '<div class="ct-row"><span class="ct-ind"><span class="ct-dot" style="background:' + stColor + '"></span></span>' +
+         '<span class="ct-txt" style="color:' + stColor + '">' + (ok ? 'Работает' : 'Сбой') + '</span></div>';
+    return h;
+  }
+
+  // Наведение: ищем ближайшую точку и показываем подсказку у курсора
+  function attachChartTip(chart, pts) {
+    const canvas = chart.canvas;
+    const tip = ensureChartTip();
+    canvas.addEventListener('mousemove', (ev) => {
+      const meta = chart.getDatasetMeta(0);
+      if (!meta || !meta.data) return;
+      const rect = canvas.getBoundingClientRect();
+      const mx = ev.clientX - rect.left;
+      const my = ev.clientY - rect.top;
+      let best = -1;
+      let bestD = 26; // радиус захвата, px
+      meta.data.forEach((el, i) => {
+        const d = Math.hypot(el.x - mx, el.y - my);
+        if (d < bestD) { bestD = d; best = i; }
+      });
+      if (best < 0 || !pts[best]) { tip.style.display = 'none'; return; }
+      tip.innerHTML = tipHtml(pts[best]);
+      tip.style.display = '';
+      const card = tip.parentElement.getBoundingClientRect();
+      let x = ev.clientX - card.left + 14;
+      let y = ev.clientY - card.top + 14;
+      if (x + tip.offsetWidth > card.width - 8) x = ev.clientX - card.left - tip.offsetWidth - 14;
+      if (y + tip.offsetHeight > card.height - 8) y = card.height - tip.offsetHeight - 8;
+      tip.style.left = Math.max(8, x) + 'px';
+      tip.style.top = Math.max(8, y) + 'px';
+    });
+    canvas.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
   }
 
   function renderChart(entries) {
@@ -69,13 +135,19 @@
         }],
       },
       options: {
-        plugins: { legend: { display: false } },
+        plugins: {
+          legend: { display: false },
+          // Встроенный тултип отключён: подсказку рисуем HTML-элементом (.chart-tip),
+          // чтобы подписи были цветными и выровненными по колонкам
+          tooltip: { enabled: false },
+        },
         scales: {
           x: { ticks: { color: 'rgba(255,255,255,0.4)', maxTicksLimit: 8 }, grid: { display: false } },
           y: { ticks: { color: 'rgba(255,255,255,0.4)' }, grid: { color: 'rgba(46, 204, 113, 0.08)' }, beginAtZero: true },
         },
       },
     });
+    attachChartTip(chart, pts);
   }
 
   async function load() {
